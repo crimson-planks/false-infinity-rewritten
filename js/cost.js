@@ -18,6 +18,28 @@ const autobuyerCurrencyList = {
     matter: ["matter","matter","matter"],
     deflation: ["deflator"]
 }
+const autobuyerIntervalCurrencyList = {
+    matter: ["matter","matter","matter"],
+    deflation: ["deflator"]
+}
+const upgradeCurrencyList = {
+    overflow: ["overflowPoint","overflowPoint"]
+}
+const upgradeDefaultCostList = {
+    overflow: [new Decimal(1), new Decimal(1)]
+}
+const upgradeDefaultCostIncreaseList = {
+    overflow: [new Decimal(10), new Decimal(8)]
+}
+const upgradeLimitList = {
+    overflow: [new Decimal(3), new Decimal(3)]
+}
+
+const currencyAbbreviationList = {
+    matter: "MT",
+    deflator: "DF",
+    overflowPoint: "OP"
+}
 function getCurrency(currencyType){
     //console.log("get: "+currencyType);
     switch(currencyType){
@@ -25,6 +47,8 @@ function getCurrency(currencyType){
             return game.matter;
         case "deflator":
             return game.deflator;
+        case "overflowPoint":
+            return game.overflowPoint;
     }
 }
 function setCurrency(currencyType, v){
@@ -34,6 +58,9 @@ function setCurrency(currencyType, v){
             return;
         case "deflator":
             game.deflator = v;
+            return;
+        case "overflowPoint":
+            game.overflowPoint = v;
             return;
     }
 }
@@ -60,7 +87,7 @@ function getAutobuyerIntervalCost(type, ord){
     );
 }
 function getTotalAutobuyerIntervalCost(type, ord, amount){
-    return exponentialCost.GetTotalCost(getAutobuyerIntervalCost(type, ord),autobuyerDefaultIntervalCostIncreaseList[type][ord],amount)
+    return exponentialCost.GetTotalCost(getAutobuyerIntervalCost(type, ord),autobuyerDefaultIntervalCostIncreaseList[type][ord],amount);
 }
 function canBuyAutobuyer(type,ord,buyAmount){
     return getTotalAutobuyerCost(type,ord,buyAmount).lte(getCurrency(autobuyerCurrencyList[type][ord]))
@@ -76,7 +103,29 @@ function canBuyInterval(type,ord,buyAmount){
 }
 function buyInterval(type, ord, buyAmount){
     if(!canBuyInterval(type,ord,buyAmount)) return;
-    setCurrency(autobuyerCurrencyList[type][ord],
-        getCurrency(autobuyerCurrencyList[type][ord]).sub(getTotalAutobuyerIntervalCost(type,ord,buyAmount)));
+    setCurrency(autobuyerIntervalCurrencyList[type][ord],
+        getCurrency(autobuyerIntervalCurrencyList[type][ord]).sub(getTotalAutobuyerIntervalCost(type,ord,buyAmount)));
     game.autobuyers[type][ord].intervalAmount = game.autobuyers[type][ord].intervalAmount.add(buyAmount);
+}
+function getUpgradeCost(type, ord){
+    return exponentialCost.GetIncreasedCost(upgradeDefaultCostList[type][ord],
+        upgradeDefaultCostIncreaseList[type][ord],
+        game.upgrades[type][ord]
+    );
+}
+function getTotalUpgradeCost(type, ord, amount){
+    return exponentialCost.GetTotalCost(getUpgradeCost(type, ord),upgradeDefaultCostIncreaseList[type][ord],amount);
+}
+function getUpgradeCostIncrease(type, ord){
+    return upgradeDefaultCostIncreaseList[type][ord];
+}
+function canBuyUpgrade(type,ord,buyAmount){
+    return (game.upgrades[type][ord].amount.add(buyAmount).lte(upgradeLimitList[type][ord]))
+    &&(getTotalUpgradeCost(type,ord,buyAmount).lte(getCurrency(upgradeCurrencyList[type][ord])));
+}
+function buyUpgrade(type, ord,buyAmount){
+    if(!canBuyUpgrade(type,ord,buyAmount)) return;
+    setCurrency(upgradeCurrencyList[type][ord],
+        getCurrency(upgradeCurrencyList[type][ord]).sub(getTotalUpgradeCost(type,ord,buyAmount)));
+    game.upgrades[type][ord].amount = game.upgrades[type][ord].amount.add(buyAmount);
 }

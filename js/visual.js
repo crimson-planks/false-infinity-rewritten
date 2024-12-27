@@ -15,8 +15,10 @@ const App = createApp({
             potentialDeflators: "",
             deflator: "",
             translatedDeflationPower: "",
+            translatedDeflationPowerMultiplier: "",
             canDeflate: false,
             changeDeflationTextCondition: false,
+            requiredDeflationPowerOnDeflationSacrifice: "",
             isOverflow: false,
             overflowPoint: "",
             autobuyers: {
@@ -57,8 +59,10 @@ const App = createApp({
             this.deflationPower = notations[game.notation].format(game.deflationPower);
             this.clickDeflationPowerGain = notations[game.notation].format(GetClickDeflationPowerGain());
             this.potentialDeflators = notations[game.notation].format(getPotentialDeflatorsOnDeflation(1));
+            this.requiredDeflationPowerOnDeflationSacrifice = notations[game.notation].format(getRequiredDeflationPowerOnDeflationSacrifice());
             this.deflator = notations[game.notation].format(game.deflator);
             this.translatedDeflationPower = notations[game.notation].format(GetTranslatedDeflationPower());
+            this.translatedDeflationPowerMultiplier = notations[game.notation].format(Decimal.pow(2,game.deflation));
             this.canDeflate = canDeflate(1);
             this.changeDeflationTextCondition = game.deflation.add(1).gt(4);
             this.isOverflow = game.isOverflow;
@@ -106,6 +110,10 @@ const App = createApp({
         },
         ClickDeflationPowerButton(){
             game.deflationPower = game.deflationPower.add(GetClickDeflationPowerGain());
+            this.UpdateScreen();
+        },
+        ClickDeflationSacrificeButton(){
+            deflationSacrifice();
             this.UpdateScreen();
         },
         overflow(){

@@ -1,5 +1,5 @@
 const notations = {
-    "default": new EternalNotations.DefaultNotation()
+    "default": EternalNotations.Presets.Default
 }
 const messages = {
     shouldUpdateScreen: false
@@ -17,6 +17,16 @@ function GetActivateTimes_Autobuyer(autobuyer,time_ms){
     let q = resultTimer.div(autobuyer.interval).floor();
     autobuyer.timer = resultTimer.minus(q.mul(autobuyer.interval));
     return q;
+}
+function autobuyerIsVisible(type, ord){
+    if(type==='matter'){
+        return true;
+    }
+    if(type==='deflation'){
+        if(ord===0) return true;
+        if(ord===1) return false;
+    }
+    return true;
 }
 const linearCost={
     GetBuyAmount(currentCost,costIncrease,currency){
@@ -55,11 +65,11 @@ function GetClickMatterGain(){
     return new Decimal(1);
 }
 function GetClickDeflationPowerGain(){
-    return game.deflation;
+    return new Decimal(1);
 }
 
 function GetTranslatedDeflationPower(){
-    return game.deflationPower.pow(0.5);
+    return game.deflationPower.pow(1/4).mul(Decimal.pow(2,game.deflation));
 }
 let translatedDeflationPower = GetTranslatedDeflationPower();
 

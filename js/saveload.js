@@ -9,6 +9,9 @@ function getDefaultGame(){
         createdTime: Date.now(),
         currentTime: null,
         previousTime: null,
+        statistics: {
+            totalMatter: new Decimal()
+        },
         autobuyers: {
             matter: [
                 {
@@ -36,9 +39,17 @@ function getDefaultGame(){
                 }
             ]
         },
+        upgrades: {
+            overflow: [
+                {
+                    amount: new Decimal()
+                }
+            ]
+        },
         deflation: new Decimal(),
         deflator: new Decimal(),
         deflationPower: new Decimal(),
+        sacrificedDeflationPower: new Decimal(),
         isOverflow: false,
         overflowPoint: new Decimal(),
     }
@@ -47,19 +58,25 @@ const defaultGame = getDefaultGame();
 function FillMissingValues(game){
     const defaultGame = getDefaultGame();
     if(game.autobuyers===undefined) game.autobuyers = defaultGame.autobuyers;
-    if(game.autobuyers.matter===undefined) game.autobuyers.matter = defaultGame.autobuyers;
+    if(game.autobuyers.matter===undefined) game.autobuyers.matter = defaultGame.autobuyers.matter;
     if(game.autobuyers.deflation===undefined) game.autobuyers.deflation = defaultGame.autobuyers.deflation;
     for(type in game.autobuyers){
         for(i in game.autobuyers[type]){
             if(game.autobuyers[type][i].isActive===undefined) game.autobuyers[type][i].isActive=true;
         }
     }
+    if(game.upgrades===undefined) game.upgrades = defaultGame.upgrades;
+    if(game.upgrades.overflow===undefined) game.upgrades = defaultGame.upgrades.overflow;
+
+    if(game.statistics===undefined) game.statistics=defaultGame.statistics;
+
     if(game.notation===undefined) game.notation="default";
     if(game.matter===undefined) game.matter=new Decimal();
     if(game.deflation===undefined) game.deflation=new Decimal();
 
     if(game.isOverflow===undefined) game.isOverflow=false;
     if(game.deflationPower===undefined) game.deflationPower=new Decimal();
+    if(game.sacrificedDeflationPower===undefined) game.sacrificedDeflationPower=new Decimal();
     if(game.deflator===undefined) game.deflator=new Decimal();
     if(game.bestMatter===undefined) game.bestMatter=defaultGame.bestMatter;
     if(game.bestMatter.all===undefined) game.bestMatter.all=defaultGame.bestMatter.all;
