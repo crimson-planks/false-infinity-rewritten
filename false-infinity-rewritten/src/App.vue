@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import Decimal from './break_eternity.mjs'
-const number = ref(new Decimal('1e100'))
+import Autobuyer from './components/Autobuyer.vue';
+import { ui, input } from './ui';
+
 </script>
 <template>
   <header></header>
 
   <main>
-    {{ number }}
+    {{ ui.matter }}
+    <button @click="input('ClickMatterButton',[])">Click to get matter</button>
+    <Autobuyer :data="ui.autobuyers.matter[0]" />
   </main>
 </template>
 
-<style scoped></style>
+<style></style>
