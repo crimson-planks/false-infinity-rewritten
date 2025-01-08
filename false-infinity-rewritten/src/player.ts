@@ -1,10 +1,9 @@
 import Decimal from '@/lib/break_eternity.js';
-import { ref, type Ref } from 'vue';
 import { AutobuyerKind, type AutobuyerData } from '@/autobuyer';
-import { LinearCostScaling } from './cost';
 export interface Player {
   currentTime: number;
   matter: Decimal;
+  deflation: Decimal;
   autobuyers: {
     matter: AutobuyerData[];
   };
@@ -14,6 +13,7 @@ export function getDefaultPlayer(): Player {
   return {
     currentTime: 0,
     matter: new Decimal(),
+    deflation: new Decimal(),
     autobuyers: {
       matter: [
         {
@@ -22,10 +22,15 @@ export function getDefaultPlayer(): Player {
           amount: new Decimal(0),
           timer: new Decimal(0),
           interval: new Decimal(1),
-          costScaling: new LinearCostScaling({
-            baseCost: new Decimal(10),
-            baseIncrease: new Decimal(5)
-          })
+          intervalAmount: Decimal.dZero
+        },
+        {
+          kind: AutobuyerKind.Matter,
+          ord: 1,
+          amount: new Decimal(0),
+          timer: new Decimal(0),
+          interval: new Decimal(2),
+          intervalAmount: Decimal.dZero
         }
       ]
     }
