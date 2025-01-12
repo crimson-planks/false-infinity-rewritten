@@ -3,7 +3,7 @@ import Decimal from '@/lib/break_eternity';
 import { ExponentialCostScaling, LinearCostScaling } from './cost';
 import { player } from './player';
 import { CurrencyKind, getCurrency, setCurrency } from './currency';
-export const autobuyerCostScaling = {
+export const initialAutobuyerCostScaling = {
   matter: [
     new LinearCostScaling({
       baseCost: new Decimal(10),
@@ -15,7 +15,10 @@ export const autobuyerCostScaling = {
     })
   ]
 };
-export const intervalCostScaling = {
+export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number){
+  return initialAutobuyerCostScaling.matter[ord];
+}
+export const initialIntervalCostScaling = {
   matter: [
     new ExponentialCostScaling({
       baseCost: new Decimal(100),
@@ -27,6 +30,9 @@ export const intervalCostScaling = {
     })
   ]
 };
+export function getIntervalCostScaling(kind: AutobuyerKind, ord: number){
+  return initialIntervalCostScaling.matter[ord];
+}
 export const autobuyerCurrency = {
   matter: [CurrencyKind.Matter, CurrencyKind.Matter]
 };
@@ -51,7 +57,7 @@ export interface AutobuyerData {
 }
 export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
   const currency = autobuyerCurrency[kind][ord];
-  const cost = autobuyerCostScaling[kind][ord].getTotalCostAfterPurchase(
+  const cost = getAutobuyerCostScaling(kind,ord).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].amount,
     buyAmount
   );
@@ -61,7 +67,7 @@ export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decima
 }
 export function BuyInterval(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
   const currency = autobuyerCurrency[kind][ord];
-  const cost = intervalCostScaling[kind][ord].getTotalCostAfterPurchase(
+  const cost = getIntervalCostScaling(kind,ord).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].intervalAmount,
     buyAmount
   );
@@ -87,7 +93,7 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
         kind,
         ord - 1,
         activationAmount.mul(player.autobuyers[kind][ord].amount).min(
-          autobuyerCostScaling[kind][ord - 1]
+          getAutobuyerCostScaling(kind,ord - 1)
             .getAvailablePurchases(player.autobuyers[kind][ord - 1].amount, player.matter)
             .max(0)
             .floor()
