@@ -6,5 +6,10 @@ function ClickDeflationButton(){
 }
 </script>
 <template>
-  <button @click="ClickDeflationButton">Deflate<br/>Cost: {{ deflationCost }}</button>
+  <button class="o-prestige-button c-deflation-button" @click="ClickDeflationButton">Deflate<br/>Cost: {{ deflationCost }}</button>
 </template>
+<style>
+.c-deflation-button{
+  background-color: #222222;
+}
+</style>

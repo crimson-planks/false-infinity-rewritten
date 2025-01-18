@@ -3,20 +3,26 @@ import Decimal from '@/lib/break_eternity';
 import { ExponentialCostScaling, LinearCostScaling } from './cost';
 import { player } from './player';
 import { CurrencyKind, getCurrency, setCurrency } from './currency';
+import { gameCache } from './cache';
 export const initialAutobuyerCostScaling = {
   matter: [
     new LinearCostScaling({
       baseCost: new Decimal(10),
-      baseIncrease: new Decimal(5)
+      increase: new Decimal(5)
     }),
     new LinearCostScaling({
       baseCost: new Decimal(500),
-      baseIncrease: new Decimal(100)
+      increase: new Decimal(100)
     })
   ]
 };
-export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number){
-  return initialAutobuyerCostScaling.matter[ord];
+export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number) {
+  return new LinearCostScaling({
+    baseCost: initialAutobuyerCostScaling[kind][ord].baseCost.sub(
+      gameCache.translatedDeflationPower.cachedValue
+    ),
+    increase: initialAutobuyerCostScaling[kind][ord].increase.sub(player.deflation.min(4))
+  });
 }
 export const initialIntervalCostScaling = {
   matter: [
@@ -30,8 +36,8 @@ export const initialIntervalCostScaling = {
     })
   ]
 };
-export function getIntervalCostScaling(kind: AutobuyerKind, ord: number){
-  return initialIntervalCostScaling.matter[ord];
+export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
+  return initialIntervalCostScaling[kind][ord];
 }
 export const autobuyerCurrency = {
   matter: [CurrencyKind.Matter, CurrencyKind.Matter]
@@ -57,7 +63,7 @@ export interface AutobuyerData {
 }
 export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
   const currency = autobuyerCurrency[kind][ord];
-  const cost = getAutobuyerCostScaling(kind,ord).getTotalCostAfterPurchase(
+  const cost = getAutobuyerCostScaling(kind, ord).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].amount,
     buyAmount
   );
@@ -67,7 +73,7 @@ export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decima
 }
 export function BuyInterval(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
   const currency = autobuyerCurrency[kind][ord];
-  const cost = getIntervalCostScaling(kind,ord).getTotalCostAfterPurchase(
+  const cost = getIntervalCostScaling(kind, ord).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].intervalAmount,
     buyAmount
   );
@@ -93,7 +99,7 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
         kind,
         ord - 1,
         activationAmount.mul(player.autobuyers[kind][ord].amount).min(
-          getAutobuyerCostScaling(kind,ord - 1)
+          getAutobuyerCostScaling(kind, ord - 1)
             .getAvailablePurchases(player.autobuyers[kind][ord - 1].amount, player.matter)
             .max(0)
             .floor()

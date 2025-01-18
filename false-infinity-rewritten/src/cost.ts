@@ -1,15 +1,19 @@
-import type Decimal from './lib/break_eternity';
+import { createBuilderStatusReporter } from 'typescript';
+import Decimal from './lib/break_eternity';
 /** costs that scales linearly. f(n) = b + an
  */
 export class LinearCostScaling {
   baseCost: Decimal;
-  baseIncrease: Decimal;
-  constructor(param: { baseCost: Decimal; baseIncrease: Decimal }) {
+  increase: Decimal;
+  constructor(param: { baseCost: Decimal; increase: Decimal }) {
     this.baseCost = param.baseCost;
-    this.baseIncrease = param.baseIncrease;
+    this.increase = param.increase;
+  }
+  toObject(){
+    return {baseCost: this.baseCost, increase: this.increase}
   }
   getCurrentCost(currentAmount: Decimal): Decimal {
-    return this.baseCost.add(this.baseIncrease.mul(currentAmount));
+    return this.baseCost.add(this.increase.mul(currentAmount));
   }
   /** How much does it cost when I buy buyAmount?*/
   getTotalCostAfterPurchase(currentAmount: Decimal, buyAmount: Decimal): Decimal {
@@ -18,18 +22,23 @@ export class LinearCostScaling {
       .mul(
         this.getCurrentCost(currentAmount)
           .mul(2)
-          .add(this.baseIncrease.mul(buyAmount.sub(1)))
+          .add(this.increase.mul(buyAmount.sub(1)))
       )
       .div(2);
   }
   /** How many can I buy with money? (not rounded) */
   getAvailablePurchases(currentAmount: Decimal, money: Decimal): Decimal {
-    const a = this.baseIncrease;
-    const b = currentAmount.mul(2).sub(this.baseIncrease);
-    const c = money.mul(-2);
+    if(this.increase.eq(0)) return money.div(this.baseCost);
+    const currentCost = this.getCurrentCost(currentAmount);
+    if(this.increase.lt(0)&&currentCost.lt(0)) return Decimal.dInf;
+    const a = this.increase.div(2);
+    const b = currentCost.mul(2).sub(this.increase).div(2);
+    const c = money.neg();
+    const det = b.sqr().sub(a.mul(c).mul(4));
+    if(det.lt(0)) return Decimal.dInf;
     return b
       .neg()
-      .add(b.sqr().add(a.mul(c).mul(4)).sqrt())
+      .add(det.sqrt())
       .div(a.mul(2));
   }
 }
@@ -54,5 +63,5 @@ export class ExponentialCostScaling {
 }
 /** for cost scaling fast enough such that f(n+1)/f(n)>MAX_SAFE_INTEGER for all n>=0*/
 export class CostScalingThatIsVeryFast {
-  
+
 }

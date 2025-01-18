@@ -4,6 +4,7 @@ export interface Player {
   currentTime: number;
   matter: Decimal;
   deflation: Decimal;
+  deflationPower: Decimal;
   autobuyers: {
     matter: AutobuyerData[];
   };
@@ -14,6 +15,7 @@ export function getDefaultPlayer(): Player {
     currentTime: 0,
     matter: new Decimal(),
     deflation: new Decimal(),
+    deflationPower: new Decimal(),
     autobuyers: {
       matter: [
         {
