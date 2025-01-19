@@ -32,4 +32,21 @@ import { ui, input } from './ui';
 *{
   font-family: 'Courier New', Courier, monospace;
 }
+.can-buy-button{
+    border: solid #42b153 5px;
+    background-color: #6ad47a;
+    cursor: pointer;
+
+}
+.can-buy-button:hover{
+    background-color: #42b153;
+}
+.cannot-buy-button{
+    border: solid #9e9e9e 5px;
+    background-color: #afafaf;
+    cursor: not-allowed;
+}
+.cannot-buy-button:hover{
+    background-color: #9e9e9e;
+}
 </style>

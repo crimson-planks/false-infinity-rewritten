@@ -12,18 +12,28 @@ function ClickBuyIntervalButton(){
 }
 </script>
 <template>
-  <div class="autobuyer">
-    Amount: {{ props.data.amount }}<br />
-    <button @click="ClickBuyAutobuyerButton">Cost: {{ props.data.cost }}</button><br />
-    Interval: {{ props.data.interval }}<br />
-    <button @click="ClickBuyIntervalButton">Interval Cost: {{ props.data.intervalCost }}</button><br />
-    Timer: {{ props.data.timer }}
+  <div class="c-autobuyer">
+    <span class="c-autobuyer-name">{{ props.data.name }}</span>
+    <span class="c-autobuyer-text">Amount: {{ props.data.amount }}</span>
+    <span class="c-autobuyer-text" @click="ClickBuyAutobuyerButton">Cost: {{ props.data.cost }}</span>
+    <span class="c-autobuyer-text">Interval: {{ props.data.interval }}</span>
+    <span class="c-autobuyer-text" @click="ClickBuyIntervalButton">Interval Cost: {{ props.data.intervalCost }}</span>
+    <span class="c-autobuyer-text">Timer: {{ props.data.timer }}</span>
   </div>
 </template>
 <style>
-.autobuyer{
-  min-width: 100px;
-  width: max-content;
+.c-autobuyer-name{
+  text-align: center;
+}
+.c-autobuyer{
+  min-width: 250px;
+  width: fit-content;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  justify-items: stretch;
+}
+.c-autobuyer-text{
+  height: 1em;
   border: 1px solid black;
 }
 </style>

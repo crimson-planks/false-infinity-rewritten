@@ -5,7 +5,7 @@ import { createApp } from 'vue';
 import Decimal from './lib/break_eternity';
 import App from './App.vue';
 import { AutobuyerKind, AutobuyerTick, getAutobuyerCostScaling } from './autobuyer';
-import { player, type Player } from './player';
+import { player } from './player';
 import { updateScreen,ui } from './ui';
 import { gameCache } from './cache';
 declare global{

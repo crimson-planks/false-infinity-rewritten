@@ -7,6 +7,7 @@ import { gameCache } from "./cache";
 export interface AutobuyerVisualData{
   kind: AutobuyerKind;
   ord: number;
+  name: string;
   amount: string;
   timer: string;
   interval: string;
@@ -24,6 +25,7 @@ export const ui = ref({
     matter: Array(player.autobuyers.matter.length).fill(0).map(()=>{return {
       kind: AutobuyerKind.Matter,
       ord: 0,
+      name: "Autobuyer Name",
       amount: "0",
       timer: "0",
       interval: "",
