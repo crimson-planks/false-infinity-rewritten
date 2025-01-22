@@ -8,18 +8,23 @@ import { AutobuyerKind, AutobuyerTick, getAutobuyerCostScaling } from './autobuy
 import { player } from './player';
 import { updateScreen,ui } from './ui';
 import { gameCache } from './cache';
+import { toStringifiableObject, toUsableObject } from './saveload';
 declare global{
   interface Window{
     Decimal: typeof Decimal
     player: typeof player
     getAutobuyerCostScaling: typeof getAutobuyerCostScaling
     ui: typeof ui
+    toStringifiableObject: typeof toStringifiableObject
+    toUsableObject: typeof toUsableObject
   }
 }
 window.Decimal = Decimal;
 window.player = player;
 window.getAutobuyerCostScaling = getAutobuyerCostScaling;
 window.ui = ui;
+window.toStringifiableObject = toStringifiableObject;
+window.toUsableObject = toUsableObject;
 
 const app = createApp(App);
 app.mount('#app');
