@@ -9,3 +9,6 @@ function ChangeSubtab(subtab: SubtabName){
 <template>
   <button @click="ChangeSubtab(props.subtab)">{{ props.subtab }}</button>
 </template>
+<style>
+
+</style>

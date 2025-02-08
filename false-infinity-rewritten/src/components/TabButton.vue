@@ -7,10 +7,11 @@ function ChangeTab(tab: TabName){
 }
 </script>
 <template>
-  <h2 class="o-tab-button" @click="ChangeTab(props.tab)">{{ props.tab }}</h2>
+  <span class="o-tab-button" @click="ChangeTab(props.tab)">{{ props.tab }}</span>
 </template>
 <style>
 .o-tab-button{
   font-size: 20px;
+  margin-right: 30px;
 }
 </style>

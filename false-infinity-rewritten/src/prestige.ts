@@ -9,7 +9,9 @@ export const deflationCost = new ExponentialCostScaling({baseCost:new Decimal(10
 export function deflate(){
   if(player.matter.lt(deflationCost.getCurrentCost(player.deflation))) return;
   player.deflation = player.deflation.add(1);
+  player.deflator = player.deflator.add(player.deflation);
 
   resetAutobuyers();
   player.matter = Decimal.dZero;
+  player.deflationPower=Decimal.dZero;
 }

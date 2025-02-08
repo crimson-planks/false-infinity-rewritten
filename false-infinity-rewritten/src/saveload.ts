@@ -1,4 +1,5 @@
 import Decimal from "@/lib/break_eternity";
+import { getDefaultPlayer, player, setPlayer, type Player } from "./player";
 
 export type stringifiableObject= string | number | boolean | null | {
   _type: "NaN" | "Infinity" | "-Infinity" | "undefined"
@@ -54,6 +55,7 @@ export function toStringifiableObject(obj: unknown): stringifiableObject{
       //@ts-ignore: for some reason, unknown - undefined - null = {} according to TS, and not object.
       rslt[key] = toStringifiableObject(obj[key]);
     }
+    return rslt;
   }
   return {_type: "undefined"}
 }
@@ -83,4 +85,27 @@ export function toUsableObject(obj: stringifiableObject): unknown{
     return rslt;
   }
   return undefined;
+}
+export function save(){
+  localStorage.setItem("FalseInfinityRSave",JSON.stringify(toStringifiableObject(player)));
+}
+export function load(){
+  let storageStr = localStorage.getItem("FalseInfinityRSave")
+  if(storageStr === null) console.error("storage is nonexistant");
+  setPlayer(toUsableObject(JSON.parse(storageStr ?? "")) as Player);
+}
+export function mergeObj_nocopy(obj_to: {[key: string | number | symbol]: any}, obj_from: {[key: string | number | symbol]: any}): any{
+  const rslt: {[key: string]: unknown}=obj_to;
+  Object.keys(obj_from).forEach(key => {
+    if(rslt[key]===undefined || rslt[key]===null){
+      rslt[key]=obj_from[key];
+    }
+    else if(typeof obj_to[key]==="object" || typeof obj_from[key]==="object") rslt[key]=mergeObj_nocopy(obj_to[key],obj_from[key]);
+  });
+  return rslt;
+}
+/** adds missing properties*/
+export function fixSave(){
+  const defaultPlayer = getDefaultPlayer();
+  setPlayer(mergeObj_nocopy(player,defaultPlayer));
 }
