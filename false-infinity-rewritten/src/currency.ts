@@ -8,8 +8,10 @@ export function setCurrency(currency: CurrencyKind, v: Decimal) {
   switch (currency) {
     case CurrencyKind.Matter:
       player.matter = v;
+      break;
     case CurrencyKind.Deflator:
       player.deflator = v;
+      break;
   }
 }
 export function getCurrency(currency: CurrencyKind) {

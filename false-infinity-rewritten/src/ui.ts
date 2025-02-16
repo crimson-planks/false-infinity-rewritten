@@ -21,6 +21,15 @@ export interface AutobuyerVisualData{
 }
 export type TabName = "autobuyer" | "option"
 export type SubtabName = "matter" | "deflation"
+export const tabs={
+  autobuyer: {
+    matter: {},
+    deflation: {}
+  },
+  option: {
+    option: {}
+  }
+}
 export const ui = ref({
   tab: "autobuyer",
   subtab: "matter",
@@ -28,6 +37,19 @@ export const ui = ref({
   deflationCost: "",
   autobuyers: {
     matter: Array(player.autobuyers.matter.length).fill(0).map((v, i)=>{return {
+      kind: AutobuyerKind.Matter,
+      ord: i,
+      name: autobuyerName.matter[i],
+      amount: "0",
+      timer: "0",
+      toggle: 'true',
+      interval: "",
+      cost: "10",
+      intervalCost: "",
+      canBuy: false,
+      canBuyInterval: false,
+    }}),
+    deflationPower: Array(player.autobuyers.matter.length).fill(0).map((v, i)=>{return {
       kind: AutobuyerKind.Matter,
       ord: i,
       name: autobuyerName.matter[i],
@@ -51,18 +73,21 @@ export function updateScreen(){
   ui.value.deflationPower = formatValue(player.deflationPower, NotationName.Default);
   ui.value.translatedDeflationPower = formatValue(gameCache.translatedDeflationPower.cachedValue, NotationName.Default);
   ui.value.deflator = formatValue(player.deflator, NotationName.Default);
-  for(let i=0;i<player.autobuyers.matter.length;i++){
-    ui.value.autobuyers.matter[i].kind = player.autobuyers.matter[i].kind;
-    ui.value.autobuyers.matter[i].ord = player.autobuyers.matter[i].ord;
-    ui.value.autobuyers.matter[i].amount = formatValue(player.autobuyers.matter[i].amount, NotationName.Default);
-    ui.value.autobuyers.matter[i].timer = formatValue(player.autobuyers.matter[i].timer, NotationName.Default);
-    ui.value.autobuyers.matter[i].interval = formatValue(player.autobuyers.matter[i].interval, NotationName.Default);
-    ui.value.autobuyers.matter[i].toggle = player.autobuyers.matter[i].toggle.toString();
-    ui.value.autobuyers.matter[i].cost = formatValue(getAutobuyerCostScaling(AutobuyerKind.Matter,i).getCurrentCost(player.autobuyers.matter[i].amount), NotationName.Default);
-    ui.value.autobuyers.matter[i].intervalCost = formatValue(getIntervalCostScaling(AutobuyerKind.Matter,i).getCurrentCost(player.autobuyers.matter[i].intervalAmount), NotationName.Default);
-    ui.value.autobuyers.matter[i].canBuy = getAutobuyerCostScaling(AutobuyerKind.Matter,i).getCurrentCost(player.autobuyers.matter[i].amount).lte(getCurrency(autobuyerCurrency.matter[i]));
-    ui.value.autobuyers.matter[i].canBuyInterval = getIntervalCostScaling(AutobuyerKind.Matter,i).getCurrentCost(player.autobuyers.matter[i].intervalAmount).lte(getCurrency(autobuyerCurrency.matter[i]))
-  }
+  //@ts-ignore: this is a valid way of iterating through an Object
+  Object.keys(AutobuyerKind).forEach((ak: AutobuyerKind)=>{
+    for(let i=0;i<player.autobuyers[ak].length;i++){
+      ui.value.autobuyers[ak][i].kind = player.autobuyers[ak][i].kind;
+      ui.value.autobuyers[ak][i].ord = player.autobuyers[ak][i].ord;
+      ui.value.autobuyers[ak][i].amount = formatValue(player.autobuyers[ak][i].amount, NotationName.Default);
+      ui.value.autobuyers[ak][i].timer = formatValue(player.autobuyers[ak][i].timer, NotationName.Default);
+      ui.value.autobuyers[ak][i].interval = formatValue(player.autobuyers[ak][i].interval, NotationName.Default);
+      ui.value.autobuyers[ak][i].toggle = player.autobuyers[ak][i].toggle.toString();
+      ui.value.autobuyers[ak][i].cost = formatValue(getAutobuyerCostScaling(AutobuyerKind.Matter,i).getCurrentCost(player.autobuyers[ak][i].amount), NotationName.Default);
+      ui.value.autobuyers[ak][i].intervalCost = formatValue(getIntervalCostScaling(AutobuyerKind.Matter,i).getCurrentCost(player.autobuyers[ak][i].intervalAmount), NotationName.Default);
+      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(AutobuyerKind.Matter,i).getCurrentCost(player.autobuyers[ak][i].amount).lte(getCurrency(autobuyerCurrency[ak][i]));
+      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(AutobuyerKind.Matter,i).getCurrentCost(player.autobuyers[ak][i].intervalAmount).lte(getCurrency(autobuyerCurrency[ak][i]))
+    }
+  })
 }
 export function input(type: string,args: Array<string>){
   if(type==="ClickMatterButton") player.matter=player.matter.add(1);

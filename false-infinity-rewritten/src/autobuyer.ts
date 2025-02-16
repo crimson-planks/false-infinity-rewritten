@@ -63,7 +63,8 @@ export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
   return initialIntervalCostScaling[kind][ord];
 }
 export const autobuyerName = {
-  matter: ['Autoclicker', 'Autobuyer 1']
+  matter: ['Autoclicker', 'Autobuyer 1'],
+  deflationPower: ['Deflation Power Autoclicker']
 };
 export const autobuyerCurrency = {
   matter: [CurrencyKind.Matter, CurrencyKind.Matter, CurrencyKind.Matter],
@@ -140,6 +141,11 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
             .floor()
         )
       );
+    }
+  }
+  else if (kind===AutobuyerKind.DeflationPower) {
+    if(ord===0){
+      player.deflationPower = player.deflationPower.add(activationAmount.mul(player.autobuyers[kind][ord].amount));
     }
   }
 }

@@ -31,6 +31,7 @@ import { ui, input } from './ui';
         <button @click="input('ClickDeflationPowerButton',[])">Click to get deflation power</button>
         {{ ui.translatedDeflationPower }}<br>
         Deflator: {{ ui.deflator }}
+        <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
       </template>
     </template>
   <template v-show="ui.tab==='option'" style="display: block">
