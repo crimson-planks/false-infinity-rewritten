@@ -21,13 +21,32 @@ export interface AutobuyerVisualData{
 }
 export type TabName = "autobuyer" | "option"
 export type SubtabName = "matter" | "deflation"
-export const tabs={
+export const tabs: {
+  [key: TabName]: {
+    name: string,
+    subtab: {
+      
+    }
+  }
+}={
   autobuyer: {
-    matter: {},
-    deflation: {}
+    name: "Autobuyer",
+    subtab:{
+      matter: {
+        name: "Matter"
+      },
+      deflation: {
+        name: "Deflation"
+      }
+    }
   },
   option: {
-    option: {}
+    name: "Option",
+    subtab:{
+      option: {
+        name: "Option"
+      }
+    }
   }
 }
 export const ui = ref({
