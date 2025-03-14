@@ -1,6 +1,6 @@
 import './assets/main.css';
 
-import { createApp, devtools } from 'vue';
+import { createApp } from 'vue';
 
 import Decimal from './lib/break_eternity';
 import App from './App.vue';
@@ -51,8 +51,11 @@ setInterval(function(){
     console.log("game saved!")
   }
   gameCache.translatedDeflationPower.invalidate();
-  for(let i=0;i<player.autobuyers.matter.length;i++){
-    AutobuyerTick(AutobuyerKind.Matter, i, diff);
-  }
+  //@ts-ignore
+  Object.keys(player.autobuyers).forEach((key: AutobuyerKind)=>{
+    for(let i=0;i<player.autobuyers[key].length;i++){
+      AutobuyerTick(key, i, diff);
+    }
+  });
   updateScreen();
 }, 50);

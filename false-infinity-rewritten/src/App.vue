@@ -14,8 +14,8 @@ import { ui, input } from './ui';
   <main>
     <template v-show="ui.tab==='autobuyer'" style="display: block">
       <div>
-        <SubtabButton subtab="matter" />
-        <SubtabButton subtab="deflation" />
+        <SubtabButton tab="autobuyer" subtab="matter" />
+        <SubtabButton tab="autobuyer" subtab="deflation" />
       </div>
       Matter: {{ ui.matter }}
       <template v-show="ui.subtab==='matter'" style="display: block">
@@ -35,8 +35,8 @@ import { ui, input } from './ui';
       </template>
     </template>
   <template v-show="ui.tab==='option'" style="display: block">
-    <button>sa ve</button>
-    <button> l oad</button>
+    <button>save</button>
+    <button>load</button>
   </template>
   </main>
 </template>
