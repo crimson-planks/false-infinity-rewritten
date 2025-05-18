@@ -22,19 +22,20 @@ export const initialAutobuyerCostScaling = {
   ],
   deflationPower: [
     new LinearCostScaling({
-       baseCost: new Decimal(1),
-       increase: new Decimal(0)
+      baseCost: new Decimal(1),
+      increase: new Decimal(0)
     })
   ]
 };
 export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): LinearCostScaling {
-  if(kind===AutobuyerKind.Matter) return new LinearCostScaling({
-    baseCost: initialAutobuyerCostScaling[kind][ord].baseCost.sub(
-      gameCache.translatedDeflationPower.cachedValue
-    ),
-    increase: initialAutobuyerCostScaling[kind][ord].increase.sub(player.deflation.min(4))
-  });
-  if(kind===AutobuyerKind.DeflationPower) return initialAutobuyerCostScaling[kind][ord];
+  if (kind === AutobuyerKind.Matter)
+    return new LinearCostScaling({
+      baseCost: initialAutobuyerCostScaling[kind][ord].baseCost.sub(
+        gameCache.translatedDeflationPower.cachedValue
+      ),
+      increase: initialAutobuyerCostScaling[kind][ord].increase.sub(player.deflation.min(4))
+    });
+  if (kind === AutobuyerKind.DeflationPower) return initialAutobuyerCostScaling[kind][ord];
   else throw Error(`invalid AutobuyerKind: ${kind}`);
 }
 export const initialIntervalCostScaling = {
@@ -56,7 +57,7 @@ export const initialIntervalCostScaling = {
     new ExponentialCostScaling({
       baseCost: new Decimal(1),
       baseIncrease: new Decimal(2)
-    }),
+    })
   ]
 };
 export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
@@ -93,7 +94,7 @@ export interface AutobuyerData {
   intervalAmount: Decimal;
   toggle: boolean;
 }
-export function ToggleAutobuyer(kind: AutobuyerKind, ord: number){
+export function ToggleAutobuyer(kind: AutobuyerKind, ord: number) {
   player.autobuyers[kind][ord].toggle = !player.autobuyers[kind][ord].toggle;
 }
 export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
@@ -124,7 +125,7 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
   const totalTime = timeS.add(player.autobuyers[kind][ord].timer ?? Decimal.dZero);
   player.autobuyers[kind][ord].timer = totalTime.mod(player.autobuyers[kind][ord].interval, true);
   const activationAmount = totalTime.div(player.autobuyers[kind][ord].interval).floor();
-  if(!player.autobuyers[kind][ord].toggle) return;
+  if (!player.autobuyers[kind][ord].toggle) return;
   if (activationAmount.eq(0)) return;
   if (kind === AutobuyerKind.Matter) {
     if (ord === 0) {
@@ -142,10 +143,11 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
         )
       );
     }
-  }
-  else if (kind===AutobuyerKind.DeflationPower) {
-    if(ord===0){
-      player.deflationPower = player.deflationPower.add(activationAmount.mul(player.autobuyers[kind][ord].amount));
+  } else if (kind === AutobuyerKind.DeflationPower) {
+    if (ord === 0) {
+      player.deflationPower = player.deflationPower.add(
+        activationAmount.mul(player.autobuyers[kind][ord].amount)
+      );
     }
   }
 }

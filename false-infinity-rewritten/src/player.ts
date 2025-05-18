@@ -6,6 +6,7 @@ export interface Player {
   deflation: Decimal;
   deflator: Decimal;
   deflationPower: Decimal;
+  previousSacrificeDeflationPower: Decimal;
   autobuyers: {
     matter: AutobuyerData[];
     deflationPower: AutobuyerData[];
@@ -18,6 +19,7 @@ export function getDefaultPlayer(): Player {
     matter: new Decimal(),
     deflation: new Decimal(),
     deflationPower: new Decimal(),
+    previousSacrificeDeflationPower: new Decimal(),
     deflator: new Decimal(),
     autobuyers: {
       matter: [

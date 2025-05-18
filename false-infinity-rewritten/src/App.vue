@@ -14,10 +14,11 @@ import { ui, input } from './ui';
   <main>
     <template v-show="ui.tab==='autobuyer'" style="display: block">
       <div>
-        <SubtabButton tab="autobuyer" subtab="matter" />
-        <SubtabButton tab="autobuyer" subtab="deflation" />
+        <SubtabButton tab="autobuyer" subtab="matter" :data="ui.subtabs.autobuyer.matter"/>
+        <SubtabButton tab="autobuyer" subtab="deflation" :data="ui.subtabs.autobuyer.deflation"/>
       </div>
-      Matter: {{ ui.matter }}
+      You have {{ ui.matter }} matter.<br>
+      You are getting matter per second.
       <template v-show="ui.subtab==='matter'" style="display: block">
         <button @click="input('ClickMatterButton',[])">Click to get matter</button>
         <div>
@@ -27,10 +28,11 @@ import { ui, input } from './ui';
         <DeflationButton :deflationCost="ui.deflationCost" />
       </template>
       <template v-show="ui.subtab==='deflation'" style="display: block">
-        {{ ui.deflationPower }}
+        You have {{ ui.deflationPower }} deflation power.
         <button @click="input('ClickDeflationPowerButton',[])">Click to get deflation power</button>
         {{ ui.translatedDeflationPower }}<br>
         Deflator: {{ ui.deflator }}
+        <button @click="input('ClickDeflationSacrificeButton',[])">Get {{ ui.deflatorAmountWhenSacrifice }} deflators with deflation sacrifice</button>
         <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
       </template>
     </template>

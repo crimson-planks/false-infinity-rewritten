@@ -4,6 +4,10 @@ export enum CurrencyKind {
   Matter = 'matter',
   Deflator = 'deflator'
 }
+export const CurrencyName={
+  matter: "MT",
+  deflator: "DF"
+}
 export function setCurrency(currency: CurrencyKind, v: Decimal) {
   switch (currency) {
     case CurrencyKind.Matter:

@@ -2,10 +2,10 @@
 import { ref } from "vue";
 import { player } from "./player";
 import { formatValue, NotationName } from '@/notation'
-import { getAutobuyerCostScaling, AutobuyerKind, getIntervalCostScaling, autobuyerCurrency, autobuyerName } from "./autobuyer";
-import { deflationCost } from "./prestige";
+import { getAutobuyerCostScaling, AutobuyerKind, getIntervalCostScaling, autobuyerCurrency, autobuyerName, intervalCurrency } from "./autobuyer";
+import { deflationCost, deflationSacrifice } from "./prestige";
 import { gameCache } from "./cache";
-import { getCurrency } from "./currency";
+import { CurrencyName, getCurrency } from "./currency";
 export interface AutobuyerVisualData{
   kind: AutobuyerKind;
   ord: number;
@@ -54,6 +54,21 @@ export const tabs: {
 export const ui = ref({
   tab: "autobuyer",
   subtab: "matter",
+  subtabs: {
+    autobuyer: {
+      matter: {
+        visible: true
+      },
+      deflation: {
+        visible: false
+      }
+    },
+    option: {
+      option:{
+        visible: true
+      }
+    }
+  },
   matter: "0",
   deflationCost: "",
   autobuyers: {
@@ -86,6 +101,7 @@ export const ui = ref({
   },
   deflationPower: "",
   translatedDeflationPower: "",
+  deflatorAmountWhenSacrifice: "",
   deflator: "",
 })
 export function updateScreen(){
@@ -93,7 +109,9 @@ export function updateScreen(){
   ui.value.deflationCost=formatValue(deflationCost.getCurrentCost(player.deflation), NotationName.Default);
   ui.value.deflationPower = formatValue(player.deflationPower, NotationName.Default);
   ui.value.translatedDeflationPower = formatValue(gameCache.translatedDeflationPower.cachedValue, NotationName.Default);
+  ui.value.deflatorAmountWhenSacrifice = formatValue(gameCache.deflatorAmountWhenSacrifice.cachedValue, NotationName.Default);
   ui.value.deflator = formatValue(player.deflator, NotationName.Default);
+  if(player.deflation.gt(0)) ui.value.subtabs.autobuyer.deflation.visible=true;
   //@ts-ignore: this is a valid way of iterating through an Object
   Object.keys(player.autobuyers).forEach((ak: AutobuyerKind)=>{
     for(let i=0;i<player.autobuyers[ak].length;i++){
@@ -102,17 +120,18 @@ export function updateScreen(){
       ui.value.autobuyers[ak][i].amount = formatValue(player.autobuyers[ak][i].amount, NotationName.Default);
       ui.value.autobuyers[ak][i].timer = formatValue(player.autobuyers[ak][i].timer, NotationName.Default);
       ui.value.autobuyers[ak][i].interval = formatValue(player.autobuyers[ak][i].interval, NotationName.Default);
-      ui.value.autobuyers[ak][i].toggle = player.autobuyers[ak][i].toggle.toString();
-      ui.value.autobuyers[ak][i].cost = formatValue(getAutobuyerCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].amount), NotationName.Default);
-      ui.value.autobuyers[ak][i].intervalCost = formatValue(getIntervalCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].intervalAmount), NotationName.Default);
+      ui.value.autobuyers[ak][i].toggle = player.autobuyers[ak][i].toggle ? "On" : "Off";
+      ui.value.autobuyers[ak][i].cost = formatValue(getAutobuyerCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].amount), NotationName.Default) + " " + CurrencyName[autobuyerCurrency[ak][i]];
+      ui.value.autobuyers[ak][i].intervalCost = formatValue(getIntervalCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].intervalAmount), NotationName.Default) + " " + CurrencyName[intervalCurrency[ak][i]];
       ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].amount).lte(getCurrency(autobuyerCurrency[ak][i]));
-      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].intervalAmount).lte(getCurrency(autobuyerCurrency[ak][i]))
+      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].intervalAmount).lte(getCurrency(autobuyerCurrency[ak][i]));
     }
   })
 }
 export function input(type: string,args: Array<string>){
   if(type==="ClickMatterButton") player.matter=player.matter.add(1);
   if(type==="ClickDeflationPowerButton") player.deflationPower=player.deflationPower.add(1);
+  if(type==="ClickDeflationSacrificeButton") deflationSacrifice();
   if(type==="ChangeTab") ui.value.tab = args[0];
   if(type==="ChangeSubtab") ui.value.subtab = args[0];
 }
