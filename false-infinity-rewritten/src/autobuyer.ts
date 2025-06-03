@@ -122,6 +122,7 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
   player.autobuyers[kind][ord].interval = initialInterval[kind][ord].mul(
     new Decimal(0.5).pow(player.autobuyers[kind][ord].intervalAmount)
   );
+  if(kind===AutobuyerKind.DeflationPower){player.autobuyers[kind][ord].interval = player.autobuyers[kind][ord].interval.div(player.deflationBoost.add(1))}
   const totalTime = timeS.add(player.autobuyers[kind][ord].timer ?? Decimal.dZero);
   player.autobuyers[kind][ord].timer = totalTime.mod(player.autobuyers[kind][ord].interval, true);
   const activationAmount = totalTime.div(player.autobuyers[kind][ord].interval).floor();

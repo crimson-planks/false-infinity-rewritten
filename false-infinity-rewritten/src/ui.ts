@@ -109,7 +109,7 @@ export function updateScreen(){
   ui.value.deflationCost=formatValue(deflationCost.getCurrentCost(player.deflation), NotationName.Default);
   ui.value.deflationPower = formatValue(player.deflationPower, NotationName.Default);
   ui.value.translatedDeflationPower = formatValue(gameCache.translatedDeflationPower.cachedValue, NotationName.Default);
-  ui.value.deflatorAmountWhenSacrifice = formatValue(gameCache.deflatorAmountWhenSacrifice.cachedValue, NotationName.Default);
+  ui.value.deflatorAmountWhenSacrifice = formatValue(gameCache.deflationAutobuyerBoostWhenSacrifice.cachedValue, NotationName.Default);
   ui.value.deflator = formatValue(player.deflator, NotationName.Default);
   if(player.deflation.gt(0)) ui.value.subtabs.autobuyer.deflation.visible=true;
   //@ts-ignore: this is a valid way of iterating through an Object

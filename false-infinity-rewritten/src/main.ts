@@ -6,11 +6,11 @@ import Decimal from './lib/break_eternity';
 import App from './App.vue';
 import { AutobuyerKind, AutobuyerTick, getAutobuyerCostScaling } from './autobuyer';
 import { getDefaultPlayer, player, setPlayer } from './player';
-import { updateScreen,ui } from './ui';
+import { updateScreen, ui } from './ui';
 import { gameCache } from './cache';
 import { load, save, toStringifiableObject, toUsableObject, mergeObj_nocopy, fixSave } from './saveload';
 import { game_devTools } from './devtools';
-import { getDeflatorAmountWhenSacrifice } from './prestige';
+import { getDeflationAutobuyerBoostWhenSacrifice } from './prestige';
 declare global{
   interface Window{
     Decimal?: typeof Decimal
@@ -24,7 +24,7 @@ declare global{
     getDefaultPlayer?: typeof getDefaultPlayer
     setPlayer?: typeof setPlayer
     mergeObj_nocopy?: typeof mergeObj_nocopy
-    getDeflatorAmountWhenSacrifice?: typeof getDeflatorAmountWhenSacrifice
+    getDeflationAutobuyerBoostWhenSacrifice?: typeof getDeflationAutobuyerBoostWhenSacrifice
     game_devTools?: typeof game_devTools
   }
 }
@@ -39,7 +39,7 @@ window.load = load;
 window.getDefaultPlayer = getDefaultPlayer;
 window.setPlayer = setPlayer;
 window.mergeObj_nocopy = mergeObj_nocopy;
-window.getDeflatorAmountWhenSacrifice = getDeflatorAmountWhenSacrifice;
+window.getDeflationAutobuyerBoostWhenSacrifice = getDeflationAutobuyerBoostWhenSacrifice;
 window.game_devTools = game_devTools;
 
 const app = createApp(App);
@@ -60,7 +60,7 @@ setInterval(function(){
     console.log("game saved!");
   }
   gameCache.translatedDeflationPower.invalidate();
-  gameCache.deflatorAmountWhenSacrifice.invalidate();
+  gameCache.deflationAutobuyerBoostWhenSacrifice.invalidate();
   //@ts-ignore
   Object.keys(player.autobuyers).forEach((key: AutobuyerKind)=>{
     for(let i=0;i<player.autobuyers[key].length;i++){
