@@ -10,7 +10,8 @@ import { updateScreen, ui } from './ui';
 import { gameCache } from './cache';
 import { load, save, toStringifiableObject, toUsableObject, mergeObj_nocopy, fixSave } from './saveload';
 import { game_devTools } from './devtools';
-import { getDeflationAutobuyerBoostWhenSacrifice } from './prestige';
+import { getDeflationAutobuyerBoostWhenSacrifice, overflow, OVERFLOW } from './prestige';
+import Autobuyer from './components/Autobuyer.vue';
 declare global{
   interface Window{
     Decimal?: typeof Decimal
@@ -47,7 +48,10 @@ app.mount('#app');
 load();
 fixSave();
 let autosaveTimer=0;
-function getMatterPerSecond(){
+export function getMatterPerSecond(){
+  let result = player.autobuyers.matter[0].amount.mul(player.autobuyers.matter[0].interval.recip()).mul(+player.autobuyers.matter[0].toggle)
+  result = result.minus(getAutobuyerCostScaling(AutobuyerKind.Matter, 0).getTotalCostAfterPurchase(player.autobuyers.matter[0].amount,player.autobuyers.matter[1].amount.mul(player.autobuyers.matter[1].interval.recip())).mul(+player.autobuyers.matter[1].toggle))
+  return result
 }
 setInterval(function(){
   const previousTime = player.currentTime;
@@ -61,8 +65,13 @@ setInterval(function(){
   }
   gameCache.translatedDeflationPower.invalidate();
   gameCache.deflationAutobuyerBoostWhenSacrifice.invalidate();
+  if(player.matter.gt(OVERFLOW) && !player.isOverflowing){
+    player.isOverflowing = true;
+    player.matter=OVERFLOW;
+  }
   //@ts-ignore
   Object.keys(player.autobuyers).forEach((key: AutobuyerKind)=>{
+    if(key==AutobuyerKind.Matter && player.isOverflowing) return;
     for(let i=0;i<player.autobuyers[key].length;i++){
       AutobuyerTick(key, i, diff);
     }

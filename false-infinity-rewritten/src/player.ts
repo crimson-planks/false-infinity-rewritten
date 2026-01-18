@@ -6,8 +6,9 @@ export interface Player {
   deflation: Decimal;
   deflator: Decimal;
   deflationPower: Decimal;
-  deflationBoost: Decimal;
   previousSacrificeDeflationPower: Decimal;
+  isOverflowing: boolean;
+  overflowPoint: Decimal;
   autobuyers: {
     matter: AutobuyerData[];
     deflationPower: AutobuyerData[];
@@ -20,9 +21,10 @@ export function getDefaultPlayer(): Player {
     matter: new Decimal(),
     deflation: new Decimal(),
     deflationPower: new Decimal(),
-    deflationBoost: new Decimal(),
     previousSacrificeDeflationPower: new Decimal(),
     deflator: new Decimal(),
+    isOverflowing: false,
+    overflowPoint: new Decimal(),
     autobuyers: {
       matter: [
         {

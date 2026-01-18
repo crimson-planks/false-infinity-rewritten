@@ -3,9 +3,10 @@ import { ref } from "vue";
 import { player } from "./player";
 import { formatValue, NotationName } from '@/notation'
 import { getAutobuyerCostScaling, AutobuyerKind, getIntervalCostScaling, autobuyerCurrency, autobuyerName, intervalCurrency } from "./autobuyer";
-import { deflationCost, deflationSacrifice } from "./prestige";
+import { canDeflate, deflationCost, deflationSacrifice } from "./prestige";
 import { gameCache } from "./cache";
 import { CurrencyName, getCurrency } from "./currency";
+import { getMatterPerSecond } from "./main";
 export interface AutobuyerVisualData{
   kind: AutobuyerKind;
   ord: number;
@@ -19,7 +20,7 @@ export interface AutobuyerVisualData{
   canBuy: boolean;
   canBuyInterval: boolean;
 }
-export type TabName = "autobuyer" | "option"
+export type TabName = "autobuyer" | "overflow" | "option"
 export type SubtabName = "matter" | "deflation"
 export const tabs: {
   [key: string]: {
@@ -53,6 +54,17 @@ export const tabs: {
 }
 export const ui = ref({
   tab: "autobuyer",
+  tabs: {
+    autobuyer: {
+      visible: true
+    },
+    overflow:{
+      visible: true
+    },
+    option: {
+      visible: true
+    }
+  },
   subtab: "matter",
   subtabs: {
     autobuyer: {
@@ -63,6 +75,11 @@ export const ui = ref({
         visible: false
       }
     },
+    overflow: {
+      overflow: {
+        visible: true
+      }
+    },
     option: {
       option:{
         visible: true
@@ -70,6 +87,7 @@ export const ui = ref({
     }
   },
   matter: "0",
+  matterPerSecond: "0",
   deflationCost: "",
   autobuyers: {
     matter: Array(player.autobuyers.matter.length).fill(0).map((v, i)=>{return {
@@ -99,19 +117,26 @@ export const ui = ref({
       canBuyInterval: false,
     }})
   },
+  canDeflate: false,
   deflationPower: "",
   translatedDeflationPower: "",
   deflatorAmountWhenSacrifice: "",
+  previousSacrificeDeflationPower: "",
   deflator: "",
+  isOverflowing: false,
 })
 export function updateScreen(){
   ui.value.matter=formatValue(player.matter, NotationName.Default);
+  ui.value.matterPerSecond=formatValue(getMatterPerSecond(), NotationName.Default);
   ui.value.deflationCost=formatValue(deflationCost.getCurrentCost(player.deflation), NotationName.Default);
+  ui.value.canDeflate=canDeflate();
   ui.value.deflationPower = formatValue(player.deflationPower, NotationName.Default);
   ui.value.translatedDeflationPower = formatValue(gameCache.translatedDeflationPower.cachedValue, NotationName.Default);
   ui.value.deflatorAmountWhenSacrifice = formatValue(gameCache.deflationAutobuyerBoostWhenSacrifice.cachedValue, NotationName.Default);
+  ui.value.previousSacrificeDeflationPower = formatValue(player.previousSacrificeDeflationPower, NotationName.Default)
   ui.value.deflator = formatValue(player.deflator, NotationName.Default);
-  if(player.deflation.gt(0)) ui.value.subtabs.autobuyer.deflation.visible=true;
+  ui.value.isOverflowing = player.isOverflowing;
+  ui.value.subtabs.autobuyer.deflation.visible=player.deflation.gt(0);
   //@ts-ignore: this is a valid way of iterating through an Object
   Object.keys(player.autobuyers).forEach((ak: AutobuyerKind)=>{
     for(let i=0;i<player.autobuyers[ak].length;i++){

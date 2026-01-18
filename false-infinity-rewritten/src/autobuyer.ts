@@ -9,21 +9,21 @@ export const initialAutobuyerCostScaling = {
   matter: [
     new LinearCostScaling({
       baseCost: new Decimal(10),
-      increase: new Decimal(5)
+      baseIncrease: new Decimal(5)
     }),
     new LinearCostScaling({
       baseCost: new Decimal(500),
-      increase: new Decimal(100)
+      baseIncrease: new Decimal(100)
     }),
     new LinearCostScaling({
       baseCost: new Decimal('1e7'),
-      increase: new Decimal('1e6')
+      baseIncrease: new Decimal('1e6')
     })
   ],
   deflationPower: [
     new LinearCostScaling({
       baseCost: new Decimal(1),
-      increase: new Decimal(0)
+      baseIncrease: new Decimal(0)
     })
   ]
 };
@@ -33,7 +33,7 @@ export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): Linea
       baseCost: initialAutobuyerCostScaling[kind][ord].baseCost.sub(
         gameCache.translatedDeflationPower.cachedValue
       ),
-      increase: initialAutobuyerCostScaling[kind][ord].increase.sub(player.deflation.min(4))
+      baseIncrease: initialAutobuyerCostScaling[kind][ord].baseIncrease.sub(player.deflation.min(4))
     });
   if (kind === AutobuyerKind.DeflationPower) return initialAutobuyerCostScaling[kind][ord];
   else throw Error(`invalid AutobuyerKind: ${kind}`);
@@ -122,7 +122,11 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
   player.autobuyers[kind][ord].interval = initialInterval[kind][ord].mul(
     new Decimal(0.5).pow(player.autobuyers[kind][ord].intervalAmount)
   );
-  if(kind===AutobuyerKind.DeflationPower){player.autobuyers[kind][ord].interval = player.autobuyers[kind][ord].interval.div(player.deflationBoost.add(1))}
+  if (kind === AutobuyerKind.DeflationPower) {
+    player.autobuyers[kind][ord].interval = player.autobuyers[kind][ord].interval.div(
+      player.deflation.add(1)
+    );
+  }
   const totalTime = timeS.add(player.autobuyers[kind][ord].timer ?? Decimal.dZero);
   player.autobuyers[kind][ord].timer = totalTime.mod(player.autobuyers[kind][ord].interval, true);
   const activationAmount = totalTime.div(player.autobuyers[kind][ord].interval).floor();
