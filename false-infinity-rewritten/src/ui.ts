@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { player } from "./player";
 import { formatValue, NotationName } from '@/notation'
 import { getAutobuyerCostScaling, AutobuyerKind, getIntervalCostScaling, autobuyerCurrency, autobuyerName, intervalCurrency } from "./autobuyer";
-import { canDeflate, deflationCost, deflationSacrifice } from "./prestige";
+import { canDeflate, deflationCost, deflationSacrifice, overflow } from "./prestige";
 import { gameCache } from "./cache";
 import { CurrencyName, getCurrency } from "./currency";
 import { getMatterPerSecond } from "./main";
@@ -21,7 +21,7 @@ export interface AutobuyerVisualData{
   canBuyInterval: boolean;
 }
 export type TabName = "autobuyer" | "overflow" | "option"
-export type SubtabName = "matter" | "deflation"
+export type SubtabName = "matter" | "deflation" | "upgrades"
 export const tabs: {
   [key: string]: {
     name: string,
@@ -40,6 +40,14 @@ export const tabs: {
       },
       deflation: {
         name: "Deflation"
+      }
+    }
+  },
+  overflow: {
+    name: "Overflow",
+    subtab:{
+      upgrades: {
+        name: "Upgrades"
       }
     }
   },
@@ -76,7 +84,7 @@ export const ui = ref({
       }
     },
     overflow: {
-      overflow: {
+      upgrades: {
         visible: true
       }
     },
@@ -86,6 +94,7 @@ export const ui = ref({
       }
     }
   },
+  creditsVisible: false,
   matter: "0",
   matterPerSecond: "0",
   deflationCost: "",
@@ -124,6 +133,7 @@ export const ui = ref({
   previousSacrificeDeflationPower: "",
   deflator: "",
   isOverflowing: false,
+  overflowPoint: "",
 })
 export function updateScreen(){
   ui.value.matter=formatValue(player.matter, NotationName.Default);
@@ -136,6 +146,7 @@ export function updateScreen(){
   ui.value.previousSacrificeDeflationPower = formatValue(player.previousSacrificeDeflationPower, NotationName.Default)
   ui.value.deflator = formatValue(player.deflator, NotationName.Default);
   ui.value.isOverflowing = player.isOverflowing;
+  ui.value.overflowPoint = formatValue(player.overflowPoint, NotationName.Default);
   ui.value.subtabs.autobuyer.deflation.visible=player.deflation.gt(0);
   //@ts-ignore: this is a valid way of iterating through an Object
   Object.keys(player.autobuyers).forEach((ak: AutobuyerKind)=>{
@@ -157,6 +168,7 @@ export function input(type: string,args: Array<string>){
   if(type==="ClickMatterButton") player.matter=player.matter.add(1);
   if(type==="ClickDeflationPowerButton") player.deflationPower=player.deflationPower.add(1);
   if(type==="ClickDeflationSacrificeButton") deflationSacrifice();
+  if(type==="ClickOverflowButton") overflow()
   if(type==="ChangeTab") ui.value.tab = args[0];
   if(type==="ChangeSubtab") ui.value.subtab = args[0];
 }

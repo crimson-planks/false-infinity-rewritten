@@ -3,7 +3,9 @@ import Autobuyer from './components/Autobuyer.vue';
 import DeflationButton from './components/DeflationButton.vue';
 import SubtabButton from './components/SubtabButton.vue';
 import TabButton from './components/TabButton.vue';
+import Credits from './components/Credits.vue';
 import { ui, input } from './ui';
+import { load, save } from './saveload';
 
 </script>
 <template>
@@ -37,14 +39,24 @@ import { ui, input } from './ui';
         <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
       </div>
     </div>
+    <div v-show="ui.tab==='overflow'" style="display: block">
+      <div>
+        <SubtabButton tab="overflow" subtab="upgrades" :data="ui.subtabs.overflow.upgrades"></SubtabButton>
+      </div>
+      <div v-show="ui.subtab==='upgrades'" style="display: block;">
+        Oveflow Points: {{ ui.overflowPoint }}
+      </div>
+    </div>
     <div v-show="ui.isOverflowing">
         The simulation has overflown due to an excess of matter.<br>
-        <button>Overflow</button>
+        <button @click="input('ClickOverflowButton',[])">Overflow</button>
     </div>
   <template v-show="ui.tab==='option'" style="display: block">
-    <button>save</button>
-    <button>load</button>
+    <button @click="save()">Save</button>
+    <button @click="load()">Load</button>
+    <button @click="ui.creditsVisible=!ui.creditsVisible">Credits</button>
   </template>
+  <Credits :visible="ui.creditsVisible" />
   </main>
 </template>
 

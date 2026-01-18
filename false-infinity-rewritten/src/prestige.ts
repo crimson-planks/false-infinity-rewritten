@@ -12,6 +12,9 @@ export const deflationCost = new ExponentialCostScaling({
 export function canDeflate(){
   return player.matter.gte(deflationCost.getCurrentCost(player.deflation))
 }
+export function canOverflow(){
+  return player.matter.gte(OVERFLOW);
+}
 export function deflate(){
   if(!canDeflate()) return;
   player.deflation = player.deflation.add(1);
@@ -35,5 +38,17 @@ export function deflationSacrifice(){
   player.deflationPower=new Decimal();
 }
 export function overflow(){
+  if(!canOverflow()) return;
   console.log("overflow")
+  player.overflow = player.overflow.add(1)
+
+  resetAutobuyers();
+  player.matter = Decimal.dZero;
+  player.deflationPower=Decimal.dZero;
+  player.deflation = Decimal.dZero;
+  player.deflator = Decimal.dZero;
+  player.autobuyers.deflationPower = getDefaultPlayer().autobuyers.deflationPower;
+
+  player.isOverflowing = false;
+  player.overflowPoint = player.overflowPoint.add(1);
 }
