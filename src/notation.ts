@@ -1,5 +1,5 @@
 import Decimal from './lib/break_eternity.js';
-import { Presets } from './lib/eternal_notations.esm';
+import { Presets } from './lib/eternal_notations.esm.js';
 export enum NotationName {
   Default = 'default',
   Scientific = 'scientific'
