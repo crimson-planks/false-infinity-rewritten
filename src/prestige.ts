@@ -47,8 +47,10 @@ export function overflow(){
   player.deflationPower=Decimal.dZero;
   player.deflation = Decimal.dZero;
   player.deflator = Decimal.dZero;
+  player.previousSacrificeDeflationPower = Decimal.dZero;
   player.autobuyers.deflationPower = getDefaultPlayer().autobuyers.deflationPower;
 
   player.isOverflowing = false;
   player.overflowPoint = player.overflowPoint.add(1);
 }
+//TODO: add m key for maxing all intervals of matter autobuyers

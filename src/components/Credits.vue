@@ -20,6 +20,9 @@ const props = defineProps<{visible: boolean}>();
 
   <a href="https://reinhardt-c.github.io/TrueInfinity/">True Infinity</a>, for inspiring me the name of this game<br>
 
+  sitelen pona, for the game's logo (lon ale ala)<br>
+
+  <a href="https://patcailmemer.github.io/Ordinal-Markup/">Ordinal Markup</a>, for inspiration for extend overflow (not implemented)
 </div>
 
 

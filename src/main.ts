@@ -4,7 +4,7 @@ import { createApp } from 'vue';
 
 import Decimal from './lib/break_eternity';
 import App from './App.vue';
-import { AutobuyerKind, AutobuyerTick, getAutobuyerCostScaling } from './autobuyer';
+import { AutobuyerKind, AutobuyerTick, BuyInterval, getAutobuyerCostScaling, getIntervalCostScaling } from './autobuyer';
 import { getDefaultPlayer, player, setPlayer } from './player';
 import { updateScreen, ui } from './ui';
 import { gameCache } from './cache';
@@ -12,6 +12,7 @@ import { load, save, toStringifiableObject, toUsableObject, mergeObj_nocopy, fix
 import { game_devTools } from './devtools';
 import { getDeflationAutobuyerBoostWhenSacrifice, overflow, OVERFLOW } from './prestige';
 import Autobuyer from './components/Autobuyer.vue';
+import { CurrencyKind, getCurrency } from './currency';
 declare global{
   interface Window{
     Decimal?: typeof Decimal
@@ -78,3 +79,15 @@ setInterval(function(){
   });
   updateScreen();
 }, 50);
+
+addEventListener("keypress",(ev)=>{
+  if(ev.code==="KeyM"){
+    console.log("m pressed")
+    for(let i=0;i<player.autobuyers.matter.length;i++){
+      BuyInterval(AutobuyerKind.Matter, i,
+        getIntervalCostScaling(AutobuyerKind.Matter, i).getAvailablePurchases(
+        player.autobuyers.matter[i].intervalAmount, getCurrency(CurrencyKind.Matter)).sub(player.autobuyers.matter[i].intervalAmount).max(0).floor()
+      );
+    }
+  }
+});

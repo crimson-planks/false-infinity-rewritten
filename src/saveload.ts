@@ -91,8 +91,9 @@ export function save(){
 }
 export function load(){
   let storageStr = localStorage.getItem("FalseInfinityRSave")
-  if(storageStr === null) console.error("storage is nonexistant");
-  setPlayer(toUsableObject(JSON.parse(storageStr ?? "")) as Player);
+  if(storageStr === null) storageStr="{}"
+  setPlayer(toUsableObject(JSON.parse(storageStr ?? "{}")) as Player);
+  fixSave()
 }
 export function mergeObj_nocopy(obj_to: {[key: string | number | symbol]: any}, obj_from: {[key: string | number | symbol]: any}): any{
   const rslt: {[key: string]: unknown}=obj_to;

@@ -147,6 +147,7 @@ export function updateScreen(){
   ui.value.deflator = formatValue(player.deflator, NotationName.Default);
   ui.value.isOverflowing = player.isOverflowing;
   ui.value.overflowPoint = formatValue(player.overflowPoint, NotationName.Default);
+  ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible=player.deflation.gt(0);
   //@ts-ignore: this is a valid way of iterating through an Object
   Object.keys(player.autobuyers).forEach((ak: AutobuyerKind)=>{

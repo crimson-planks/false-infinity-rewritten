@@ -43,8 +43,9 @@ import { load, save } from './saveload';
       <div>
         <SubtabButton tab="overflow" subtab="upgrades" :data="ui.subtabs.overflow.upgrades"></SubtabButton>
       </div>
+      Overflow Points: {{ ui.overflowPoint }}
       <div v-show="ui.subtab==='upgrades'" style="display: block;">
-        Oveflow Points: {{ ui.overflowPoint }}
+        Upgrades
       </div>
     </div>
     <div v-show="ui.isOverflowing">
