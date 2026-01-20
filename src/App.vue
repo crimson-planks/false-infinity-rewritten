@@ -35,7 +35,8 @@ import { load, save } from './saveload';
         <button @click="input('ClickDeflationPowerButton',[])">Click to get deflation power</button><br></br>
         Deflator: {{ ui.deflator }}<br></br>
         Deflation Power on previous sacrifice: {{ ui.previousSacrificeDeflationPower }}
-        <button @click="input('ClickDeflationSacrificeButton',[])">Get {{ ui.deflatorAmountWhenSacrifice }} deflators with deflation sacrifice</button>
+        Current Deflation Power Boost by Sacrifice: {{ ui.deflationPowerBoostBySacrificedDeflationPower }}
+        <button @click="input('ClickDeflationSacrificeButton',[])">Boost {{ ui.deflationPowerBoostWhenSacrifice }} with deflation sacrifice</button>
         <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
       </div>
     </div>

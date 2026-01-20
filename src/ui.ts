@@ -129,8 +129,9 @@ export const ui = ref({
   canDeflate: false,
   deflationPower: "",
   translatedDeflationPower: "",
-  deflatorAmountWhenSacrifice: "",
+  deflationPowerBoostWhenSacrifice: "",
   previousSacrificeDeflationPower: "",
+  deflationPowerBoostBySacrificedDeflationPower: "",
   deflator: "",
   isOverflowing: false,
   overflowPoint: "",
@@ -142,8 +143,9 @@ export function updateScreen(){
   ui.value.canDeflate=canDeflate();
   ui.value.deflationPower = formatValue(player.deflationPower, NotationName.Default);
   ui.value.translatedDeflationPower = formatValue(gameCache.translatedDeflationPower.cachedValue, NotationName.Default);
-  ui.value.deflatorAmountWhenSacrifice = formatValue(gameCache.deflationAutobuyerBoostWhenSacrifice.cachedValue, NotationName.Default);
   ui.value.previousSacrificeDeflationPower = formatValue(player.previousSacrificeDeflationPower, NotationName.Default)
+  ui.value.deflationPowerBoostWhenSacrifice = formatValue(gameCache.deflationPowerBoostWhenSacrifice.cachedValue, NotationName.Default)
+  ui.value.deflationPowerBoostBySacrificedDeflationPower = formatValue(gameCache.deflationPowerBoostBySacrificedDeflationPower.cachedValue, NotationName.Default)
   ui.value.deflator = formatValue(player.deflator, NotationName.Default);
   ui.value.isOverflowing = player.isOverflowing;
   ui.value.overflowPoint = formatValue(player.overflowPoint, NotationName.Default);

@@ -1,6 +1,6 @@
 import { getTranslatedDeflationPower } from "./deflation_power";
 import Decimal from "@/lib/break_eternity";
-import { getDeflationAutobuyerBoostWhenSacrifice } from "./prestige";
+import { getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice } from "./prestige";
 
 export class Lazy<Type>{
   getValue: () => Type;
@@ -18,6 +18,7 @@ export class Lazy<Type>{
   }
 }
 export const gameCache = {
+  deflationPowerBoostBySacrificedDeflationPower: new Lazy(getDeflationPowerBoostBySacrificedDeflationPower, Decimal.dOne),
   translatedDeflationPower: new Lazy(getTranslatedDeflationPower, Decimal.dZero),
-  deflationAutobuyerBoostWhenSacrifice: new Lazy(getDeflationAutobuyerBoostWhenSacrifice, Decimal.dZero)
+  deflationPowerBoostWhenSacrifice: new Lazy(getDeflationPowerBoostWhenSacrifice, Decimal.dOne)
 }

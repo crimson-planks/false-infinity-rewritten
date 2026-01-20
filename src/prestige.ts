@@ -24,16 +24,17 @@ export function deflate(){
   player.matter = Decimal.dZero;
   player.deflationPower=Decimal.dZero;
 }
-function getDeflationPowerToDeflationAutobuyerBoost(deflationPower: Decimal){
-  return deflationPower.cbrt().ceil();
+export function getSacrificeDeflationPowerToDeflationPowerBoost(deflationPower: Decimal){
+  return deflationPower.sqr().add(1).log10().mul(0.1).add(1)
 }
-export function getDeflationAutobuyerBoostWhenSacrifice(){
-  return getDeflationPowerToDeflationAutobuyerBoost(player.deflationPower).sub(
-      getDeflationPowerToDeflationAutobuyerBoost(player.previousSacrificeDeflationPower)).ceil().max(0);
+export function getDeflationPowerBoostWhenSacrifice(){
+  return getSacrificeDeflationPowerToDeflationPowerBoost(player.deflationPower)
+}
+export function getDeflationPowerBoostBySacrificedDeflationPower(){
+  return getSacrificeDeflationPowerToDeflationPowerBoost(player.previousSacrificeDeflationPower)
 }
 export function deflationSacrifice(){
   if(player.deflationPower.lte(player.previousSacrificeDeflationPower)) return;
-  player.deflator = player.deflator.add(getDeflationAutobuyerBoostWhenSacrifice());
   player.previousSacrificeDeflationPower=player.deflationPower;
   player.deflationPower=new Decimal();
 }

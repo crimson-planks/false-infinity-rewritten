@@ -10,7 +10,7 @@ import { updateScreen, ui } from './ui';
 import { gameCache } from './cache';
 import { load, save, toStringifiableObject, toUsableObject, mergeObj_nocopy, fixSave } from './saveload';
 import { game_devTools } from './devtools';
-import { getDeflationAutobuyerBoostWhenSacrifice, overflow, OVERFLOW } from './prestige';
+import { overflow, OVERFLOW } from './prestige';
 import Autobuyer from './components/Autobuyer.vue';
 import { CurrencyKind, getCurrency } from './currency';
 declare global{
@@ -26,7 +26,6 @@ declare global{
     getDefaultPlayer?: typeof getDefaultPlayer
     setPlayer?: typeof setPlayer
     mergeObj_nocopy?: typeof mergeObj_nocopy
-    getDeflationAutobuyerBoostWhenSacrifice?: typeof getDeflationAutobuyerBoostWhenSacrifice
     game_devTools?: typeof game_devTools
   }
 }
@@ -41,7 +40,6 @@ window.load = load;
 window.getDefaultPlayer = getDefaultPlayer;
 window.setPlayer = setPlayer;
 window.mergeObj_nocopy = mergeObj_nocopy;
-window.getDeflationAutobuyerBoostWhenSacrifice = getDeflationAutobuyerBoostWhenSacrifice;
 window.game_devTools = game_devTools;
 
 const app = createApp(App);
@@ -65,7 +63,8 @@ setInterval(function(){
     console.log("game saved!");
   }
   gameCache.translatedDeflationPower.invalidate();
-  gameCache.deflationAutobuyerBoostWhenSacrifice.invalidate();
+  gameCache.deflationPowerBoostWhenSacrifice.invalidate();
+  gameCache.deflationPowerBoostBySacrificedDeflationPower.invalidate();
   if(player.matter.gt(OVERFLOW) && !player.isOverflowing){
     player.isOverflowing = true;
     player.matter=OVERFLOW;
