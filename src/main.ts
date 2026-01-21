@@ -18,6 +18,7 @@ declare global{
     Decimal?: typeof Decimal
     player?: typeof player
     getAutobuyerCostScaling?: typeof getAutobuyerCostScaling
+    getIntervalCostScaling?: typeof getIntervalCostScaling
     ui?: typeof ui
     toStringifiableObject?: typeof toStringifiableObject
     toUsableObject?: typeof toUsableObject
@@ -32,6 +33,7 @@ declare global{
 window.Decimal = Decimal;
 window.player = player;
 window.getAutobuyerCostScaling = getAutobuyerCostScaling;
+window.getIntervalCostScaling = getIntervalCostScaling;
 window.ui = ui;
 window.toStringifiableObject = toStringifiableObject;
 window.toUsableObject = toUsableObject;
@@ -62,9 +64,11 @@ setInterval(function(){
     autosaveTimer=0;
     console.log("game saved!");
   }
+  gameCache.deflatorGainOnDeflation.invalidate();
+  gameCache.translatedDeflationPowerMultiplierWhenSacrifice.invalidate();
+  gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.invalidate();
   gameCache.translatedDeflationPower.invalidate();
-  gameCache.deflationPowerBoostWhenSacrifice.invalidate();
-  gameCache.deflationPowerBoostBySacrificedDeflationPower.invalidate();
+  gameCache.canDeflationSacrifice.invalidate();
   if(player.matter.gt(OVERFLOW) && !player.isOverflowing){
     player.isOverflowing = true;
     player.matter=OVERFLOW;
@@ -83,9 +87,11 @@ addEventListener("keypress",(ev)=>{
   if(ev.code==="KeyM"){
     console.log("m pressed")
     for(let i=0;i<player.autobuyers.matter.length;i++){
+      console.log(getIntervalCostScaling(AutobuyerKind.Matter, i).getAvailablePurchases(
+        player.autobuyers.matter[i].intervalAmount, getCurrency(CurrencyKind.Matter)))
       BuyInterval(AutobuyerKind.Matter, i,
         getIntervalCostScaling(AutobuyerKind.Matter, i).getAvailablePurchases(
-        player.autobuyers.matter[i].intervalAmount, getCurrency(CurrencyKind.Matter)).sub(player.autobuyers.matter[i].intervalAmount).max(0).floor()
+        player.autobuyers.matter[i].intervalAmount, getCurrency(CurrencyKind.Matter)).max(0).floor()
       );
     }
   }

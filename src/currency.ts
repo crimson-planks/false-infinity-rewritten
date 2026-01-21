@@ -2,11 +2,13 @@ import type Decimal from './lib/break_eternity';
 import { player } from './player';
 export enum CurrencyKind {
   Matter = 'matter',
-  Deflator = 'deflator'
+  Deflator = 'deflator',
+  OverflowPoint = 'overflowPoint'
 }
 export const CurrencyName={
   matter: "MT",
-  deflator: "DF"
+  deflator: "DF",
+  overflowPoint: "OP"
 }
 export function setCurrency(currency: CurrencyKind, v: Decimal) {
   switch (currency) {
@@ -16,6 +18,8 @@ export function setCurrency(currency: CurrencyKind, v: Decimal) {
     case CurrencyKind.Deflator:
       player.deflator = v;
       break;
+    case CurrencyKind.OverflowPoint:
+      player.overflowPoint = v;
   }
 }
 export function getCurrency(currency: CurrencyKind) {
@@ -24,5 +28,7 @@ export function getCurrency(currency: CurrencyKind) {
       return player.matter;
     case CurrencyKind.Deflator:
       return player.deflator
+    case CurrencyKind.OverflowPoint:
+      return player.overflowPoint
   }
 }

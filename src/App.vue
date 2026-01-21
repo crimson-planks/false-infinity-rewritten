@@ -28,15 +28,15 @@ import { load, save } from './saveload';
           <Autobuyer :data="ui.autobuyers.matter[0]" />
           <Autobuyer :data="ui.autobuyers.matter[1]" />
         </div>
-        <DeflationButton :deflationCost="ui.deflationCost" :canBuy="ui.canDeflate" />
+        <DeflationButton :deflatorGainOnDeflation="ui.deflatorGainOnDeflation" :deflationCost="ui.deflationCost" :canBuy="ui.canDeflate" />
       </div>
       <div v-show="ui.subtab==='deflation'" style="display: block">
-        You have {{ ui.deflationPower }} deflation power, which reduces the cost of matter autobuyers by {{ ui.translatedDeflationPower }}.
+        You have {{ ui.deflationPower }} deflation power, which translates to the reduction of the cost of matter autobuyers by {{ ui.translatedDeflationPower }}.<br>
         <button @click="input('ClickDeflationPowerButton',[])">Click to get deflation power</button><br></br>
-        Deflator: {{ ui.deflator }}<br></br>
-        Deflation Power on previous sacrifice: {{ ui.previousSacrificeDeflationPower }}
-        Current Deflation Power Boost by Sacrifice: {{ ui.deflationPowerBoostBySacrificedDeflationPower }}
-        <button @click="input('ClickDeflationSacrificeButton',[])">Boost {{ ui.deflationPowerBoostWhenSacrifice }} with deflation sacrifice</button>
+        Deflator: {{ ui.deflator }}<br><br>
+        Deflation Power on previous sacrifice: {{ ui.previousSacrificeDeflationPower }}<br>
+        Current Translated Deflation Power Multiplier by Sacrifice: {{ ui.translatedDeflationPowerMultiplierBySacrificedDeflationPower }}<br>
+        <button :class="{'button--can-buy': ui.canDeflationSacrifice, 'button--cannot-buy': !ui.canDeflationSacrifice}" @click="input('ClickDeflationSacrificeButton',[])">Set multiplier to {{ ui.translatedDeflationPowerMultiplierWhenSacrifice }} with deflation sacrifice</button>
         <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
       </div>
     </div>

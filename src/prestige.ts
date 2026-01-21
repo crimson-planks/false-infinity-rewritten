@@ -1,3 +1,4 @@
+import { gameCache } from "./cache";
 import { ExponentialCostScaling } from "./cost";
 import Decimal from "./lib/break_eternity";
 import { getDefaultPlayer, player } from "./player";
@@ -15,17 +16,21 @@ export function canDeflate(){
 export function canOverflow(){
   return player.matter.gte(OVERFLOW);
 }
+export function getDeflatorGainOnDeflation(){
+  return player.deflation.add(1);
+}
 export function deflate(){
   if(!canDeflate()) return;
+  player.deflator = player.deflator.add(getDeflatorGainOnDeflation());
+
   player.deflation = player.deflation.add(1);
-  player.deflator = player.deflator.add(player.deflation);
 
   resetAutobuyers();
   player.matter = Decimal.dZero;
   player.deflationPower=Decimal.dZero;
 }
 export function getSacrificeDeflationPowerToDeflationPowerBoost(deflationPower: Decimal){
-  return deflationPower.sqr().add(1).log10().mul(0.1).add(1)
+  return deflationPower.sqr().add(1).log10().div(6).max(1)
 }
 export function getDeflationPowerBoostWhenSacrifice(){
   return getSacrificeDeflationPowerToDeflationPowerBoost(player.deflationPower)
@@ -33,8 +38,12 @@ export function getDeflationPowerBoostWhenSacrifice(){
 export function getDeflationPowerBoostBySacrificedDeflationPower(){
   return getSacrificeDeflationPowerToDeflationPowerBoost(player.previousSacrificeDeflationPower)
 }
+export function canDeflationSacrifice(): boolean{
+  return gameCache.translatedDeflationPowerMultiplierWhenSacrifice.cachedValue.gt(gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.cachedValue) &&
+   player.deflationPower.gt(player.previousSacrificeDeflationPower)
+}
 export function deflationSacrifice(){
-  if(player.deflationPower.lte(player.previousSacrificeDeflationPower)) return;
+  if(!canDeflationSacrifice()) return;
   player.previousSacrificeDeflationPower=player.deflationPower;
   player.deflationPower=new Decimal();
 }

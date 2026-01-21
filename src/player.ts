@@ -1,5 +1,6 @@
 import Decimal from '@/lib/break_eternity.js';
 import { AutobuyerKind, type AutobuyerData } from '@/autobuyer';
+import { UpgradeKind, type UpgradeData } from './upgrade';
 export interface Player {
   currentTime: number;
   matter: Decimal;
@@ -14,6 +15,9 @@ export interface Player {
     matter: AutobuyerData[];
     deflationPower: AutobuyerData[];
   };
+  upgrades: {
+    overflow: UpgradeData[]
+  }
 }
 
 export function getDefaultPlayer(): Player {
@@ -66,6 +70,15 @@ export function getDefaultPlayer(): Player {
           interval: new Decimal(4),
           intervalAmount: Decimal.dZero,
           toggle: true
+        }
+      ]
+    },
+    upgrades: {
+      overflow: [
+        {
+          kind: UpgradeKind.Overflow,
+          ord: 0,
+          amount: new Decimal(0)
         }
       ]
     }
