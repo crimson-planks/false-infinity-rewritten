@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { input, type TabName } from '@/ui';
+import { handleInput, type TabName } from '@/ui';
 const props = defineProps<{tab: TabName; visible: boolean}>();
 
 function ChangeTab(tab: TabName){
-  input("ChangeTab",[tab]);
+  handleInput("ChangeTab",[tab]);
 }
 </script>
 <template>

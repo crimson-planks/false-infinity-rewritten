@@ -72,7 +72,7 @@ export function toUsableObject(obj: stringifiableObject): unknown{
   if(obj._type==="-Infinity") return -Infinity;
   if(obj._type==="undefined") return undefined;
   if(obj._type==="Decimal"){
-    if(typeof obj.sign!=="number" || typeof obj.layer!=="number" || typeof obj.mag!=="number") throw TypeError("Invalid object structure for Decimal")
+    if(typeof obj.sign!=="number" || typeof obj.layer!=="number" || typeof obj.mag!=="number") return Decimal.dNaN
     return Decimal.fromComponents(obj.sign,obj.layer,obj.mag)
   }
   if(obj._type) throw TypeError(`Invalid _type ${obj._type}`);
@@ -105,7 +105,7 @@ export function mergeObj_nocopy(obj_to: {[key: string | number | symbol]: any}, 
   });
   return rslt;
 }
-/** adds missing properties*/
+/** adds missing properties to save*/
 export function fixSave(){
   const defaultPlayer = getDefaultPlayer();
   setPlayer(mergeObj_nocopy(player,defaultPlayer));

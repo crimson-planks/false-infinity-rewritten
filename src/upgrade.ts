@@ -1,8 +1,11 @@
 /** @prettier */
+import { getJSDocReadonlyTag } from 'typescript';
 import { ExponentialCostScaling, LinearCostScaling } from './cost';
 import { CurrencyKind, getCurrency, setCurrency } from './currency';
+import { getTranslatedDeflationPower } from './deflation_power';
 import Decimal from './lib/break_eternity';
 import { player } from './player';
+export const OVERFLOW_UPGRADE_COUNT = 8;
 export const initialUpgradeCostScaling = {
   overflow: [
     new ExponentialCostScaling({ baseCost: new Decimal(1), baseIncrease: new Decimal(10) }),
@@ -19,11 +22,13 @@ export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
   return initialUpgradeCostScaling[kind][ord];
 }
 export const upgradeCurrency = {
-  overflow: [CurrencyKind.OverflowPoint, CurrencyKind.OverflowPoint, CurrencyKind.OverflowPoint]
+  overflow: Array(OVERFLOW_UPGRADE_COUNT)
+    .fill(0)
+    .map((v, i) => CurrencyKind.OverflowPoint)
 };
-export const upgradeMaxBuy = {
+export const upgradeMaxAmount = {
   overflow: [
-    new Decimal(3),
+    new Decimal(4),
     new Decimal(3),
     new Decimal(8),
     Decimal.dOne,
@@ -41,7 +46,37 @@ export interface UpgradeData {
   ord: number;
   amount: Decimal;
 }
+export const upgradeEffectValueFuncArray = {
+  overflow: [
+    function () {
+      return player.upgrades.overflow[0].amount.mul(0.125);
+    },
+    function () {
+      return player.upgrades.overflow[1].amount.pow_base(2);
+    },
+    function () {
+      return player.upgrades.overflow[2].amount.mul(0.125);
+    },
+    function () {
+      return getTranslatedDeflationPower().max(1).sqrt();
+    },
+    function () {
+      return player.upgrades.overflow[4].amount;
+    },
+    function () {
+      if (player.fastestOverflowTime === undefined) return Decimal.dZero;
+      return new Decimal(1000).div(new Decimal(player.fastestOverflowTime / 1000).div(2).max(1));
+    },
+    function () {
+      return player.deflation;
+    },
+    function () {
+      return getTranslatedDeflationPower().max(1).log10().add(1);
+    }
+  ]
+};
 export function BuyUpgrade(kind: UpgradeKind, ord: number, buyAmount: Decimal) {
+  if (player.upgrades[kind][ord].amount.add(buyAmount).gt(upgradeMaxAmount[kind][ord])) return;
   const currency = upgradeCurrency[kind][ord];
   const cost = getUpgradeCostScaling(kind, ord).getTotalCostAfterPurchase(
     player.upgrades[kind][ord].amount,

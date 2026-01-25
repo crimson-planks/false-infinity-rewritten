@@ -49,6 +49,9 @@ app.mount('#app');
 load();
 fixSave();
 let autosaveTimer=0;
+export function getPlayTime(){
+  return player.currentTime-player.createdTime
+};
 export function getMatterPerSecond(){
   let result = player.autobuyers.matter[0].amount.mul(player.autobuyers.matter[0].interval.recip()).mul(+player.autobuyers.matter[0].toggle)
   result = result.minus(getAutobuyerCostScaling(AutobuyerKind.Matter, 0).getTotalCostAfterPurchase(player.autobuyers.matter[0].amount,player.autobuyers.matter[1].amount.mul(player.autobuyers.matter[1].interval.recip())).mul(+player.autobuyers.matter[1].toggle))
@@ -64,15 +67,6 @@ setInterval(function(){
     autosaveTimer=0;
     console.log("game saved!");
   }
-  gameCache.deflatorGainOnDeflation.invalidate();
-  gameCache.translatedDeflationPowerMultiplierWhenSacrifice.invalidate();
-  gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.invalidate();
-  gameCache.translatedDeflationPower.invalidate();
-  gameCache.canDeflationSacrifice.invalidate();
-  if(player.matter.gt(OVERFLOW) && !player.isOverflowing){
-    player.isOverflowing = true;
-    player.matter=OVERFLOW;
-  }
   //@ts-ignore
   Object.keys(player.autobuyers).forEach((key: AutobuyerKind)=>{
     if(key==AutobuyerKind.Matter && player.isOverflowing) return;
@@ -80,15 +74,28 @@ setInterval(function(){
       AutobuyerTick(key, i, diff);
     }
   });
+
+  gameCache.upgradeEffectValue.overflow.forEach((v, i)=>{
+    v.invalidate()
+  })
+  gameCache.deflatorGainOnDeflation.invalidate();
+  gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.invalidate();
+  gameCache.translatedDeflationPowerMultiplierWhenSacrifice.invalidate();
+  gameCache.translatedDeflationPower.invalidate();
+  gameCache.canDeflationSacrifice.invalidate();
+  if(player.matter.gt(OVERFLOW) && !player.isOverflowing){
+    player.isOverflowing = true;
+    player.matter=OVERFLOW;
+  }
+  if(player.fusion.matterPoured.gte("1e10") && !player.fusion.unlocked){
+    player.fusion.unlocked = true;
+  }
   updateScreen();
 }, 50);
 
 addEventListener("keypress",(ev)=>{
   if(ev.code==="KeyM"){
-    console.log("m pressed")
     for(let i=0;i<player.autobuyers.matter.length;i++){
-      console.log(getIntervalCostScaling(AutobuyerKind.Matter, i).getAvailablePurchases(
-        player.autobuyers.matter[i].intervalAmount, getCurrency(CurrencyKind.Matter)))
       BuyInterval(AutobuyerKind.Matter, i,
         getIntervalCostScaling(AutobuyerKind.Matter, i).getAvailablePurchases(
         player.autobuyers.matter[i].intervalAmount, getCurrency(CurrencyKind.Matter)).max(0).floor()

@@ -7,7 +7,7 @@ function ClickDeflationButton(){
 }
 </script>
 <template>
-  <button class="o-prestige-button c-deflation-button" :class="{'button--can-buy': props.canBuy, 'button--cannot-buy': !props.canBuy}" @click="ClickDeflationButton">Deflate<br/>Cost: {{ deflationCost }}
+  <button class="o-prestige-button c-deflation-button" :class="{'button--can-buy': canBuy, 'button--cannot-buy': !canBuy}" @click="ClickDeflationButton">Deflate<br/>Cost: {{ deflationCost }}
   <br>
   Get {{ deflatorGainOnDeflation }} deflators
   </button>

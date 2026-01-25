@@ -2,7 +2,7 @@
 import Decimal from '@/lib/break_eternity';
 import { ExponentialCostScaling, LinearCostScaling } from './cost';
 import { player } from './player';
-import { CurrencyKind, getCurrency, setCurrency } from './currency';
+import { addCurrency, CurrencyKind, getCurrency, setCurrency } from './currency';
 import { gameCache } from './cache';
 import { getTranslatedDeflationPower } from './deflation_power';
 export const initialAutobuyerCostScaling = {
@@ -61,6 +61,17 @@ export const initialIntervalCostScaling = {
   ]
 };
 export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
+  if (kind === AutobuyerKind.Matter) {
+    const finalIntervalCostScaling = new ExponentialCostScaling({
+      baseCost: initialIntervalCostScaling[kind][ord].baseCost,
+      baseIncrease: initialIntervalCostScaling[kind][ord].baseIncrease
+    });
+    if (player.upgrades.overflow[3].amount.gt(0))
+      finalIntervalCostScaling.baseCost = finalIntervalCostScaling.baseCost.div(
+        gameCache.upgradeEffectValue.overflow[3].cachedValue
+      );
+    return finalIntervalCostScaling;
+  }
   return initialIntervalCostScaling[kind][ord];
 }
 export const autobuyerName = {
@@ -118,12 +129,19 @@ export function BuyInterval(kind: AutobuyerKind, ord: number, buyAmount: Decimal
   player.autobuyers[kind][ord].intervalAmount =
     player.autobuyers[kind][ord].intervalAmount.add(buyAmount);
 }
+export function getIntervalMultiplierByBying() {
+  return new Decimal(2).add(gameCache.upgradeEffectValue.overflow[2].cachedValue).recip();
+}
 export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) {
   let finalInterval = initialInterval[kind][ord].mul(
-    new Decimal(0.5).pow(player.autobuyers[kind][ord].intervalAmount)
+    getIntervalMultiplierByBying().pow(player.autobuyers[kind][ord].intervalAmount)
   );
   if (kind === AutobuyerKind.DeflationPower) {
-    finalInterval = finalInterval.div(player.deflation.add(1));
+    finalInterval = finalInterval.div(
+      player.deflation
+        .add(1)
+        .mul(new Decimal(1).add(gameCache.upgradeEffectValue.overflow[4].cachedValue))
+    );
   }
   player.autobuyers[kind][ord].interval = finalInterval;
   const totalTime = timeS.add(player.autobuyers[kind][ord].timer ?? Decimal.dZero);
@@ -133,7 +151,7 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
   if (activationAmount.eq(0)) return;
   if (kind === AutobuyerKind.Matter) {
     if (ord === 0) {
-      player.matter = player.matter.add(activationAmount.mul(player.autobuyers[kind][ord].amount));
+      addCurrency(CurrencyKind.Matter, activationAmount.mul(player.autobuyers[kind][ord].amount));
     } else {
       if (player.autobuyers[kind][ord].amount.eq(0)) return;
       BuyAutobuyer(
@@ -149,7 +167,8 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
     }
   } else if (kind === AutobuyerKind.DeflationPower) {
     if (ord === 0) {
-      player.deflationPower = player.deflationPower.add(
+      addCurrency(
+        CurrencyKind.DeflationPower,
         activationAmount.mul(player.autobuyers[kind][ord].amount)
       );
     }

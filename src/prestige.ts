@@ -10,20 +10,26 @@ export const deflationCost = new ExponentialCostScaling({
   baseCost:new Decimal(1000),
   baseIncrease:new Decimal(10)
 })
+export function getDeflationCost(){
+  return new ExponentialCostScaling({
+    baseCost: deflationCost.baseCost.div(gameCache.upgradeEffectValue.overflow[7].cachedValue),
+    baseIncrease: deflationCost.baseIncrease
+  })
+}
 export function canDeflate(){
-  return player.matter.gte(deflationCost.getCurrentCost(player.deflation))
+  return player.matter.gte(getDeflationCost().getCurrentCost(player.deflation))
 }
 export function canOverflow(){
-  return player.matter.gte(OVERFLOW);
+  return player.matter.gte(OVERFLOW) || player.isOverflowing;
 }
-export function getDeflatorGainOnDeflation(){
-  return player.deflation.add(1);
+export function getDeflatorGainOnDeflation(): Decimal{
+  return player.deflation.add(1).mul(gameCache.upgradeEffectValue.overflow[1].cachedValue);
 }
 export function deflate(){
   if(!canDeflate()) return;
-  player.deflator = player.deflator.add(getDeflatorGainOnDeflation());
-
+  player.lastDeflationTime = Date.now();
   player.deflation = player.deflation.add(1);
+  player.deflator = player.deflator.add(getDeflatorGainOnDeflation());
 
   resetAutobuyers();
   player.matter = Decimal.dZero;
@@ -47,10 +53,23 @@ export function deflationSacrifice(){
   player.previousSacrificeDeflationPower=player.deflationPower;
   player.deflationPower=new Decimal();
 }
+export function getOverflowPointGain(){
+  let finalGain = new Decimal(1)
+  if(player.upgrades.overflow[5].amount.gt(0)) finalGain = finalGain.add(gameCache.upgradeEffectValue.overflow[5].cachedValue.floor())
+  return finalGain
+}
 export function overflow(){
   if(!canOverflow()) return;
   console.log("overflow")
-  player.overflow = player.overflow.add(1)
+  let overflowDTime = player.currentTime-player.lastOverflowTime;
+  player.lastOverflowTime = player.currentTime;
+  if(player.fastestOverflowTime === undefined || overflowDTime<player.fastestOverflowTime){
+    player.fastestOverflowTime = overflowDTime;
+  }
+
+  player.overflow = player.overflow.add(1);
+  player.isOverflowing = false;
+  player.overflowPoint = player.overflowPoint.add(getOverflowPointGain());
 
   resetAutobuyers();
   player.matter = Decimal.dZero;
@@ -60,7 +79,4 @@ export function overflow(){
   player.previousSacrificeDeflationPower = Decimal.dZero;
   player.autobuyers.deflationPower = getDefaultPlayer().autobuyers.deflationPower;
 
-  player.isOverflowing = false;
-  player.overflowPoint = player.overflowPoint.add(1);
 }
-//TODO: add m key for maxing all intervals of matter autobuyers

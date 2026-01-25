@@ -6,6 +6,7 @@ export enum NotationName {
   Scientific = 'scientific'
 }
 export function formatValue(inputValue: Decimal, notation: NotationName) {
+  if(inputValue.isNan()) return "NaN"
   if(inputValue.gt(OVERFLOW)) return "Error: Overflow"
   switch (notation) {
     case NotationName.Default:

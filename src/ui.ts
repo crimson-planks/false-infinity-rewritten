@@ -1,12 +1,17 @@
 //TODO: make tabs and subtabs
-import { ref } from "vue";
+/** @prettier */
+import { computed, ref } from "vue";
 import { player } from "./player";
 import { formatValue, NotationName } from '@/notation'
 import { getAutobuyerCostScaling, AutobuyerKind, getIntervalCostScaling, autobuyerCurrency, autobuyerName, intervalCurrency } from "./autobuyer";
-import { canDeflate, deflationCost, deflationSacrifice, overflow } from "./prestige";
+import { canDeflate, deflationCost, deflationSacrifice, getDeflationCost, getDeflatorGainOnDeflation, overflow } from "./prestige";
 import { gameCache } from "./cache";
-import { CurrencyName, getCurrency } from "./currency";
-import { getMatterPerSecond } from "./main";
+import { addCurrency, CurrencyKind, CurrencyName, getCurrency } from "./currency";
+import { getMatterPerSecond, getPlayTime } from "./main";
+import { getUpgradeCostScaling, upgradeCurrency, UpgradeKind, upgradeMaxAmount } from "./upgrade";
+import { getTranslatedDeflationPowerExponent, getTranslatedDeflationPowerMultiplier } from "./deflation_power";
+import Decimal from "./lib/break_eternity";
+import { pourMatter } from "./fusion";
 export interface AutobuyerVisualData{
   kind: AutobuyerKind;
   ord: number;
@@ -20,8 +25,18 @@ export interface AutobuyerVisualData{
   canBuy: boolean;
   canBuyInterval: boolean;
 }
-export type TabName = "autobuyer" | "overflow" | "option"
-export type SubtabName = "matter" | "deflation" | "upgrades"
+export interface UpgradeVisualData{
+  kind: UpgradeKind;
+  ord: number;
+  amount: string;
+  maxAmount: string;
+  effectValue: string;
+  boughtMax: boolean;
+  cost: string;
+  canBuy: boolean;
+}
+export type TabName = "autobuyer" | "overflow" | "option" | "statistics"
+export type SubtabName = "matter" | "deflation" | "upgrades" | "fusion" | "general"
 export const tabs: {
   [key: string]: {
     name: string,
@@ -48,6 +63,9 @@ export const tabs: {
     subtab:{
       upgrades: {
         name: "Upgrades"
+      },
+      fusion: {
+        name: "Fusion"
       }
     }
   },
@@ -57,6 +75,47 @@ export const tabs: {
       option: {
         name: "Option"
       }
+    }
+  },
+  statistics: {
+    name: "Statistics",
+    subtab:{
+      general: {
+        name: "General"
+      }
+    }
+  }
+}
+export const texts = {
+  'en-US': {
+    tabs,
+    upgrades: {
+      overflow: [
+        {
+          description: "Increase the exponent of translated deflation power."
+        },
+        {
+          description: "Deflations give twice as many deflators."
+        },
+        {
+          description: "Increase the effectiveness of buying an interval"
+        },
+        {
+          description: "Deflation power affects interval cost at a reduced rate"
+        },
+        {
+          description: "Increase the effectiveness of deflations for deflation power autoclicker multiplier"
+        },
+        {
+          description: "Get more overflow points based on fastest overflow time"
+        },
+        {
+          description: "Deflation count multiplies overflow point gain"
+        },
+        {
+          description: "Deflation power affects deflation cost"
+        },
+      ]
     }
   }
 }
@@ -70,6 +129,9 @@ export const ui = ref({
       visible: true
     },
     option: {
+      visible: true
+    },
+    statistics: {
       visible: true
     }
   },
@@ -86,28 +148,38 @@ export const ui = ref({
     overflow: {
       upgrades: {
         visible: true
+      },
+      fusion: {
+        visible: true
       }
     },
     option: {
       option:{
         visible: true
       }
+    },
+    statistics: {
+      general: {
+        visible: true
+      }
     }
   },
   creditsVisible: false,
-  matter: "0",
-  matterPerSecond: "0",
+  playTime: "",
+  matter: "",
+  totalMatter: "",
+  matterPerSecond: "",
   deflationCost: "",
   autobuyers: {
     matter: Array(player.autobuyers.matter.length).fill(0).map((v, i)=>{return {
       kind: AutobuyerKind.Matter,
       ord: i,
       name: autobuyerName.matter[i],
-      amount: "0",
-      timer: "0",
-      toggle: 'true',
+      amount: "",
+      timer: "",
+      toggle: '',
       interval: "",
-      cost: "10",
+      cost: "",
       intervalCost: "",
       canBuy: false,
       canBuyInterval: false,
@@ -116,44 +188,88 @@ export const ui = ref({
       kind: AutobuyerKind.Matter,
       ord: i,
       name: autobuyerName.matter[i],
-      amount: "0",
-      timer: "0",
-      toggle: 'true',
+      amount: "",
+      timer: "",
+      toggle: '',
       interval: "",
-      cost: "10",
+      cost: "",
       intervalCost: "",
       canBuy: false,
       canBuyInterval: false,
     }})
   },
+  upgrades: {
+    overflow: Array(player.upgrades.overflow.length).fill(0).map((v, i)=> {return {
+      kind: UpgradeKind.Overflow,
+      ord: i,
+      amount: "",
+      maxAmount: "",
+      effectValue: "",
+      boughtMax: false,
+      cost: "",
+      canBuy: false
+    }})
+  },
+  deflation: "",
   canDeflate: false,
   deflatorGainOnDeflation: "",
   canDeflationSacrifice: false,
   deflationPower: "",
   translatedDeflationPower: "",
+  translatedDeflationPowerExponent: "",
+  translatedDeflationPowerMultiplier: "",
   translatedDeflationPowerMultiplierWhenSacrifice: "",
   previousSacrificeDeflationPower: "",
   translatedDeflationPowerMultiplierBySacrificedDeflationPower: "",
   deflator: "",
+  overflow: "",
   isOverflowing: false,
   overflowPoint: "",
+  fusionMatterPoured: "",
+  fusionMatterPouredPercentage: "",
+  fusionUnlocked: false,
 })
+export const input = ref({
+  fusionPourMatter: ""
+})
+export const sanitizedInput = {
+  fusionPourMatter: computed(() =>{
+    return sanitizeStringDecimal(input.value.fusionPourMatter).max(0).floor()
+  })
+};
+export function sanitizeStringDecimal(s: string){
+  let d = new Decimal(s)
+  if(d.isNan() || !d.isFinite()) return new Decimal(Decimal.dZero)
+  else return d
+};
+
 export function updateScreen(){
+  ui.value.totalMatter = formatValue(player.totalMatter, NotationName.Default);
+  ui.value.playTime = getPlayTime().toString()
+
   ui.value.matter=formatValue(player.matter, NotationName.Default);
   ui.value.matterPerSecond=formatValue(getMatterPerSecond(), NotationName.Default);
-  ui.value.deflationCost=formatValue(deflationCost.getCurrentCost(player.deflation), NotationName.Default);
+  ui.value.deflationCost=formatValue(getDeflationCost().getCurrentCost(player.deflation), NotationName.Default);
   ui.value.canDeflate=canDeflate();
-  ui.value.deflatorGainOnDeflation = formatValue(player.deflation.add(1), NotationName.Default)
+  ui.value.deflatorGainOnDeflation = formatValue(getDeflatorGainOnDeflation(), NotationName.Default)
   ui.value.canDeflationSacrifice = gameCache.canDeflationSacrifice.cachedValue;
+  ui.value.deflation = formatValue(player.deflation, NotationName.Default);
 
   ui.value.deflationPower = formatValue(player.deflationPower, NotationName.Default);
   ui.value.translatedDeflationPower = formatValue(gameCache.translatedDeflationPower.cachedValue, NotationName.Default);
+  ui.value.translatedDeflationPowerExponent = formatValue(getTranslatedDeflationPowerExponent(), NotationName.Default);
+  ui.value.translatedDeflationPowerMultiplier = formatValue(getTranslatedDeflationPowerMultiplier(), NotationName.Default);
   ui.value.previousSacrificeDeflationPower = formatValue(player.previousSacrificeDeflationPower, NotationName.Default)
   ui.value.translatedDeflationPowerMultiplierWhenSacrifice = formatValue(gameCache.translatedDeflationPowerMultiplierWhenSacrifice.cachedValue, NotationName.Default)
   ui.value.translatedDeflationPowerMultiplierBySacrificedDeflationPower = formatValue(gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.cachedValue, NotationName.Default)
   ui.value.deflator = formatValue(player.deflator, NotationName.Default);
   ui.value.isOverflowing = player.isOverflowing;
+  ui.value.overflow = formatValue(player.overflow,NotationName.Default);
   ui.value.overflowPoint = formatValue(player.overflowPoint, NotationName.Default);
+  ui.value.fusionMatterPoured = formatValue(player.fusion.matterPoured, NotationName.Default)
+  ui.value.fusionMatterPouredPercentage = formatValue(player.fusion.matterPoured.div("1e10").mul(100), NotationName.Default)
+  ui.value.fusionUnlocked = player.fusion.unlocked
+
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible=player.deflation.gt(0);
   //@ts-ignore: this is a valid way of iterating through an Object
@@ -170,11 +286,28 @@ export function updateScreen(){
       ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].amount).lte(getCurrency(autobuyerCurrency[ak][i]));
       ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak,i).getCurrentCost(player.autobuyers[ak][i].intervalAmount).lte(getCurrency(autobuyerCurrency[ak][i]));
     }
-  })
+  });
+  //@ts-ignore: same reason
+  Object.keys(player.upgrades).forEach((uk: UpgradeKind)=>{
+    for(let i=0;i<player.upgrades[uk].length;i++){
+      ui.value.upgrades[uk][i].kind = player.upgrades[uk][i].kind;
+      ui.value.upgrades[uk][i].ord = player.upgrades[uk][i].ord;
+      ui.value.upgrades[uk][i].amount = formatValue(player.upgrades[uk][i].amount, NotationName.Default);
+      ui.value.upgrades[uk][i].boughtMax = player.upgrades[uk][i].amount.gte(upgradeMaxAmount[uk][i]);
+      ui.value.upgrades[uk][i].cost = formatValue(getUpgradeCostScaling(uk,i).getCurrentCost(player.upgrades[uk][i].amount), NotationName.Default) + " " + CurrencyName[upgradeCurrency[uk][i]]
+      ui.value.upgrades[uk][i].canBuy = !ui.value.upgrades[uk][i].boughtMax && getUpgradeCostScaling(uk,i).getCurrentCost(player.upgrades[uk][i].amount).lte(getCurrency(upgradeCurrency[uk][i]));
+      ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeMaxAmount[uk][i], NotationName.Default);
+      ui.value.upgrades[uk][i].effectValue = formatValue(gameCache.upgradeEffectValue[uk][i].cachedValue ,NotationName.Default)
+    }
+  });
 }
-export function input(type: string,args: Array<string>){
-  if(type==="ClickMatterButton") player.matter=player.matter.add(1);
-  if(type==="ClickDeflationPowerButton") player.deflationPower=player.deflationPower.add(1);
+export function ClickFusionPourMatterButton(){
+  if(player.isOverflowing) return;
+  pourMatter(sanitizedInput.fusionPourMatter.value)
+}
+export function handleInput(type: string,args: string[]){
+  if(type==="ClickMatterButton") addCurrency(CurrencyKind.Matter, Decimal.dOne)
+  if(type==="ClickDeflationPowerButton") addCurrency(CurrencyKind.DeflationPower, Decimal.dOne);
   if(type==="ClickDeflationSacrificeButton") deflationSacrifice();
   if(type==="ClickOverflowButton") overflow()
   if(type==="ChangeTab") ui.value.tab = args[0];
