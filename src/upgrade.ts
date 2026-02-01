@@ -68,7 +68,7 @@ export const upgradeEffectValueFuncArray = {
       return new Decimal(1000).div(new Decimal(player.fastestOverflowTime / 1000).div(2).max(1));
     },
     function () {
-      return player.deflation;
+      return player.deflation.add(1);
     },
     function () {
       return getTranslatedDeflationPower().max(1).log10().add(1);

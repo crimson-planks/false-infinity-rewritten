@@ -55,7 +55,7 @@ export function deflationSacrifice(){
 }
 export function getOverflowPointGain(){
   let finalGain = new Decimal(1)
-  if(player.upgrades.overflow[5].amount.gt(0)) finalGain = finalGain.add(gameCache.upgradeEffectValue.overflow[5].cachedValue.floor())
+  if(player.upgrades.overflow[5].amount.gt(0)) finalGain = finalGain.add(gameCache.upgradeEffectValue.overflow[5].cachedValue.floor()).mul(gameCache.upgradeEffectValue.overflow[6].cachedValue)
   return finalGain
 }
 export function overflow(){

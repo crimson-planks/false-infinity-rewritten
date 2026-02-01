@@ -13,6 +13,9 @@ import { game_devTools } from './devtools';
 import { overflow, OVERFLOW } from './prestige';
 import Autobuyer from './components/Autobuyer.vue';
 import { CurrencyKind, getCurrency } from './currency';
+
+export const VERSION = "0.1.0"
+
 declare global{
   interface Window{
     Decimal?: typeof Decimal

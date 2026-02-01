@@ -21,6 +21,9 @@ export interface Player {
   fusion: {
     matterPoured: Decimal;
     unlocked: boolean;
+    matterConverted: Decimal;
+    energy: Decimal;
+    helium: Decimal;
   };
   autobuyers: {
     matter: AutobuyerData[];
@@ -50,7 +53,10 @@ export function getDefaultPlayer(): Player {
     overflowPoint: new Decimal(),
     fusion: {
       matterPoured: new Decimal(),
-      unlocked: false
+      unlocked: false,
+      matterConverted: new Decimal(),
+      energy: new Decimal(),
+      helium: new Decimal()
     },
     autobuyers: {
       matter: [

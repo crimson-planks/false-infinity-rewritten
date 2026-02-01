@@ -7,7 +7,7 @@ import { getAutobuyerCostScaling, AutobuyerKind, getIntervalCostScaling, autobuy
 import { canDeflate, deflationCost, deflationSacrifice, getDeflationCost, getDeflatorGainOnDeflation, overflow } from "./prestige";
 import { gameCache } from "./cache";
 import { addCurrency, CurrencyKind, CurrencyName, getCurrency } from "./currency";
-import { getMatterPerSecond, getPlayTime } from "./main";
+import { getMatterPerSecond, getPlayTime, VERSION } from "./main";
 import { getUpgradeCostScaling, upgradeCurrency, UpgradeKind, upgradeMaxAmount } from "./upgrade";
 import { getTranslatedDeflationPowerExponent, getTranslatedDeflationPowerMultiplier } from "./deflation_power";
 import Decimal from "./lib/break_eternity";
@@ -228,13 +228,15 @@ export const ui = ref({
   fusionMatterPoured: "",
   fusionMatterPouredPercentage: "",
   fusionUnlocked: false,
+  helium: "",
+  energy: ""
 })
 export const input = ref({
-  fusionPourMatter: ""
+  fusionUnlockPourMatter: ""
 })
 export const sanitizedInput = {
-  fusionPourMatter: computed(() =>{
-    return sanitizeStringDecimal(input.value.fusionPourMatter).max(0).floor()
+  fusionUnlockPourMatter: computed(() =>{
+    return sanitizeStringDecimal(input.value.fusionUnlockPourMatter).max(0).floor()
   })
 };
 export function sanitizeStringDecimal(s: string){
@@ -268,7 +270,9 @@ export function updateScreen(){
   ui.value.overflowPoint = formatValue(player.overflowPoint, NotationName.Default);
   ui.value.fusionMatterPoured = formatValue(player.fusion.matterPoured, NotationName.Default)
   ui.value.fusionMatterPouredPercentage = formatValue(player.fusion.matterPoured.div("1e10").mul(100), NotationName.Default)
-  ui.value.fusionUnlocked = player.fusion.unlocked
+  ui.value.fusionUnlocked = player.fusion.unlocked;
+  ui.value.helium = formatValue(player.fusion.helium, NotationName.Default);
+  ui.value.energy = formatValue(player.fusion.energy, NotationName.Default);
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible=player.deflation.gt(0);
@@ -303,13 +307,14 @@ export function updateScreen(){
 }
 export function ClickFusionPourMatterButton(){
   if(player.isOverflowing) return;
-  pourMatter(sanitizedInput.fusionPourMatter.value)
+  pourMatter(sanitizedInput.fusionUnlockPourMatter.value)
 }
 export function handleInput(type: string,args: string[]){
   if(type==="ClickMatterButton") addCurrency(CurrencyKind.Matter, Decimal.dOne)
   if(type==="ClickDeflationPowerButton") addCurrency(CurrencyKind.DeflationPower, Decimal.dOne);
   if(type==="ClickDeflationSacrificeButton") deflationSacrifice();
   if(type==="ClickOverflowButton") overflow()
+  if(type==="ClickConvertMatterButton") 0;
   if(type==="ChangeTab") ui.value.tab = args[0];
   if(type==="ChangeSubtab") ui.value.subtab = args[0];
 }

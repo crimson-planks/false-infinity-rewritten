@@ -8,10 +8,12 @@ import { ui, input, handleInput, sanitizedInput, sanitizeStringDecimal, ClickFus
 import { load, save } from './saveload';
 import Upgrade from './components/Upgrade.vue';
 import { computed } from 'vue';
+import { VERSION } from './main';
 
 </script>
 <template>
   <header>
+    <span id="version">False Infinity Rewritten v{{ VERSION }}</span>
     <TabButton tab="autobuyer" :visible="ui.tabs.autobuyer.visible" />
     <TabButton tab="overflow" :visible="ui.tabs.overflow.visible" />
     <TabButton tab="option" :visible="ui.tabs.option.visible" />
@@ -58,12 +60,14 @@ import { computed } from 'vue';
           In order to unlock fusion, you need to pour 1e10 matter.<br>
           You have poured {{ ui.fusionMatterPoured }} matter. ({{ ui.fusionMatterPouredPercentage }}% complete)<br>
           <label for="fusion-pour-matter">Amount of matter to pour: </label>
-          <input type="text" id="fusion-pour-matter" v-model="input.fusionPourMatter"><br>
-          <button @click="ClickFusionPourMatterButton()">Pour {{ sanitizedInput.fusionPourMatter }} Matter</button>
+          <input type="text" id="fusion-pour-matter" v-model="input.fusionUnlockPourMatter"><br>
+          <button @click="ClickFusionPourMatterButton()">Pour {{ sanitizedInput.fusionUnlockPourMatter }} Matter</button>
         </div>
         <p v-show="ui.fusionUnlocked">
           Fusion is Unlocked.
-          <button>Convert matter to helium and energy.</button>
+          <button class="not-implemented" @click="handleInput('ClickConvertMatterButton',[])">Convert 1 matter to helium and energy.</button>
+          Helium: {{ ui.helium }}<br>
+          Energy: {{ ui.energy }}<br>
         </p>
       </div>
     </div>
@@ -94,6 +98,10 @@ import { computed } from 'vue';
 *{
   font-family: 'Courier New', Courier, monospace;
 }
+#version{
+  position: absolute;
+  bottom:0px;
+}
 .button--can-buy{
     border-color: #42b153;
     background-color: #6ad47a;
@@ -110,5 +118,10 @@ import { computed } from 'vue';
 }
 .button--cannot-buy:hover{
     background-color: #9e9e9e;
+}
+.not-implemented{
+  text-decoration: line-through;
+  background-color: gray;
+  cursor: not-allowed;
 }
 </style>
