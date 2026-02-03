@@ -16,8 +16,8 @@ export const initialAutobuyerCostScaling = {
       baseIncrease: new Decimal(100)
     }),
     new LinearCostScaling({
-      baseCost: new Decimal('1e7'),
-      baseIncrease: new Decimal('1e6')
+      baseCost: new Decimal(1e7),
+      baseIncrease: new Decimal(1e6)
     })
   ],
   deflationPower: [

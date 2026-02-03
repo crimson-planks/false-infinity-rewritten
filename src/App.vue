@@ -4,7 +4,7 @@ import DeflationButton from './components/DeflationButton.vue';
 import SubtabButton from './components/SubtabButton.vue';
 import TabButton from './components/TabButton.vue';
 import Credits from './components/Credits.vue';
-import { ui, input, handleInput, sanitizedInput, sanitizeStringDecimal, ClickFusionPourMatterButton } from './ui';
+import { notationArray, ui, input, handleInput, sanitizedInput, sanitizeStringDecimal, ClickFusionPourMatterButton, texts } from './ui';
 import { load, save } from './saveload';
 import Upgrade from './components/Upgrade.vue';
 import { computed } from 'vue';
@@ -79,15 +79,20 @@ import { VERSION } from './main';
     <button @click="save()">Save</button>
     <button @click="load()">Load</button>
     <button @click="ui.creditsVisible=!ui.creditsVisible">Credits</button>
+    <label for="notation-select">Notation: </label>
+          <select id="notation-select">
+            <option v-for="notation in notationArray" :value="notation">{{ texts['en-US'].notations[notation] }}</option>
+          </select>
   </template>
   <Credits :visible="ui.creditsVisible" />
   <div v-show="ui.tab==='statistics'" style="display:block">
     <SubtabButton tab="statistics" subtab="general" :data="ui.subtabs.statistics.general"/>
     <div v-show="ui.subtab==='general'">
+      <h2>General</h2><br>
       You have played for {{ ui.playTime }} milliseconds.<br>
       You have produced a total of {{ ui.totalMatter }} matter.<br>
       You have deflated {{ ui.deflation }} times.<br>
-
+      <h2>Overflow</h2><br>
       You have overflown {{ ui.overflow }} times.<br>
     </div>
   </div>
@@ -99,8 +104,9 @@ import { VERSION } from './main';
   font-family: 'Courier New', Courier, monospace;
 }
 #version{
-  position: absolute;
+  position: fixed;
   bottom:0px;
+  right:0px;
 }
 .button--can-buy{
     border-color: #42b153;

@@ -6,13 +6,16 @@ export const OVERFLOW = new Decimal(2).pow(31).minus(1)
 export function resetAutobuyers(){
   player.autobuyers.matter = getDefaultPlayer().autobuyers.matter;
 }
+export function getStartMatter(){
+  return new Decimal(0).add(gameCache.upgradeEffectValue.overflow[7].cachedValue)
+}
 export const deflationCost = new ExponentialCostScaling({
   baseCost:new Decimal(1000),
   baseIncrease:new Decimal(10)
 })
 export function getDeflationCost(){
   return new ExponentialCostScaling({
-    baseCost: deflationCost.baseCost.div(gameCache.upgradeEffectValue.overflow[7].cachedValue),
+    baseCost: deflationCost.baseCost,
     baseIncrease: deflationCost.baseIncrease
   })
 }
@@ -32,7 +35,7 @@ export function deflate(){
   player.deflator = player.deflator.add(getDeflatorGainOnDeflation());
 
   resetAutobuyers();
-  player.matter = Decimal.dZero;
+  player.matter = getStartMatter();
   player.deflationPower=Decimal.dZero;
 }
 export function getSacrificeDeflationPowerToDeflationPowerBoost(deflationPower: Decimal){
@@ -72,7 +75,7 @@ export function overflow(){
   player.overflowPoint = player.overflowPoint.add(getOverflowPointGain());
 
   resetAutobuyers();
-  player.matter = Decimal.dZero;
+  player.matter = getStartMatter();
   player.deflationPower=Decimal.dZero;
   player.deflation = Decimal.dZero;
   player.deflator = Decimal.dZero;

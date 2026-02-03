@@ -11,7 +11,7 @@ import { getMatterPerSecond, getPlayTime, VERSION } from "./main";
 import { getUpgradeCostScaling, upgradeCurrency, UpgradeKind, upgradeMaxAmount } from "./upgrade";
 import { getTranslatedDeflationPowerExponent, getTranslatedDeflationPowerMultiplier } from "./deflation_power";
 import Decimal from "./lib/break_eternity";
-import { pourMatter } from "./fusion";
+import { convertMatter, pourMatter } from "./fusion";
 export interface AutobuyerVisualData{
   kind: AutobuyerKind;
   ord: number;
@@ -86,9 +86,14 @@ export const tabs: {
     }
   }
 }
+export const notationArray = [NotationName.Default, NotationName.Scientific]
 export const texts = {
   'en-US': {
     tabs,
+    notations: {
+      default: "Default",
+      scientific: "Scientific"
+    },
     upgrades: {
       overflow: [
         {
@@ -113,7 +118,7 @@ export const texts = {
           description: "Deflation count multiplies overflow point gain"
         },
         {
-          description: "Deflation power affects deflation cost"
+          description: "Start with matter"
         },
       ]
     }
@@ -314,7 +319,7 @@ export function handleInput(type: string,args: string[]){
   if(type==="ClickDeflationPowerButton") addCurrency(CurrencyKind.DeflationPower, Decimal.dOne);
   if(type==="ClickDeflationSacrificeButton") deflationSacrifice();
   if(type==="ClickOverflowButton") overflow()
-  if(type==="ClickConvertMatterButton") 0;
+  if(type==="ClickConvertMatterButton") convertMatter(Decimal.dOne);
   if(type==="ChangeTab") ui.value.tab = args[0];
   if(type==="ChangeSubtab") ui.value.subtab = args[0];
 }

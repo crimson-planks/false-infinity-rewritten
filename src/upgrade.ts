@@ -15,7 +15,7 @@ export const initialUpgradeCostScaling = {
     new ExponentialCostScaling({ baseCost: new Decimal(2), baseIncrease: new Decimal(2) }),
     new LinearCostScaling({ baseCost: new Decimal(2), baseIncrease: Decimal.dZero }),
     new LinearCostScaling({ baseCost: new Decimal(10), baseIncrease: Decimal.dZero }),
-    new LinearCostScaling({ baseCost: new Decimal(30), baseIncrease: Decimal.dZero })
+    new ExponentialCostScaling({ baseCost: new Decimal(2), baseIncrease: new Decimal(2) })
   ]
 };
 export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
@@ -35,7 +35,7 @@ export const upgradeMaxAmount = {
     new Decimal(3),
     Decimal.dOne,
     Decimal.dOne,
-    Decimal.dOne
+    new Decimal(8)
   ]
 };
 export enum UpgradeKind {
@@ -71,7 +71,8 @@ export const upgradeEffectValueFuncArray = {
       return player.deflation.add(1);
     },
     function () {
-      return getTranslatedDeflationPower().max(1).log10().add(1);
+      if (player.upgrades.overflow[7].amount.eq(0)) return Decimal.dZero;
+      return player.upgrades.overflow[7].amount.pow10();
     }
   ]
 };
