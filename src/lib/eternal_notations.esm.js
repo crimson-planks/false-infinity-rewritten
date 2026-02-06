@@ -1,4 +1,4 @@
-import Decimal from '@/lib/break_eternity';
+import Decimal from 'break_eternity.js';
 
 /**
  * For reasons unbeknownst to me, break_eternity's Decimal.fromValue does not seem to work on values that are already Decimals, so this function is a version of Decimal.fromValue that does.

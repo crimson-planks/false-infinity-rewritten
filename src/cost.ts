@@ -1,4 +1,4 @@
-import Decimal from './lib/break_eternity';
+import Decimal from 'break_eternity.js';
 /** costs that scales linearly. f(n) = b + an
  */
 export class LinearCostScaling {

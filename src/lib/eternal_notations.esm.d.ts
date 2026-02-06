@@ -4160,21 +4160,21 @@ declare class PrestigeLayerNotation extends Notation {
  * @param operatorChars ( [[string, string], [string, string], [string, string], [string, string]][] ) An array of arrays of four pairs of strings (the outermost array's length is not fixed like the inner arrays' lengths are). In each of these inner arrays, each pair of strings determines what goes around a number to represent an operator. For example:
  * operatorChars[0][0] is the pair of strings used for the innermost addition for the addition operator, with operatorChars[0][0][0] going before the number being added to and operatorChars[0][0][1] going afterwards. operatorChars[0][1] is also for addition, but for additions after the first one (in case you want to add parentheses around inner ones but not the outermost one, for example). operatorChars[0][2] and [0][3] are for once nesting addition begins, with [0][2] going around the number being added to and [0][3] going around the amount of addition operators applied. operatorChars[1] does all the same things as operatorChars[0] but for multiplication instead of addition, operatorChars[2] is for root, operatorChars[3] is for exponentiation, operatorChars[4] is for super-root, and operatorChars[5] is for tetration.
  * Default is [
- 
+
  [["10 + ", ""], ["10 + ", ""], [" + ", ""], ["10 * ", ""]],
- 
+
  [["10 * ", ""], ["10 * ", ""], [" * ", ""], ["10^", ""]],
- 
+
  [["", "^2"], ["(", ")^2"], ["", ""], ["^2^", ""]],
- 
+
  [["10^", ""], ["10^", ""], [" ", ""], ["(10^)^", ""]],
- 
+
  [["", "^^2"], ["(", ")^^2"], ["", ""], [" (^^2)^", ""]],
- 
+
  [["10^^", ""], ["10^^", ""], [" ", ""], ["(10^^)^", ""]]
- 
+
  ]
- 
+
  * @param thresholds ( [Decimal, Decimal | boolean, number, Decimal, number][] ) Again, each entry in the outer array corresponds to one of the six operators.
  In the inner arrays, thresholds[n][0] is the value at which the number being added to/multiplied by/raised to a power/etc., the "argument", switches from being written in plainInnerNotation to being written within the Increasing Operator notation itself, and thresholds[n][3] is that notation switch threshold for the amount of times the operator is applied once the nesting form begins.
  thresholds[n][1] is a forced maximum on the argument, i.e. if the argument is not less than this value then another instance of the operator is applied to get it back below the threshold. thresholds[n][2] is the highest amount of times an operator can be applied before it switches to nesting form,

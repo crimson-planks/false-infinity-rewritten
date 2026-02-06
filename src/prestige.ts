@@ -1,6 +1,6 @@
 import { gameCache } from "./cache";
 import { ExponentialCostScaling } from "./cost";
-import Decimal from "./lib/break_eternity";
+import Decimal from 'break_eternity.js';
 import { getDefaultPlayer, player } from "./player";
 export const OVERFLOW = new Decimal(2).pow(31).minus(1)
 export function resetAutobuyers(){

@@ -3,7 +3,7 @@ import { getJSDocReadonlyTag } from 'typescript';
 import { ExponentialCostScaling, LinearCostScaling } from './cost';
 import { CurrencyKind, getCurrency, setCurrency } from './currency';
 import { getTranslatedDeflationPower } from './deflation_power';
-import Decimal from './lib/break_eternity';
+import Decimal from 'break_eternity.js';
 import { player } from './player';
 export const OVERFLOW_UPGRADE_COUNT = 8;
 export const initialUpgradeCostScaling = {

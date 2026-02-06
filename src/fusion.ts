@@ -1,5 +1,5 @@
 import { CurrencyKind, setCurrency } from "./currency";
-import Decimal from "./lib/break_eternity"
+import Decimal from 'break_eternity.js'
 import { player } from "./player";
 const HYDROGEN_FUSION_ENERGY_MULTIPLIER = new Decimal(4.282_618_142_682e-18) // 26.73 eV * J/eV
 export function pourMatter(amount: Decimal){

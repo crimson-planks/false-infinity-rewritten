@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Decimal from '@/lib/break_eternity';
+import Decimal from 'break_eternity.js';
 import { texts, type UpgradeVisualData } from '@/ui';
 import { BuyUpgrade } from '@/upgrade';
 import { upgradeMaxAmount } from '@/upgrade';

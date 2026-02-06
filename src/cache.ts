@@ -1,5 +1,5 @@
 import { getTranslatedDeflationPower } from "./deflation_power";
-import Decimal from "@/lib/break_eternity";
+import Decimal from "break_eternity.js";
 import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getDeflatorGainOnDeflation } from "./prestige";
 import { OVERFLOW_UPGRADE_COUNT, upgradeEffectValueFuncArray } from "./upgrade";
 

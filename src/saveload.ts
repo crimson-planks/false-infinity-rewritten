@@ -1,4 +1,4 @@
-import Decimal from "@/lib/break_eternity";
+import Decimal from "break_eternity.js";
 import { getDefaultPlayer, player, setPlayer, type Player } from "./player";
 
 export type stringifiableObject= string | number | boolean | null | {

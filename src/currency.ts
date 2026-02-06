@@ -1,4 +1,4 @@
-import type Decimal from './lib/break_eternity';
+import type Decimal from 'break_eternity.js';
 import { player } from './player';
 export enum CurrencyKind {
   Matter = 'matter',

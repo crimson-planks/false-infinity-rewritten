@@ -1,6 +1,6 @@
 import { gameCache } from "./cache";
 import { Effect } from "./effect";
-import Decimal from "./lib/break_eternity";
+import Decimal from 'break_eternity.js';
 import { player } from "./player";
 export function getTranslatedDeflationPowerExponent(): Decimal{
   return new Decimal(0.5).add(gameCache.upgradeEffectValue.overflow[0].cachedValue)

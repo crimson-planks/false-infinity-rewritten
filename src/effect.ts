@@ -1,5 +1,5 @@
 import type { Lazy } from "./cache";
-import type Decimal from "./lib/break_eternity";
+import type Decimal from 'break_eternity.js';
 
 export class Effect{
   value: Lazy<Decimal>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type Decimal from '@/lib/break_eternity';
+import type Decimal from 'break_eternity.js';
 import { deflate } from '@/prestige';
 const props = defineProps<{deflatorGainOnDeflation: string; deflationCost: string, canBuy: boolean}>();
 function ClickDeflationButton(){

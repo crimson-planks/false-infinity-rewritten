@@ -1,5 +1,5 @@
 /** @prettier */
-import Decimal from '@/lib/break_eternity.js';
+import Decimal from 'break_eternity.js';
 import { AutobuyerKind, type AutobuyerData } from '@/autobuyer';
 import { UpgradeKind, type UpgradeData } from './upgrade';
 import { NotationName } from './notation';

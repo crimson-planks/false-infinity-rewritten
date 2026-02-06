@@ -2,7 +2,7 @@ import './assets/main.css';
 
 import { createApp } from 'vue';
 
-import Decimal from './lib/break_eternity';
+import Decimal from 'break_eternity.js'
 import App from './App.vue';
 import { AutobuyerKind, AutobuyerTick, BuyInterval, getAutobuyerCostScaling, getIntervalCostScaling } from './autobuyer';
 import { getDefaultPlayer, player, setPlayer } from './player';

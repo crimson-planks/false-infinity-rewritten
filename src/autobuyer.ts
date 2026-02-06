@@ -1,5 +1,5 @@
 /** @prettier */
-import Decimal from '@/lib/break_eternity';
+import Decimal from 'break_eternity.js';
 import { ExponentialCostScaling, LinearCostScaling } from './cost';
 import { player } from './player';
 import { addCurrency, CurrencyKind, getCurrency, setCurrency } from './currency';
@@ -140,7 +140,7 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
     finalInterval = finalInterval.div(
       player.deflation
         .add(1)
-        .mul(new Decimal(1).add(gameCache.upgradeEffectValue.overflow[4].cachedValue))
+        .mul(Decimal.dOne.add(gameCache.upgradeEffectValue.overflow[4].cachedValue))
     );
   }
   player.autobuyers[kind][ord].interval = finalInterval;
@@ -148,7 +148,7 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
   player.autobuyers[kind][ord].timer = totalTime.mod(player.autobuyers[kind][ord].interval, true);
   const activationAmount = totalTime.div(player.autobuyers[kind][ord].interval).floor();
   if (!player.autobuyers[kind][ord].toggle) return;
-  if (activationAmount.eq(0)) return;
+  if (activationAmount.eq(Decimal.dZero)) return;
   if (kind === AutobuyerKind.Matter) {
     if (ord === 0) {
       addCurrency(CurrencyKind.Matter, activationAmount.mul(player.autobuyers[kind][ord].amount));
