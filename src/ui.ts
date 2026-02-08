@@ -1,7 +1,7 @@
 /** @prettier */
 import { computed, ref } from 'vue';
 import { player } from './player';
-import { formatValue, NotationName } from '@/notation';
+import { formatValue, NotationIdEnum } from '@/notation';
 import {
   getAutobuyerCostScaling,
   AutobuyerKind,
@@ -102,13 +102,14 @@ export const tabs: {
     }
   }
 };
-export const notationArray = [NotationName.Default, NotationName.Scientific];
+export const notationArray = [NotationIdEnum.Default, NotationIdEnum.Scientific];
 export const texts = {
   'en-US': {
     tabs,
     notations: {
       default: 'Default',
-      scientific: 'Scientific'
+      scientific: 'Scientific',
+      inequality: ''
     },
     upgrades: {
       overflow: [
@@ -280,60 +281,60 @@ export function sanitizeStringDecimal(s: string) {
 }
 
 export function updateScreen() {
-  ui.value.totalMatter = formatValue(player.totalMatter, NotationName.Default);
+  ui.value.totalMatter = formatValue(player.totalMatter, NotationIdEnum.Default);
   ui.value.playTime = getPlayTime().toString();
 
-  ui.value.matter = formatValue(player.matter, NotationName.Default);
-  ui.value.matterPerSecond = formatValue(getMatterPerSecond(), NotationName.Default);
+  ui.value.matter = formatValue(player.matter, NotationIdEnum.Default);
+  ui.value.matterPerSecond = formatValue(getMatterPerSecond(), NotationIdEnum.Default);
   ui.value.deflationCost = formatValue(
     getDeflationCost().getCurrentCost(player.deflation),
-    NotationName.Default
+    NotationIdEnum.Default
   );
   ui.value.canDeflate = canDeflate();
   ui.value.deflatorGainOnDeflation = formatValue(
     getDeflatorGainOnDeflation(),
-    NotationName.Default
+    NotationIdEnum.Default
   );
   ui.value.canDeflationSacrifice = gameCache.canDeflationSacrifice.cachedValue;
-  ui.value.deflation = formatValue(player.deflation, NotationName.Default);
+  ui.value.deflation = formatValue(player.deflation, NotationIdEnum.Default);
 
-  ui.value.deflationPower = formatValue(player.deflationPower, NotationName.Default);
+  ui.value.deflationPower = formatValue(player.deflationPower, NotationIdEnum.Default);
   ui.value.translatedDeflationPower = formatValue(
     gameCache.translatedDeflationPower.cachedValue,
-    NotationName.Default
+    NotationIdEnum.Default
   );
   ui.value.translatedDeflationPowerExponent = formatValue(
     getTranslatedDeflationPowerExponent(),
-    NotationName.Default
+    NotationIdEnum.Default
   );
   ui.value.translatedDeflationPowerMultiplier = formatValue(
     getTranslatedDeflationPowerMultiplier(),
-    NotationName.Default
+    NotationIdEnum.Default
   );
   ui.value.previousSacrificeDeflationPower = formatValue(
     player.previousSacrificeDeflationPower,
-    NotationName.Default
+    NotationIdEnum.Default
   );
   ui.value.translatedDeflationPowerMultiplierWhenSacrifice = formatValue(
     gameCache.translatedDeflationPowerMultiplierWhenSacrifice.cachedValue,
-    NotationName.Default
+    NotationIdEnum.Default
   );
   ui.value.translatedDeflationPowerMultiplierBySacrificedDeflationPower = formatValue(
     gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.cachedValue,
-    NotationName.Default
+    NotationIdEnum.Default
   );
-  ui.value.deflator = formatValue(player.deflator, NotationName.Default);
+  ui.value.deflator = formatValue(player.deflator, NotationIdEnum.Default);
   ui.value.isOverflowing = player.isOverflowing;
-  ui.value.overflow = formatValue(player.overflow, NotationName.Default);
-  ui.value.overflowPoint = formatValue(player.overflowPoint, NotationName.Default);
-  ui.value.fusionMatterPoured = formatValue(player.fusion.matterPoured, NotationName.Default);
+  ui.value.overflow = formatValue(player.overflow, NotationIdEnum.Default);
+  ui.value.overflowPoint = formatValue(player.overflowPoint, NotationIdEnum.Default);
+  ui.value.fusionMatterPoured = formatValue(player.fusion.matterPoured, NotationIdEnum.Default);
   ui.value.fusionMatterPouredPercentage = formatValue(
     player.fusion.matterPoured.div('1e10').mul(100),
-    NotationName.Default
+    NotationIdEnum.Default
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
-  ui.value.helium = formatValue(player.fusion.helium, NotationName.Default);
-  ui.value.energy = formatValue(player.fusion.energy, NotationName.Default);
+  ui.value.helium = formatValue(player.fusion.helium, NotationIdEnum.Default);
+  ui.value.energy = formatValue(player.fusion.energy, NotationIdEnum.Default);
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0);
@@ -344,28 +345,28 @@ export function updateScreen() {
       ui.value.autobuyers[ak][i].ord = player.autobuyers[ak][i].ord;
       ui.value.autobuyers[ak][i].amount = formatValue(
         player.autobuyers[ak][i].amount,
-        NotationName.Default
+        NotationIdEnum.Default
       );
       ui.value.autobuyers[ak][i].timer = formatValue(
         player.autobuyers[ak][i].timer,
-        NotationName.Default
+        NotationIdEnum.Default
       );
       ui.value.autobuyers[ak][i].interval = formatValue(
         player.autobuyers[ak][i].interval,
-        NotationName.Default
+        NotationIdEnum.Default
       );
       ui.value.autobuyers[ak][i].toggle = player.autobuyers[ak][i].toggle ? 'On' : 'Off';
       ui.value.autobuyers[ak][i].cost =
         formatValue(
           getAutobuyerCostScaling(ak, i).getCurrentCost(player.autobuyers[ak][i].amount),
-          NotationName.Default
+          NotationIdEnum.Default
         ) +
         ' ' +
         CurrencyName[autobuyerCurrency[ak][i]];
       ui.value.autobuyers[ak][i].intervalCost =
         formatValue(
           getIntervalCostScaling(ak, i).getCurrentCost(player.autobuyers[ak][i].intervalAmount),
-          NotationName.Default
+          NotationIdEnum.Default
         ) +
         ' ' +
         CurrencyName[intervalCurrency[ak][i]];
@@ -384,7 +385,7 @@ export function updateScreen() {
       ui.value.upgrades[uk][i].ord = player.upgrades[uk][i].ord;
       ui.value.upgrades[uk][i].amount = formatValue(
         player.upgrades[uk][i].amount,
-        NotationName.Default
+        NotationIdEnum.Default
       );
       ui.value.upgrades[uk][i].boughtMax = player.upgrades[uk][i].amount.gte(
         upgradeMaxAmount[uk][i]
@@ -392,7 +393,7 @@ export function updateScreen() {
       ui.value.upgrades[uk][i].cost =
         formatValue(
           getUpgradeCostScaling(uk, i).getCurrentCost(player.upgrades[uk][i].amount),
-          NotationName.Default
+          NotationIdEnum.Default
         ) +
         ' ' +
         CurrencyName[upgradeCurrency[uk][i]];
@@ -403,11 +404,11 @@ export function updateScreen() {
           .lte(getCurrency(upgradeCurrency[uk][i]));
       ui.value.upgrades[uk][i].maxAmount = formatValue(
         upgradeMaxAmount[uk][i],
-        NotationName.Default
+        NotationIdEnum.Default
       );
       ui.value.upgrades[uk][i].effectValue = formatValue(
         gameCache.upgradeEffectValue[uk][i].cachedValue,
-        NotationName.Default
+        NotationIdEnum.Default
       );
     }
   });

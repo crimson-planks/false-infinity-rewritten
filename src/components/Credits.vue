@@ -12,7 +12,7 @@ const props = defineProps<{visible: boolean}>();
 
   jQuery<br>
 
-  <a href="https://github.com/Patashu/break_eternity.js">break_eternity.js (v2.1.3)</a><br>
+  <a href="https://github.com/Patashu/break_eternity.js">break_eternity.js</a><br>
 
   <a href="https://github.com/MathCookie17/Eternal-Notations">eternal_notations</a><br>
 

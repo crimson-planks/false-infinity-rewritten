@@ -1,6 +1,6 @@
 import { AutobuyerKind } from "./autobuyer";
-import { BaseConvert } from "./lib/eternal_notations.esm";
-import { FormatInequality, inequality_core, IntegerBaseConvertToDigitArray, multslog } from "./notation";
+import { BaseConvert } from "eternal_notations";
+import { FormatInequality, inequality_core, IntegerBaseConvertToDigitArray, NonInteger_BaseConverToDigit } from "./notation";
 import { fixSave } from "./saveload";
 
 export const game_devTools={
@@ -11,7 +11,7 @@ export const game_devTools={
   },
   BaseConvert,
   IntegerBaseConvertToDigitArray,
+  NonInteger_BaseConverToDigit,
   inequality_core,
-  FormatInequality,
-  multslog
+  FormatInequality
 }

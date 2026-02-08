@@ -2,11 +2,11 @@
 import Decimal from 'break_eternity.js';
 import { AutobuyerKind, type AutobuyerData } from '@/autobuyer';
 import { UpgradeKind, type UpgradeData } from './upgrade';
-import { NotationName } from './notation';
+import { NotationIdEnum } from './notation';
 export interface Player {
   createdTime: number;
   currentTime: number;
-  notation: NotationName;
+  notationId: NotationIdEnum;
   totalMatter: Decimal;
   matter: Decimal;
   lastDeflationTime: number;
@@ -40,7 +40,7 @@ export function getDefaultPlayer(): Player {
   return {
     createdTime: Date.now(),
     currentTime: Date.now(),
-    notation: NotationName.Default,
+    notationId: NotationIdEnum.Default,
     totalMatter: new Decimal(),
     matter: new Decimal(),
     lastDeflationTime: Date.now(),

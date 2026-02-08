@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Decimal from 'break_eternity.js';
-import { NotationName, formatValue } from '@/notation';
+import { NotationIdEnum, formatValue } from '@/notation';
 import { computed } from 'vue';
-const props = defineProps<{ number: Decimal; notation: NotationName }>();
+const props = defineProps<{ number: Decimal; notation: NotationIdEnum }>();
 
 const formattedValue = computed(() => formatValue(props.number, props.notation));
 </script>

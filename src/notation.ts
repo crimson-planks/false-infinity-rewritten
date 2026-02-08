@@ -1,19 +1,43 @@
 /** @prettier */
 import Decimal, { type DecimalSource } from 'break_eternity.js';
-import { Presets, BaseConvert, toDecimal } from './lib/eternal_notations.esm.js';
+import {
+  Presets,
+  BaseConvert,
+  toDecimal,
+  Notation,
+  DefaultNotation,
+  ScientificNotation,
+  MultiLogarithmNotation
+} from 'eternal_notations';
 import { OVERFLOW } from './prestige.js';
-export enum NotationName {
+export enum NotationIdEnum {
   Default = 'default',
-  Scientific = 'scientific'
+  Scientific = 'scientific',
+  Inequality = 'inequality'
 }
+export type NotationId = 'default' | 'scientific' | 'inequality';
 /**
- * Taken from https://github.com/MathCookie17/Eternal-Notations/blob/main/src/baseline/utils.ts (line 592), since eternal_notations doesn't export it.
- * This function is to iteratedexpmult and iteratedmultlog as slog is to iteratedexp/tetrate and iteratedlog.
- */
-export function multslog(value: DecimalSource, base: DecimalSource, mult: DecimalSource): Decimal {
-  let [valueD, baseD, multD] = [value, base, mult].map(toDecimal);
-  return valueD.slog(baseD.pow(multD.recip()), 100, true);
+ * from https://github.com/MathCookie17/Eternal-Notations/blob/main/src/presets.ts
+ * */
+function defaultRound(value: Decimal) {
+  if (value.eq(0)) return new Decimal(0);
+  return value.abs().log10().floor().sub(3).pow_base(10).min(1);
 }
+const notations = {
+  default: Presets.Default.setNotationGlobals(undefined, undefined, undefined, 'NaN', undefined),
+  scientific: Presets.Scientific.setNotationGlobals(
+    undefined,
+    undefined,
+    undefined,
+    'NaN',
+    undefined
+  ),
+  logarithm: Presets.Logarithm.setNotationGlobals(undefined, undefined, undefined, 'NaN', undefined)
+};
+Object.entries(notations).forEach(([key, value]) => {
+  //I do not know how to please typescript while iterating over an object.
+  //notations?.[key];
+});
 /**
  * @param digitsArray an array of arrays of digits.
  *
@@ -52,42 +76,120 @@ export function IntegerBaseConvertToDigitArray(n: number, base: number): number[
   const rsltArray: number[] = [];
   let currN = n;
   let remainder: number = 0;
-  if (Number.isFinite(n)) return [];
-  while (currN < 1) {
+  if (!Number.isFinite(n)) return [];
+  if (n === 0) return [0];
+  while (currN >= 1) {
     remainder = currN % base;
     currN = Math.floor(currN / base);
     rsltArray.push(remainder);
   }
+  return rsltArray.reverse();
+}
+export function NonInteger_BaseConverToDigit(n: number, base: number, numDigits: number): number[] {
+  const rsltArray: number[] = [];
+  let currN = n;
+  let intPart: number = 0;
+  if (n >= 1) return [];
+  for (let i = 0; i < numDigits; i++) {
+    intPart = Math.floor(currN * base);
+    currN = currN * base - intPart;
+    rsltArray.push(intPart);
+  }
+  /*rounding
+  if (currN >= 1 / 2 - 1e-10) rsltArray[numDigits - 1]++;
+  for (let i = numDigits - 1; i >= 1; i--) {
+    if (rsltArray[i] >= base) {
+      rsltArray[i] -= base;
+      rsltArray[i - 1]++;
+    }
+  }
+  */
   return rsltArray;
 }
-export function FormatInequality(value: Decimal) {
+export function FormatInequality(value: Decimal, base: number) {
+  const roundn = Math.pow(base, 4);
+  const roundd = new Decimal(roundn);
   let recipFlag = false;
   let negFlag = false;
+  let layerSign = 1;
+  let magSign = 1;
+
   let mabsvalue = new Decimal(value);
-  if (mabsvalue.abs().lt(1)) {
+  if (mabsvalue.neq(0) && mabsvalue.abs().lt(1)) {
     recipFlag = true;
     mabsvalue = mabsvalue.recip();
+    layerSign = -1;
   }
   if (mabsvalue.sign === -1) {
     negFlag = true;
     mabsvalue = mabsvalue.neg();
+    magSign = -1;
   }
-  if (value.gte(new Decimal(43046721))) {
-    return;
+  if (value.neq(0) && (value.abs().lte(roundd.recip()) || mabsvalue.gte(Decimal.pow(base, 16)))) {
+    const layer = mabsvalue
+      .slog(base, 100, true)
+      .sub(new Decimal(16).slog(3, 100, true))
+      .floor()
+      .toNumber();
+    const mag = mabsvalue.iteratedlog(base, layer, true);
+    const roundedMag = mag.mul(roundd).round().div(roundd);
+    const magIntPart = roundedMag.floor();
+    const magResPart = roundedMag.sub(magIntPart);
+    const magIntDigitArray = IntegerBaseConvertToDigitArray(magIntPart.toNumber(), base).map(
+      (v) => v * magSign
+    );
+    const magResDigitArray = NonInteger_BaseConverToDigit(magResPart.toNumber(), base, 4).map(
+      (v) => v * magSign
+    );
+    if (layer >= Math.pow(3, 16)) {
+      const logLayer = Math.log2(layer) / Math.log2(base);
+      const roundedLogLayer = Math.round(logLayer * roundn) / roundn;
+      const logLayerIntPart = Math.floor(roundedLogLayer);
+      const logLayerResPart = roundedLogLayer - logLayerIntPart;
+      const logLayerIntDigitArray = IntegerBaseConvertToDigitArray(logLayerIntPart, base).map(
+        (v) => v * layerSign
+      );
+      const logLayerResDigitArray = NonInteger_BaseConverToDigit(logLayerResPart, base, 4).map(
+        (v) => v * layerSign
+      );
+      return inequality_core(
+        [logLayerIntDigitArray, logLayerResDigitArray, magIntDigitArray, magResDigitArray],
+        [layerSign, layerSign, magSign, magSign],
+        base
+      );
+    }
+    const layerDigitArray: number[] = IntegerBaseConvertToDigitArray(layer, base).map(
+      (v) => v * layerSign
+    );
+    return inequality_core(
+      [layerDigitArray, magIntDigitArray, magResDigitArray],
+      [layerSign, magSign, magSign],
+      base
+    );
+  } else {
+    const roundedAbsValue = value.abs().mul(roundd).round().div(roundd);
+    const intPart = roundedAbsValue.floor();
+    const remPart = roundedAbsValue.sub(intPart);
+    const intDigitArray: number[] = IntegerBaseConvertToDigitArray(intPart.toNumber(), base).map(
+      (v) => v * magSign
+    );
+    const remDigitArray: number[] = NonInteger_BaseConverToDigit(remPart.toNumber(), base, 4).map(
+      (v) => v * magSign
+    );
+    console.log(intPart, remPart);
+    return inequality_core([intDigitArray, remDigitArray], [magSign, magSign], base);
   }
-  const intPart = value.floor().mul(value.sign);
-  const remPart = value.sub(intPart);
-  const intDigitArray: number[] = [];
-  const remDigitArray: number[] = [];
 }
-export function formatValue(inputValue: Decimal, notation: NotationName) {
-  if (inputValue.isNan()) return 'NaN';
+export function formatValue(inputValue: Decimal, notation: NotationIdEnum) {
+  //if (inputValue.isNan()) return 'NaN';
   if (inputValue.gt(OVERFLOW)) return 'Error: Overflow';
   switch (notation) {
-    case NotationName.Default:
-      return Presets.Default.formatDecimal(inputValue);
-    case NotationName.Scientific:
-      return Presets.Scientific.formatDecimal(inputValue);
+    case NotationIdEnum.Default:
+      return Presets.Default.format(inputValue);
+    case NotationIdEnum.Scientific:
+      return Presets.Scientific.format(inputValue);
+    case NotationIdEnum.Inequality:
+      return FormatInequality(inputValue, 3);
     default:
       throw TypeError(`Unknown notation name: ${notation}`);
   }
