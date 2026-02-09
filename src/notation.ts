@@ -13,9 +13,11 @@ import { OVERFLOW } from './prestige.js';
 export enum NotationIdEnum {
   Default = 'default',
   Scientific = 'scientific',
+  Logarithm = 'logarithm',
   Inequality = 'inequality'
 }
-export type NotationId = 'default' | 'scientific' | 'inequality';
+export type NotationId = 'default' | 'scientific' | 'logarithm' | 'inequality';
+export const notationArray = [NotationIdEnum.Default, NotationIdEnum.Scientific, NotationIdEnum.Logarithm, NotationIdEnum.Inequality];
 /**
  * from https://github.com/MathCookie17/Eternal-Notations/blob/main/src/presets.ts
  * */
@@ -34,32 +36,42 @@ const notations = {
   ),
   logarithm: Presets.Logarithm.setNotationGlobals(undefined, undefined, undefined, 'NaN', undefined)
 };
-Object.entries(notations).forEach(([key, value]) => {
-  //I do not know how to please typescript while iterating over an object.
-  //notations?.[key];
-});
 /**
  * @param digitsArray an array of arrays of digits.
  *
  * @param signArray an array of numbers (-1, 0, 1).
  * signArray[i] should correspond to the sign of digitsArray[i].
+ * @param lessThanStr string when current digit < next digit. Defaults to `'<'`
+ * @param equalToStr string when current digit = next digit. Defaults to `'-'`
+ * @param greaterThanStr string when current digit = next digit. Defaults to `'>'`
+ * @param positiveClosingBracket string when sign
  */
-export function inequality_core(digitsArray: number[][], signArray: number[], base: number) {
+export function inequality_core(
+  digitsArray: number[][],
+  signArray: number[],
+  lessThanStr: string = '<',
+  equalToStr: string = '=',
+  greaterThanStr: string = '>',
+  positiveOpeningBracket: string = '(',
+  negativeOpeningBracket: string = ')',
+  positiveClosingBracket: string = ')',
+  negativeClosingBracket: string = '('
+) {
   const resultArray: string[] = [];
   for (let i = 0; i < digitsArray.length; i++) {
     let digitsArrayI = digitsArray[i];
     for (let j = 0; j < digitsArrayI.length - 1; j++) {
       let curr = digitsArrayI[j];
       let next = digitsArrayI[j + 1];
-      if (curr < next) resultArray.push('<');
-      else if (curr === next) resultArray.push('=');
-      else resultArray.push('>');
+      if (curr < next) resultArray.push(lessThanStr);
+      else if (curr === next) resultArray.push(equalToStr);
+      else resultArray.push(greaterThanStr);
     }
     if (i === digitsArray.length - 1) break;
     let curr = digitsArrayI[digitsArrayI.length - 1];
     let next = digitsArray[i + 1][0];
-    const openingBrackets = signArray[i] < 0 ? ')' : '(';
-    const closingBrackets = signArray[i + 1] < 0 ? '(' : ')';
+    const openingBrackets = signArray[i] < 0 ? negativeOpeningBracket : positiveOpeningBracket;
+    const closingBrackets = signArray[i + 1] < 0 ? negativeClosingBracket : positiveClosingBracket;
     if (curr < next) resultArray.push(`${openingBrackets}<${closingBrackets}`);
     else if (curr === next) resultArray.push(`${openingBrackets}=${closingBrackets}`);
     else resultArray.push(`${openingBrackets}>${closingBrackets}`);
@@ -154,8 +166,7 @@ export function FormatInequality(value: Decimal, base: number) {
       );
       return inequality_core(
         [logLayerIntDigitArray, logLayerResDigitArray, magIntDigitArray, magResDigitArray],
-        [layerSign, layerSign, magSign, magSign],
-        base
+        [layerSign, layerSign, magSign, magSign]
       );
     }
     const layerDigitArray: number[] = IntegerBaseConvertToDigitArray(layer, base).map(
@@ -163,8 +174,7 @@ export function FormatInequality(value: Decimal, base: number) {
     );
     return inequality_core(
       [layerDigitArray, magIntDigitArray, magResDigitArray],
-      [layerSign, magSign, magSign],
-      base
+      [layerSign, magSign, magSign]
     );
   } else {
     const roundedAbsValue = value.abs().mul(roundd).round().div(roundd);
@@ -177,10 +187,10 @@ export function FormatInequality(value: Decimal, base: number) {
       (v) => v * magSign
     );
     console.log(intPart, remPart);
-    return inequality_core([intDigitArray, remDigitArray], [magSign, magSign], base);
+    return inequality_core([intDigitArray, remDigitArray], [magSign, magSign]);
   }
 }
-export function formatValue(inputValue: Decimal, notation: NotationIdEnum) {
+export function formatValue(inputValue: Decimal, notation: string) {
   //if (inputValue.isNan()) return 'NaN';
   if (inputValue.gt(OVERFLOW)) return 'Error: Overflow';
   switch (notation) {

@@ -4,7 +4,8 @@ import DeflationButton from './components/DeflationButton.vue';
 import SubtabButton from './components/SubtabButton.vue';
 import TabButton from './components/TabButton.vue';
 import Credits from './components/Credits.vue';
-import { notationArray, ui, input, handleInput, sanitizedInput, sanitizeStringDecimal, ClickFusionPourMatterButton, texts } from './ui';
+import { ui, input, handleInput, sanitizedInput, sanitizeStringDecimal, ClickFusionPourMatterButton, texts } from './ui';
+import { notationArray } from './notation';
 import { load, save } from './saveload';
 import Upgrade from './components/Upgrade.vue';
 import { computed } from 'vue';
@@ -80,9 +81,10 @@ import { VERSION } from './main';
     <button @click="load()">Load</button>
     <button @click="ui.creditsVisible=!ui.creditsVisible">Credits</button>
     <label for="notation-select">Notation: </label>
-          <select id="notation-select">
-            <option v-for="notation in notationArray" :value="notation">{{ texts['en-US'].notations[notation] }}</option>
-          </select>
+      <select id="notation-select" v-model="input.notationId">
+        <option disabled value="">Default</option>
+        <option v-for="notation in notationArray" :value="notation">{{ texts['en-US'].notations[notation] }}</option>
+      </select>
   </template>
   <Credits :visible="ui.creditsVisible" />
   <div v-show="ui.tab==='statistics'" style="display:block">

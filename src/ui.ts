@@ -1,7 +1,7 @@
 /** @prettier */
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { player } from './player';
-import { formatValue, NotationIdEnum } from '@/notation';
+import { formatValue, NotationIdEnum, type NotationId } from '@/notation';
 import {
   getAutobuyerCostScaling,
   AutobuyerKind,
@@ -28,6 +28,7 @@ import {
 } from './deflation_power';
 import Decimal from 'break_eternity.js';
 import { convertMatter, pourMatter } from './fusion';
+import { type Ref } from '@vue/reactivity';
 export interface AutobuyerVisualData {
   kind: AutobuyerKind;
   ord: number;
@@ -102,14 +103,14 @@ export const tabs: {
     }
   }
 };
-export const notationArray = [NotationIdEnum.Default, NotationIdEnum.Scientific];
 export const texts = {
   'en-US': {
     tabs,
     notations: {
       default: 'Default',
       scientific: 'Scientific',
-      inequality: ''
+      logarithm: 'Logarithm',
+      inequality: 'Inequality'
     },
     upgrades: {
       overflow: [
@@ -266,8 +267,9 @@ export const ui = ref({
   helium: '',
   energy: ''
 });
-export const input = ref({
-  fusionUnlockPourMatter: ''
+export const input: Ref<{ fusionUnlockPourMatter: string; notationId: NotationId }> = ref({
+  fusionUnlockPourMatter: '',
+  notationId: 'default'
 });
 export const sanitizedInput = {
   fusionUnlockPourMatter: computed(() => {
@@ -279,62 +281,64 @@ export function sanitizeStringDecimal(s: string) {
   if (d.isNan() || !d.isFinite()) return new Decimal(Decimal.dZero);
   else return d;
 }
-
+watch(
+  () => input.value.notationId,
+  () => {
+    player.notationId = input.value.notationId;
+  }
+);
 export function updateScreen() {
-  ui.value.totalMatter = formatValue(player.totalMatter, NotationIdEnum.Default);
+  ui.value.totalMatter = formatValue(player.totalMatter, player.notationId);
   ui.value.playTime = getPlayTime().toString();
 
-  ui.value.matter = formatValue(player.matter, NotationIdEnum.Default);
-  ui.value.matterPerSecond = formatValue(getMatterPerSecond(), NotationIdEnum.Default);
+  ui.value.matter = formatValue(player.matter, player.notationId);
+  ui.value.matterPerSecond = formatValue(getMatterPerSecond(), player.notationId);
   ui.value.deflationCost = formatValue(
     getDeflationCost().getCurrentCost(player.deflation),
-    NotationIdEnum.Default
+    player.notationId
   );
   ui.value.canDeflate = canDeflate();
-  ui.value.deflatorGainOnDeflation = formatValue(
-    getDeflatorGainOnDeflation(),
-    NotationIdEnum.Default
-  );
+  ui.value.deflatorGainOnDeflation = formatValue(getDeflatorGainOnDeflation(), player.notationId);
   ui.value.canDeflationSacrifice = gameCache.canDeflationSacrifice.cachedValue;
-  ui.value.deflation = formatValue(player.deflation, NotationIdEnum.Default);
+  ui.value.deflation = formatValue(player.deflation, player.notationId);
 
-  ui.value.deflationPower = formatValue(player.deflationPower, NotationIdEnum.Default);
+  ui.value.deflationPower = formatValue(player.deflationPower, player.notationId);
   ui.value.translatedDeflationPower = formatValue(
     gameCache.translatedDeflationPower.cachedValue,
-    NotationIdEnum.Default
+    player.notationId
   );
   ui.value.translatedDeflationPowerExponent = formatValue(
     getTranslatedDeflationPowerExponent(),
-    NotationIdEnum.Default
+    player.notationId
   );
   ui.value.translatedDeflationPowerMultiplier = formatValue(
     getTranslatedDeflationPowerMultiplier(),
-    NotationIdEnum.Default
+    player.notationId
   );
   ui.value.previousSacrificeDeflationPower = formatValue(
     player.previousSacrificeDeflationPower,
-    NotationIdEnum.Default
+    player.notationId
   );
   ui.value.translatedDeflationPowerMultiplierWhenSacrifice = formatValue(
     gameCache.translatedDeflationPowerMultiplierWhenSacrifice.cachedValue,
-    NotationIdEnum.Default
+    player.notationId
   );
   ui.value.translatedDeflationPowerMultiplierBySacrificedDeflationPower = formatValue(
     gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.cachedValue,
-    NotationIdEnum.Default
+    player.notationId
   );
-  ui.value.deflator = formatValue(player.deflator, NotationIdEnum.Default);
+  ui.value.deflator = formatValue(player.deflator, player.notationId);
   ui.value.isOverflowing = player.isOverflowing;
-  ui.value.overflow = formatValue(player.overflow, NotationIdEnum.Default);
-  ui.value.overflowPoint = formatValue(player.overflowPoint, NotationIdEnum.Default);
-  ui.value.fusionMatterPoured = formatValue(player.fusion.matterPoured, NotationIdEnum.Default);
+  ui.value.overflow = formatValue(player.overflow, player.notationId);
+  ui.value.overflowPoint = formatValue(player.overflowPoint, player.notationId);
+  ui.value.fusionMatterPoured = formatValue(player.fusion.matterPoured, player.notationId);
   ui.value.fusionMatterPouredPercentage = formatValue(
     player.fusion.matterPoured.div('1e10').mul(100),
-    NotationIdEnum.Default
+    player.notationId
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
-  ui.value.helium = formatValue(player.fusion.helium, NotationIdEnum.Default);
-  ui.value.energy = formatValue(player.fusion.energy, NotationIdEnum.Default);
+  ui.value.helium = formatValue(player.fusion.helium, player.notationId);
+  ui.value.energy = formatValue(player.fusion.energy, player.notationId);
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0);
@@ -345,28 +349,28 @@ export function updateScreen() {
       ui.value.autobuyers[ak][i].ord = player.autobuyers[ak][i].ord;
       ui.value.autobuyers[ak][i].amount = formatValue(
         player.autobuyers[ak][i].amount,
-        NotationIdEnum.Default
+        player.notationId
       );
       ui.value.autobuyers[ak][i].timer = formatValue(
         player.autobuyers[ak][i].timer,
-        NotationIdEnum.Default
+        player.notationId
       );
       ui.value.autobuyers[ak][i].interval = formatValue(
         player.autobuyers[ak][i].interval,
-        NotationIdEnum.Default
+        player.notationId
       );
       ui.value.autobuyers[ak][i].toggle = player.autobuyers[ak][i].toggle ? 'On' : 'Off';
       ui.value.autobuyers[ak][i].cost =
         formatValue(
           getAutobuyerCostScaling(ak, i).getCurrentCost(player.autobuyers[ak][i].amount),
-          NotationIdEnum.Default
+          player.notationId
         ) +
         ' ' +
         CurrencyName[autobuyerCurrency[ak][i]];
       ui.value.autobuyers[ak][i].intervalCost =
         formatValue(
           getIntervalCostScaling(ak, i).getCurrentCost(player.autobuyers[ak][i].intervalAmount),
-          NotationIdEnum.Default
+          player.notationId
         ) +
         ' ' +
         CurrencyName[intervalCurrency[ak][i]];
@@ -385,7 +389,7 @@ export function updateScreen() {
       ui.value.upgrades[uk][i].ord = player.upgrades[uk][i].ord;
       ui.value.upgrades[uk][i].amount = formatValue(
         player.upgrades[uk][i].amount,
-        NotationIdEnum.Default
+        player.notationId
       );
       ui.value.upgrades[uk][i].boughtMax = player.upgrades[uk][i].amount.gte(
         upgradeMaxAmount[uk][i]
@@ -393,7 +397,7 @@ export function updateScreen() {
       ui.value.upgrades[uk][i].cost =
         formatValue(
           getUpgradeCostScaling(uk, i).getCurrentCost(player.upgrades[uk][i].amount),
-          NotationIdEnum.Default
+          player.notationId
         ) +
         ' ' +
         CurrencyName[upgradeCurrency[uk][i]];
@@ -402,13 +406,10 @@ export function updateScreen() {
         getUpgradeCostScaling(uk, i)
           .getCurrentCost(player.upgrades[uk][i].amount)
           .lte(getCurrency(upgradeCurrency[uk][i]));
-      ui.value.upgrades[uk][i].maxAmount = formatValue(
-        upgradeMaxAmount[uk][i],
-        NotationIdEnum.Default
-      );
+      ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeMaxAmount[uk][i], player.notationId);
       ui.value.upgrades[uk][i].effectValue = formatValue(
         gameCache.upgradeEffectValue[uk][i].cachedValue,
-        NotationIdEnum.Default
+        player.notationId
       );
     }
   });

@@ -13,6 +13,7 @@ export const deflationCost = new ExponentialCostScaling({
   baseCost:new Decimal(1000),
   baseIncrease:new Decimal(10)
 })
+//TODO: add caching to the 'get' functions
 export function getDeflationCost(){
   return new ExponentialCostScaling({
     baseCost: deflationCost.baseCost,
