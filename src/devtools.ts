@@ -1,6 +1,6 @@
 import { AutobuyerKind } from "./autobuyer";
 import { BaseConvert } from "eternal_notations";
-import { FormatInequality, inequality_core, IntegerBaseConvertToDigitArray, NonInteger_BaseConverToDigit } from "./notation";
+import { FormatInequality, inequality_core, IntegerBaseConvertToDigitArray, NonInteger_BaseConverToDigit, notationArray, notations } from "./notation";
 import { fixSave } from "./saveload";
 
 export const game_devTools={
@@ -13,5 +13,6 @@ export const game_devTools={
   IntegerBaseConvertToDigitArray,
   NonInteger_BaseConverToDigit,
   inequality_core,
-  FormatInequality
+  FormatInequality,
+  notations
 }

@@ -245,6 +245,15 @@ export class InequalityNotation extends Notation {
     ]
   ) {
     super();
+    this.infinityString = inBetweenChars[0][0] + inBetweenChars[0][1];
+    this.negativeInfinityString = inBetweenChars[1][0] + inBetweenChars[1][1];
+    this.NaNString =
+      inBetweenChars[0][0] +
+      inBetweenChars[1][0] +
+      inequalityChars.join('') +
+      inBetweenChars[0][1] +
+      inBetweenChars[1][1];
+
     this.base = base;
     this.rounding = rounding;
     this.manRounding = manRounding;
@@ -368,7 +377,7 @@ export class InequalityNotation extends Notation {
     return this.formatDecimal(decimal);
   }
 }
-const notations = {
+export const notations = {
   default: Presets.Default.setNotationGlobals(undefined, undefined, undefined, 'NaN', undefined),
   scientific: Presets.Scientific.setNotationGlobals(
     undefined,
@@ -394,7 +403,7 @@ const notations = {
       ['(', ')'],
       [')', '(']
     ]
-  ).setNotationGlobals(undefined, undefined, undefined, 'NaN', undefined)
+  )
 };
 export function formatValue(inputValue: Decimal, notation: string) {
   //if (inputValue.isNan()) return 'NaN';

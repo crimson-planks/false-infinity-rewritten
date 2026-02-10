@@ -1,5 +1,4 @@
 /** @prettier */
-import { getJSDocReadonlyTag } from 'typescript';
 import { ExponentialCostScaling, LinearCostScaling } from './cost';
 import { CurrencyKind, getCurrency, setCurrency } from './currency';
 import { getTranslatedDeflationPower } from './deflation_power';
