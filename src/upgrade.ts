@@ -64,7 +64,7 @@ export const upgradeEffectValueFuncArray = {
     },
     function () {
       if (player.fastestOverflowTime === undefined) return Decimal.dZero;
-      return new Decimal(1000).div(new Decimal(player.fastestOverflowTime / 1000).div(2).max(1));
+      return new Decimal(1000).div(new Decimal(player.fastestOverflowTime / 2000).max(1));
     },
     function () {
       return player.deflation.add(1);

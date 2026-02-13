@@ -110,7 +110,8 @@ export const texts = {
       default: 'Default',
       scientific: 'Scientific',
       logarithm: 'Logarithm',
-      inequality: 'Inequality'
+      inequality: 'Inequality',
+      binaryInequality: 'Binary Inequality'
     },
     upgrades: {
       overflow: [
@@ -265,12 +266,18 @@ export const ui = ref({
   fusionMatterPouredPercentage: '',
   fusionUnlocked: false,
   helium: '',
-  energy: ''
+  energy: '',
+  statistics: {
+    overflow: {
+      visible: false
+    }
+  }
 });
 export const input: Ref<{ fusionUnlockPourMatter: string; notationId: NotationId }> = ref({
   fusionUnlockPourMatter: '',
-  notationId: 'default'
+  notationId: player.notationId
 });
+input.value.notationId = player.notationId;
 export const sanitizedInput = {
   fusionUnlockPourMatter: computed(() => {
     return sanitizeStringDecimal(input.value.fusionUnlockPourMatter).max(0).floor();
@@ -342,6 +349,8 @@ export function updateScreen() {
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0);
+
+  ui.value.statistics.overflow.visible = player.overflow.gt(0);
   //@ts-ignore: this is a valid way of iterating through an Object
   Object.keys(player.autobuyers).forEach((ak: AutobuyerKind) => {
     for (let i = 0; i < player.autobuyers[ak].length; i++) {

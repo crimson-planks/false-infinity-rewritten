@@ -5,7 +5,7 @@ import SubtabButton from './components/SubtabButton.vue';
 import TabButton from './components/TabButton.vue';
 import Credits from './components/Credits.vue';
 import { ui, input, handleInput, sanitizedInput, sanitizeStringDecimal, ClickFusionPourMatterButton, texts } from './ui';
-import { notationArray } from './notation';
+import { notationArray, notations } from './notation';
 import { load, save } from './saveload';
 import Upgrade from './components/Upgrade.vue';
 import { computed } from 'vue';
@@ -82,8 +82,8 @@ import { VERSION } from './main';
     <button @click="ui.creditsVisible=!ui.creditsVisible">Credits</button>
     <label for="notation-select">Notation: </label>
       <select id="notation-select" v-model="input.notationId">
-        <option disabled value="">Default</option>
-        <option v-for="notation in notationArray" :value="notation">{{ texts['en-US'].notations[notation] }}</option>
+        <option disabled value="">Select Notation</option>
+        <option v-for="notation in notationArray" :value="notation">{{ notations[notation].name }}</option>
       </select>
   </template>
   <Credits :visible="ui.creditsVisible" />
@@ -94,8 +94,10 @@ import { VERSION } from './main';
       You have played for {{ ui.playTime }} milliseconds.<br>
       You have produced a total of {{ ui.totalMatter }} matter.<br>
       You have deflated {{ ui.deflation }} times.<br>
-      <h2>Overflow</h2><br>
+      <div v-show="ui.statistics.overflow.visible">
+        <h2>Overflow</h2><br>
       You have overflown {{ ui.overflow }} times.<br>
+      </div>
     </div>
   </div>
   </main>

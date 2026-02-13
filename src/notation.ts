@@ -6,14 +6,16 @@ export enum NotationIdEnum {
   Default = 'default',
   Scientific = 'scientific',
   Logarithm = 'logarithm',
-  Inequality = 'inequality'
+  Inequality = 'inequality',
+  BinaryInequality = 'binaryInequality'
 }
-export type NotationId = 'default' | 'scientific' | 'logarithm' | 'inequality';
+export type NotationId = 'default' | 'scientific' | 'logarithm' | 'inequality' | 'binaryInequality';
 export const notationArray = [
   NotationIdEnum.Default,
   NotationIdEnum.Scientific,
   NotationIdEnum.Logarithm,
-  NotationIdEnum.Inequality
+  NotationIdEnum.Inequality,
+  NotationIdEnum.BinaryInequality
 ];
 /**
  * from https://github.com/MathCookie17/Eternal-Notations/blob/main/src/presets.ts
@@ -30,7 +32,10 @@ function defaultRound(value: Decimal) {
  * @param lessThanStr string when current digit < next digit. Defaults to `'<'`
  * @param equalToStr string when current digit = next digit. Defaults to `'-'`
  * @param greaterThanStr string when current digit = next digit. Defaults to `'>'`
- * @param positiveClosingBracket string when sign
+ * @param positiveOpeningBracket
+ * @param negativeOpeningBracket
+ * @param positiveClosingBracket
+ * @param negativeClosingBracket
  */
 export function inequality_core(
   digitsArray: number[][],
@@ -105,19 +110,7 @@ export function NonInteger_BaseConverToDigit(n: number, base: number, numDigits:
   return rsltArray;
 }
 /**
- * Inequality Notation.
- * @param value
- * @param base
- * @param rounding
- * @param manRounding
- * @param superExpRounding
- * @param lessThanStr
- * @param equalToStr
- * @param greaterThanStr
- * @param positiveOpeningBracket
- * @param negativeOpeningBracket
- * @param positiveClosingBracket
- * @param negativeClosingBracket
+ * @deprecated Use `InequalityNotation` instead
  */
 export function FormatInequality(
   value: Decimal,
@@ -219,25 +212,29 @@ export function FormatInequality(
   }
 }
 /**
+ * Inequality Notation.
  * @param base
  * @param rounding
  * @param manRounding
  * @param superExpRounding
  * @param inequalityChars
- * @param inBetweenChars An pair of pairs of strings that are used as the between characters for inequality notation. The first pair is when the corresponding section is positive or zero, and the second pair is when the corresponding section is negative. In each pair, the first entry goes between the previous section and the sign, and the second entry goes between the sign and the next section.
+ * @param inBetweenChars [[positiveOpeningBracket, positiveClosingBracket], [negativeOpeningBracket, negativeClosingBracket]].
+ * An pair of pairs of strings that are used as the between characters for inequality notation. The first pair is when the corresponding section is positive or zero, and the second pair is when the corresponding section is negative. In each pair, the first entry goes between the previous section and the sign, and the second entry goes between the sign and the next section.
  */
 export class InequalityNotation extends Notation {
-  private base: number;
-  private rounding: Decimal;
-  private manRounding: Decimal;
-  private superExpRounding: number;
-  private inequalityChars: [string, string, string];
-  private inBetweenChars: [[string, string], [string, string]];
+  private _base: number;
+  public decimalPlaces: number;
+  public rounding: Decimal;
+  public manRounding: Decimal;
+  public superExpRounding: number;
+  public inequalityChars: [string, string, string];
+  public inBetweenChars: [[string, string], [string, string]];
   constructor(
     base: number,
-    rounding: Decimal = Decimal.pow(base, 4),
+    decimalPlaces: number,
+    rounding: Decimal = Decimal.pow(base, decimalPlaces),
     manRounding: Decimal = Decimal.fromDecimal(rounding),
-    superExpRounding: number = Math.pow(base, 4),
+    superExpRounding: number = Math.pow(base, decimalPlaces),
     inequalityChars: [string, string, string] = ['<', '=', '>'],
     inBetweenChars: [[string, string], [string, string]] = [
       ['(', ')'],
@@ -254,12 +251,21 @@ export class InequalityNotation extends Notation {
       inBetweenChars[0][1] +
       inBetweenChars[1][1];
 
-    this.base = base;
+    this._base = base;
+    this.decimalPlaces = decimalPlaces;
     this.rounding = rounding;
     this.manRounding = manRounding;
     this.superExpRounding = superExpRounding;
     this.inequalityChars = inequalityChars;
     this.inBetweenChars = inBetweenChars;
+  }
+  public get base() {
+    return this._base;
+  }
+  public set base(base: number) {
+    if (base < 1) throw RangeError('base < 1 in Inequality Notation');
+    if (!Number.isInteger(base)) throw new RangeError('Non-integer base in Inequality Notation');
+    this._base = base;
   }
   public name = 'Inequality Notation';
   public formatNegativeDecimal(value: Decimal): string {
@@ -284,39 +290,40 @@ export class InequalityNotation extends Notation {
     }
     if (
       value.neq(0) &&
-      (value.abs().lte(this.rounding.recip()) || mabsvalue.gte(Decimal.pow(this.base, 16)))
+      (value.abs().lte(this.rounding.recip()) || mabsvalue.gte(Decimal.pow(this._base, 16)))
     ) {
       const layer = mabsvalue
-        .slog(this.base, 100, true)
+        .slog(this._base, 100, true)
         .sub(new Decimal(16).slog(3, 100, true))
         .floor()
         .toNumber();
-      const mag = mabsvalue.iteratedlog(this.base, layer, true);
+      const mag = mabsvalue.iteratedlog(this._base, layer, true);
       const roundedMag = mag.mul(this.manRounding).round().div(this.manRounding);
       const magIntPart = roundedMag.floor();
       const magResPart = roundedMag.sub(magIntPart);
-      const magIntDigitArray = IntegerBaseConvertToDigitArray(magIntPart.toNumber(), this.base).map(
-        (v) => v * magSign
-      );
+      const magIntDigitArray = IntegerBaseConvertToDigitArray(
+        magIntPart.toNumber(),
+        this._base
+      ).map((v) => v * magSign);
       const magResDigitArray = NonInteger_BaseConverToDigit(
         magResPart.toNumber(),
-        this.base,
-        4
+        this._base,
+        this.decimalPlaces
       ).map((v) => v * magSign);
       if (layer >= Math.pow(3, 16)) {
-        const logLayer = Math.log2(layer) / Math.log2(this.base);
+        const logLayer = Math.log2(layer) / Math.log2(this._base);
         const roundedLogLayer =
           Math.round(logLayer * this.superExpRounding) / this.superExpRounding;
         const logLayerIntPart = Math.floor(roundedLogLayer);
         const logLayerResPart = roundedLogLayer - logLayerIntPart;
         const logLayerIntDigitArray = IntegerBaseConvertToDigitArray(
           logLayerIntPart,
-          this.base
+          this._base
         ).map((v) => v * layerSign);
         const logLayerResDigitArray = NonInteger_BaseConverToDigit(
           logLayerResPart,
-          this.base,
-          4
+          this._base,
+          this.decimalPlaces
         ).map((v) => v * layerSign);
         return inequality_core(
           [logLayerIntDigitArray, logLayerResDigitArray, magIntDigitArray, magResDigitArray],
@@ -330,12 +337,19 @@ export class InequalityNotation extends Notation {
           this.inBetweenChars[1][1]
         );
       }
-      const layerDigitArray: number[] = IntegerBaseConvertToDigitArray(layer, this.base).map(
+      const layerDigitArray: number[] = IntegerBaseConvertToDigitArray(layer, this._base).map(
         (v) => v * layerSign
       );
       return inequality_core(
         [layerDigitArray, magIntDigitArray, magResDigitArray],
-        [layerSign, magSign, magSign]
+        [layerSign, magSign, magSign],
+        this.inequalityChars[0],
+        this.inequalityChars[1],
+        this.inequalityChars[2],
+        this.inBetweenChars[0][0],
+        this.inBetweenChars[1][0],
+        this.inBetweenChars[0][1],
+        this.inBetweenChars[1][1]
       );
     } else {
       const roundedAbsValue = value.abs().mul(this.rounding).round().div(this.rounding);
@@ -343,12 +357,12 @@ export class InequalityNotation extends Notation {
       const remPart = roundedAbsValue.sub(intPart);
       const intDigitArray: number[] = IntegerBaseConvertToDigitArray(
         intPart.toNumber(),
-        this.base
+        this._base
       ).map((v) => v * magSign);
       const remDigitArray: number[] = NonInteger_BaseConverToDigit(
         remPart.toNumber(),
-        this.base,
-        4
+        this._base,
+        this.decimalPlaces
       ).map((v) => v * magSign);
       return inequality_core(
         [intDigitArray, remDigitArray],
@@ -395,6 +409,7 @@ export const notations = {
   ),
   inequality: new InequalityNotation(
     3,
+    4,
     undefined,
     undefined,
     undefined,
@@ -403,7 +418,19 @@ export const notations = {
       ['(', ')'],
       [')', '(']
     ]
-  )
+  ).setName('Inequality'),
+  binaryInequality: new InequalityNotation(
+    2,
+    6,
+    undefined,
+    undefined,
+    undefined,
+    ['<', '=', '>'],
+    [
+      ['(', ')'],
+      [')', '(']
+    ]
+  ).setName('Binary Inequality')
 };
 export function formatValue(inputValue: Decimal, notation: string) {
   //if (inputValue.isNan()) return 'NaN';
@@ -417,6 +444,8 @@ export function formatValue(inputValue: Decimal, notation: string) {
       return notations.logarithm.format(inputValue);
     case NotationIdEnum.Inequality:
       return notations.inequality.format(inputValue);
+    case NotationIdEnum.BinaryInequality:
+      return notations.binaryInequality.format(inputValue);
     default:
       throw TypeError(`Unknown notation name: ${notation}`);
   }

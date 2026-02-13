@@ -22,7 +22,6 @@ declare global{
     player?: typeof player
     getAutobuyerCostScaling?: typeof getAutobuyerCostScaling
     getIntervalCostScaling?: typeof getIntervalCostScaling
-    ui?: typeof ui
     toStringifiableObject?: typeof toStringifiableObject
     toUsableObject?: typeof toUsableObject
     save?: typeof save
@@ -37,7 +36,6 @@ window.Decimal = Decimal;
 window.player = player;
 window.getAutobuyerCostScaling = getAutobuyerCostScaling;
 window.getIntervalCostScaling = getIntervalCostScaling;
-window.ui = ui;
 window.toStringifiableObject = toStringifiableObject;
 window.toUsableObject = toUsableObject;
 window.save = save;
@@ -90,7 +88,7 @@ setInterval(function(){
     player.isOverflowing = true;
     player.matter=OVERFLOW;
   }
-  if(player.fusion.matterPoured.gte("1e10") && !player.fusion.unlocked){
+  if(player.fusion.matterPoured.gte(1e10) && !player.fusion.unlocked){
     player.fusion.unlocked = true;
   }
   updateScreen();
