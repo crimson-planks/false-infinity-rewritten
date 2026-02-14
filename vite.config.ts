@@ -17,4 +17,6 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  //Doing this allows index.html to link to .js and .css files correctly.
+  base: './'
 })
