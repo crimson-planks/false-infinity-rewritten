@@ -1,13 +1,15 @@
+/** @prettier */
 import Decimal from "break_eternity.js";
 import { getDefaultPlayer, player, setPlayer, type Player } from "./player";
-
+const LEGACY_DECIMAL_CONVERSION = false;
 export type stringifiableObject= string | number | boolean | null | {
   _type: "NaN" | "Infinity" | "-Infinity" | "undefined"
 } | {
   _type: "Decimal",
-  sign: number,
-  mag: number,
-  layer: number
+  v?: string
+  sign?: number,
+  mag?: number,
+  layer?: number
 }
 | stringifiableObject[] | {
   [key: string]: stringifiableObject
@@ -38,12 +40,16 @@ export function toStringifiableObject(obj: unknown): stringifiableObject{
     return obj.map(v=>toStringifiableObject(v));
   }
   if(obj instanceof Decimal){
-    return {
+    if(LEGACY_DECIMAL_CONVERSION) return {
       _type: "Decimal",
       sign: toStringifiableObject(obj.sign),
       mag: toStringifiableObject(obj.mag),
       layer: toStringifiableObject(obj.layer)
     }
+    return {
+        _type: "Decimal",
+        v: obj.toString()
+      };
   }
   if(typeof obj === "undefined"){
     return {_type: "undefined"}
@@ -72,8 +78,9 @@ export function toUsableObject(obj: stringifiableObject): unknown{
   if(obj._type==="-Infinity") return -Infinity;
   if(obj._type==="undefined") return undefined;
   if(obj._type==="Decimal"){
-    if(typeof obj.sign!=="number" || typeof obj.layer!=="number" || typeof obj.mag!=="number") return Decimal.dNaN
-    return Decimal.fromComponents(obj.sign,obj.layer,obj.mag)
+    if(typeof obj?.v==="string") return Decimal.fromString(obj.v);
+    if(typeof obj?.sign==="number" && typeof obj?.layer==="number" && typeof obj?.mag==="number") return Decimal.fromComponents(obj.sign,obj.layer,obj.mag);
+    return Decimal.dNaN;
   }
   if(obj._type) throw TypeError(`Invalid _type ${obj._type}`);
   if(typeof obj === "object"){

@@ -34,11 +34,11 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy (main) to gh-pages Branch
+      - name: Deploy (main) to gh-pages Branch (Using GitHub Pages Action)
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          destination_dir: ''
+          destination_dir: '.'
           publish_branch: gh-pages
           publish_dir: ./dist
