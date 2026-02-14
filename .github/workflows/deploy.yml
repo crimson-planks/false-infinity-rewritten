@@ -20,8 +20,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Dependencies
+        run: npm install
+
       - name: Build
         run: npm run build
 
-      - name: Deploy to gh-pages Branch
-        run: 
+      - name: Deploy (main) to gh-pages Branch
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish-branch: gh-pages
+          publish-dir: ./dist
