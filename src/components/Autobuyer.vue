@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { BuyAutobuyer, BuyInterval, ToggleAutobuyer } from '@/autobuyer';
 import Decimal from 'break_eternity.js';
-import type { AutobuyerVisualData } from '@/ui';
+import { autobuyerOptions, input, selectedOrdArray, type AutobuyerVisualData } from '@/ui';
+import { computed } from 'vue';
 
 const props = defineProps<{data: AutobuyerVisualData}>();
 function ClickBuyAutobuyerButton(){
@@ -13,6 +14,7 @@ function ClickBuyIntervalButton(){
 function ClickToggleButton(){
   ToggleAutobuyer(props.data.kind, props.data.ord);
 }
+const autobuyerSelectId = computed(()=>`autobuyer-${props.data.kind}-${props.data.ord}-select`)
 </script>
 <template>
   <div class="c-autobuyer">
@@ -22,9 +24,17 @@ function ClickToggleButton(){
     <span class="c-autobuyer-text">Interval: {{ props.data.interval }}</span>
     <span class="c-autobuyer-text" :class="{ 'button--can-buy': props.data.canBuyInterval, 'button--cannot-buy': !props.data.canBuyInterval}" @click="ClickBuyIntervalButton">Interval Cost: {{ props.data.intervalCost }}</span>
     <span class="c-autobuyer-text">Timer: {{ props.data.timer }}</span>
+    <span v-show="props.data.hasOption">
+      <label :for="autobuyerSelectId">
+selectedOrd:
+    </label>
+    <select :id="autobuyerSelectId" v-model="input.autobuyerOption.matterAutobuyer[0].selectedOrd">
+      <option v-for="selectedOrd in autobuyerOptions.matterAutobuyer[0]">{{ selectedOrd }}</option>
+    </select>
+  </span>
     <span class="c-autobuyer-text" @click="ClickToggleButton()">Toggle: {{ props.data.toggle }}</span>
   </div>
-</template>
+</template>x
 <style>
 .c-autobuyer-name{
   text-align: center;

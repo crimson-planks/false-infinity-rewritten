@@ -1,8 +1,8 @@
-import { AutobuyerKind } from "./autobuyer";
+import { AutobuyerKind, getAutobuyerCostScaling, getIntervalCostScaling } from "./autobuyer";
 import { BaseConvert } from "eternal_notations";
-import { inequality_core, IntegerBaseConvertToDigitArray, NonInteger_BaseConverToDigit, notationArray, notations } from "./notation";
+import { inequality_core, IntegerBase_ConvertToDigitArray, NonIntegerBase_ConvertToDigitArray, notationArray, notations } from "./notation";
 import { fixSave } from "./saveload";
-import { input } from "./ui";
+import { ExponentialCostScaling, LinearCostScaling } from "./cost";
 
 export const game_devTools={
   fixSave,
@@ -10,10 +10,13 @@ export const game_devTools={
     console.log(Object.keys(AutobuyerKind))
     console.log(AutobuyerKind)
   },
+  LinearCostScaling,
+  ExponentialCostScaling,
+  getAutobuyerCostScaling,
+  getIntervalCostScaling,
   BaseConvert,
-  IntegerBaseConvertToDigitArray,
-  NonInteger_BaseConverToDigit,
+  IntegerBase_ConvertToDigitArray,
+  NonIntegerBase_ConvertToDigitArray,
   inequality_core,
-  input,
   notations
 }

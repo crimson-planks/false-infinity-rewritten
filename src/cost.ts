@@ -1,21 +1,21 @@
-import Decimal from 'break_eternity.js';
+import Decimal, { type DecimalSource }  from 'break_eternity.js';
 /** costs that scales linearly. f(n) = b + an
  */
 export class LinearCostScaling {
   baseCost: Decimal;
   baseIncrease: Decimal;
-  constructor(param: { baseCost: Decimal; baseIncrease: Decimal }) {
-    this.baseCost = param.baseCost;
-    this.baseIncrease = param.baseIncrease;
+  constructor(param: { baseCost: DecimalSource; baseIncrease: DecimalSource }) {
+    this.baseCost = new Decimal(param.baseCost);
+    this.baseIncrease = new Decimal(param.baseIncrease);
   }
   toObject(){
     return {baseCost: this.baseCost, baseIncrease: this.baseIncrease}
   }
-  getCurrentCost(currentAmount: Decimal): Decimal {
+  getCurrentCost(currentAmount: DecimalSource): Decimal {
     return this.baseCost.add(this.baseIncrease.mul(currentAmount));
   }
   /** How much does it cost when I buy buyAmount?*/
-  getTotalCostAfterPurchase(currentAmount: Decimal, buyAmount: Decimal): Decimal {
+  getTotalCostAfterPurchase(currentAmount: DecimalSource, buyAmount: Decimal): Decimal {
     if(buyAmount.eq(1)) return this.getCurrentCost(currentAmount);
     return buyAmount
       .mul(
@@ -26,7 +26,7 @@ export class LinearCostScaling {
       .div(2);
   }
   /** How many can I buy with money? (not rounded) */
-  getAvailablePurchases(currentAmount: Decimal, money: Decimal): Decimal {
+  getAvailablePurchases(currentAmount: DecimalSource, money: Decimal): Decimal {
     if(this.baseIncrease.eq(0)) return money.div(this.baseCost);
     const currentCost = this.getCurrentCost(currentAmount);
     if(this.baseIncrease.lt(0)&&currentCost.lt(0)) return Decimal.dInf;

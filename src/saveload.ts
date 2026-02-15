@@ -14,6 +14,7 @@ export type stringifiableObject= string | number | boolean | null | {
 | stringifiableObject[] | {
   [key: string]: stringifiableObject
 };
+//class-transformer doesn't work since break_eternity.js targets es5 (classes were added in es6)
 export function toStringifiableObject(obj: unknown): stringifiableObject{
   if(typeof obj === "boolean") return obj;
   if(typeof obj === "string"){
@@ -80,7 +81,7 @@ export function toUsableObject(obj: stringifiableObject): unknown{
   if(obj._type==="Decimal"){
     if(typeof obj?.v==="string") return Decimal.fromString(obj.v);
     if(typeof obj?.sign==="number" && typeof obj?.layer==="number" && typeof obj?.mag==="number") return Decimal.fromComponents(obj.sign,obj.layer,obj.mag);
-    return Decimal.dNaN;
+    return Decimal.fromDecimal(Decimal.dZero);
   }
   if(obj._type) throw TypeError(`Invalid _type ${obj._type}`);
   if(typeof obj === "object"){

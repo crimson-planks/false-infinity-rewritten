@@ -30,6 +30,7 @@ export interface Player {
   autobuyers: {
     matter: AutobuyerData[];
     deflationPower: AutobuyerData[];
+    matterAutobuyer: AutobuyerData[];
   };
   upgrades: {
     overflow: UpgradeData[];
@@ -100,6 +101,18 @@ export function getDefaultPlayer(): Player {
           interval: new Decimal(4),
           intervalAmount: Decimal.dZero,
           toggle: true
+        }
+      ],
+      matterAutobuyer: [
+        {
+          kind: AutobuyerKind.MatterAutobuyer,
+          ord: 0,
+          amount: new Decimal(0),
+          timer: new Decimal(0),
+          interval: new Decimal(1),
+          intervalAmount: new Decimal(0),
+          toggle: true,
+          option: {selectedOrd: 0}
         }
       ]
     },

@@ -5,14 +5,16 @@ export enum CurrencyKind {
   Deflator = 'deflator',
   DeflationPower = 'deflationPower',
   OverflowPoint = 'overflowPoint',
-  Helium = 'helium'
+  Helium = 'helium',
+  Energy = 'energy'
 }
 export const CurrencyName={
   matter: "MT",
   deflator: "DF",
   deflationPower: "DP",
   overflowPoint: "OP",
-  helium: "He"
+  helium: "He",
+  energy: "J"
 }
 export function setCurrency(currency: CurrencyKind, v: Decimal) {
   switch (currency) {
@@ -29,6 +31,8 @@ export function setCurrency(currency: CurrencyKind, v: Decimal) {
       player.overflowPoint = v;
     case CurrencyKind.Helium:
       player.fusion.helium = v;
+    case CurrencyKind.Energy:
+      player.fusion.energy = v;
   }
 }
 export function getCurrency(currency: CurrencyKind) {
@@ -43,6 +47,8 @@ export function getCurrency(currency: CurrencyKind) {
       return player.overflowPoint
     case CurrencyKind.Helium:
       return player.fusion.helium
+    case CurrencyKind.Energy:
+      return player.fusion.energy
   }
 }
 export function addCurrency(currency: CurrencyKind, v: Decimal) {
@@ -61,5 +67,7 @@ export function addCurrency(currency: CurrencyKind, v: Decimal) {
       player.overflowPoint = player.overflowPoint.add(v);
     case CurrencyKind.Helium:
       player.fusion.helium = player.fusion.helium.add(v);
+    case CurrencyKind.Energy:
+      player.fusion.energy= player.fusion.energy.add(v);
   }
 }

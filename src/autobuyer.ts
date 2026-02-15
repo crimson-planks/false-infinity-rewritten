@@ -4,7 +4,6 @@ import { ExponentialCostScaling, LinearCostScaling } from './cost';
 import { player } from './player';
 import { addCurrency, CurrencyKind, getCurrency, setCurrency } from './currency';
 import { gameCache } from './cache';
-import { getTranslatedDeflationPower } from './deflation_power';
 export const initialAutobuyerCostScaling = {
   matter: [
     new LinearCostScaling({
@@ -25,6 +24,12 @@ export const initialAutobuyerCostScaling = {
       baseCost: new Decimal(1),
       baseIncrease: new Decimal(0)
     })
+  ],
+  matterAutobuyer: [
+    new LinearCostScaling({
+      baseCost: new Decimal(10),
+      baseIncrease: new Decimal(50)
+    })
   ]
 };
 export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): LinearCostScaling {
@@ -36,7 +41,8 @@ export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): Linea
       baseIncrease: initialAutobuyerCostScaling[kind][ord].baseIncrease.sub(player.deflation.min(4))
     });
   if (kind === AutobuyerKind.DeflationPower) return initialAutobuyerCostScaling[kind][ord];
-  else throw Error(`invalid AutobuyerKind: ${kind}`);
+  if(kind === AutobuyerKind.MatterAutobuyer) return initialAutobuyerCostScaling[kind][ord]
+  else throw TypeError(`invalid AutobuyerKind: ${kind}`);
 }
 export const initialIntervalCostScaling = {
   matter: [
@@ -49,7 +55,7 @@ export const initialIntervalCostScaling = {
       baseIncrease: new Decimal(100)
     }),
     new ExponentialCostScaling({
-      baseCost: new Decimal('1e8'),
+      baseCost: new Decimal(1e8),
       baseIncrease: new Decimal(1000)
     })
   ],
@@ -57,6 +63,12 @@ export const initialIntervalCostScaling = {
     new ExponentialCostScaling({
       baseCost: new Decimal(1),
       baseIncrease: new Decimal(2)
+    })
+  ],
+  matterAutobuyer: [
+    new ExponentialCostScaling({
+      baseCost: new Decimal(1e-9),
+      baseIncrease: new Decimal(10)
     })
   ]
 };
@@ -72,29 +84,35 @@ export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
       );
     return finalIntervalCostScaling;
   }
-  return initialIntervalCostScaling[kind][ord];
+  if(kind === AutobuyerKind.DeflationPower || kind === AutobuyerKind.MatterAutobuyer) return initialIntervalCostScaling[kind][ord];
+  else throw TypeError(`Invalid AutobuyerKind: ${kind}`)
 }
 export const autobuyerName = {
   matter: ['Autoclicker', 'Autobuyer 1'],
-  deflationPower: ['Deflation Power Autoclicker']
+  deflationPower: ['Deflation Power Autoclicker'],
+  matterAutobuyer: ['Matter Autobuyer Autobuyer']
 };
 export const autobuyerCurrency = {
   matter: [CurrencyKind.Matter, CurrencyKind.Matter, CurrencyKind.Matter],
-  deflationPower: [CurrencyKind.Deflator]
+  deflationPower: [CurrencyKind.Deflator],
+  matterAutobuyer: [CurrencyKind.OverflowPoint]
 };
 export const intervalCurrency = {
   matter: [CurrencyKind.Matter, CurrencyKind.Matter, CurrencyKind.Matter],
-  deflationPower: [CurrencyKind.Deflator]
+  deflationPower: [CurrencyKind.Deflator],
+  matterAutobuyer: [CurrencyKind.Energy]
 };
 export const initialInterval = {
   matter: [new Decimal(1), new Decimal(2), new Decimal(4)],
-  deflationPower: [new Decimal(0.5)]
+  deflationPower: [new Decimal(0.5)],
+  matterAutobuyer: [new Decimal(1)]
 };
 //all the methods here only change its internal state
 //the functionality that changes external state are in seperate functions
 export enum AutobuyerKind {
   Matter = 'matter',
-  DeflationPower = 'deflationPower'
+  DeflationPower = 'deflationPower',
+  MatterAutobuyer = 'matterAutobuyer'
 }
 export interface AutobuyerData {
   kind: AutobuyerKind;
@@ -104,6 +122,9 @@ export interface AutobuyerData {
   interval: Decimal;
   intervalAmount: Decimal;
   toggle: boolean;
+  option?: {
+    [propName: string]: unknown
+  }
 }
 export function ToggleAutobuyer(kind: AutobuyerKind, ord: number) {
   player.autobuyers[kind][ord].toggle = !player.autobuyers[kind][ord].toggle;
@@ -119,7 +140,7 @@ export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decima
   player.autobuyers[kind][ord].amount = player.autobuyers[kind][ord].amount.add(buyAmount);
 }
 export function BuyInterval(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
-  const currency = autobuyerCurrency[kind][ord];
+  const currency = intervalCurrency[kind][ord];
   const cost = getIntervalCostScaling(kind, ord).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].intervalAmount,
     buyAmount
@@ -129,12 +150,14 @@ export function BuyInterval(kind: AutobuyerKind, ord: number, buyAmount: Decimal
   player.autobuyers[kind][ord].intervalAmount =
     player.autobuyers[kind][ord].intervalAmount.add(buyAmount);
 }
-export function getIntervalMultiplierByBying() {
-  return new Decimal(2).add(gameCache.upgradeEffectValue.overflow[2].cachedValue).recip();
+export function getIntervalMultiplierByBying(kind: AutobuyerKind, ord: number) {
+  if(kind===AutobuyerKind.Matter || kind===AutobuyerKind.DeflationPower)
+    return new Decimal(2).add(gameCache.upgradeEffectValue.overflow[2].cachedValue).recip();
+  return new Decimal(0.5)
 }
 export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) {
   let finalInterval = initialInterval[kind][ord].mul(
-    getIntervalMultiplierByBying().pow(player.autobuyers[kind][ord].intervalAmount)
+    getIntervalMultiplierByBying(kind, ord).pow(player.autobuyers[kind][ord].intervalAmount)
   );
   if (kind === AutobuyerKind.DeflationPower) {
     finalInterval = finalInterval.div(
@@ -172,5 +195,13 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
         activationAmount.mul(player.autobuyers[kind][ord].amount)
       );
     }
+  } else if (kind === AutobuyerKind.MatterAutobuyer) {
+    const selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd);
+    if(ord === 0) BuyAutobuyer(AutobuyerKind.Matter, selectedOrd, activationAmount.mul(player.autobuyers[kind][ord].amount).min(
+          getAutobuyerCostScaling(AutobuyerKind.Matter, selectedOrd)
+            .getAvailablePurchases(player.autobuyers[AutobuyerKind.Matter][selectedOrd].amount, player.matter)
+            .max(0)
+            .floor()
+        ))
   }
 }

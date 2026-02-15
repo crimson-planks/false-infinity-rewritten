@@ -4,13 +4,11 @@ import DeflationButton from './components/DeflationButton.vue';
 import SubtabButton from './components/SubtabButton.vue';
 import TabButton from './components/TabButton.vue';
 import Credits from './components/Credits.vue';
-import { ui, input, handleInput, sanitizedInput, sanitizeStringDecimal, ClickFusionPourMatterButton, texts } from './ui';
+import { ui, input, handleInput, sanitizedInput, ClickFusionPourMatterButton } from './ui';
 import { notationArray, notations } from './notation';
 import { load, save } from './saveload';
 import Upgrade from './components/Upgrade.vue';
-import { computed } from 'vue';
 import { VERSION } from './main';
-
 </script>
 <template>
   <header>
@@ -27,6 +25,7 @@ import { VERSION } from './main';
       <div>
         <SubtabButton tab="autobuyer" subtab="matter" :data="ui.subtabs.autobuyer.matter"/>
         <SubtabButton tab="autobuyer" subtab="deflation" :data="ui.subtabs.autobuyer.deflation"/>
+        <SubtabButton tab="autobuyer" subtab="overflow" :data="ui.subtabs.autobuyer.overflow"/>
       </div>
       <div v-show="ui.subtab==='matter'" style="display: block">
         <button @click="handleInput('ClickMatterButton',[])">Click to get matter</button>
@@ -44,6 +43,10 @@ import { VERSION } from './main';
         Current Translated Deflation Power Multiplier by Sacrifice: {{ ui.translatedDeflationPowerMultiplierBySacrificedDeflationPower }}<br>
         <button :class="{'button--can-buy': ui.canDeflationSacrifice, 'button--cannot-buy': !ui.canDeflationSacrifice}" @click="handleInput('ClickDeflationSacrificeButton',[])">Set multiplier to {{ ui.translatedDeflationPowerMultiplierWhenSacrifice }} with deflation sacrifice</button>
         <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
+      </div>
+      <div v-show="ui.subtab==='overflow'" style="display: block">
+        Autobuyer Overflow tab.
+        <Autobuyer :data="ui.autobuyers.matterAutobuyer[0]"></Autobuyer>
       </div>
     </div>
     <div v-show="ui.tab==='overflow'" style="display: block">

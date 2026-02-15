@@ -41,6 +41,7 @@ export interface AutobuyerVisualData {
   intervalCost: string;
   canBuy: boolean;
   canBuyInterval: boolean;
+  hasOption: boolean;
 }
 export interface UpgradeVisualData {
   kind: UpgradeKind;
@@ -52,8 +53,12 @@ export interface UpgradeVisualData {
   cost: string;
   canBuy: boolean;
 }
+export const autobuyerOptions = {
+  matterAutobuyer: [[0,1]]
+}
+export const selectedOrdArray = [0,1]
 export type TabName = 'autobuyer' | 'overflow' | 'option' | 'statistics';
-export type SubtabName = 'matter' | 'deflation' | 'upgrades' | 'fusion' | 'general';
+export type SubtabName = 'matter' | 'deflation' | 'overflow' | 'upgrades' | 'fusion' | 'general';
 export const tabs: {
   [key: string]: {
     name: string;
@@ -72,6 +77,9 @@ export const tabs: {
       },
       deflation: {
         name: 'Deflation'
+      },
+      overflow: {
+        name: 'Overflow'
       }
     }
   },
@@ -112,6 +120,14 @@ export const texts = {
       logarithm: 'Logarithm',
       inequality: 'Inequality',
       binaryInequality: 'Binary Inequality'
+    },
+    autobuyer: {
+      name: autobuyerName,
+      optionName: {
+        matterAutobuyer:[
+          "Selected Matter Autobuyer Number"
+        ]
+      }
     },
     upgrades: {
       overflow: [
@@ -168,6 +184,9 @@ export const ui = ref({
       },
       deflation: {
         visible: false
+      },
+      overflow: {
+        visible: false
       }
     },
     overflow: {
@@ -211,15 +230,16 @@ export const ui = ref({
           intervalCost: '',
           canBuy: false,
           canBuyInterval: false
+          ,hasOption: false
         };
       }),
-    deflationPower: Array(player.autobuyers.matter.length)
+    deflationPower: Array(player.autobuyers.deflationPower.length)
       .fill(0)
       .map((v, i) => {
         return {
-          kind: AutobuyerKind.Matter,
+          kind: AutobuyerKind.DeflationPower,
           ord: i,
-          name: autobuyerName.matter[i],
+          name: autobuyerName.deflationPower[i],
           amount: '',
           timer: '',
           toggle: '',
@@ -227,9 +247,24 @@ export const ui = ref({
           cost: '',
           intervalCost: '',
           canBuy: false,
-          canBuyInterval: false
+          canBuyInterval: false,
+          hasOption: false
         };
-      })
+      }),matterAutobuyer: [
+        {
+          kind: AutobuyerKind.MatterAutobuyer,
+          ord: 0,
+          name: autobuyerName.matterAutobuyer[0],
+          amount: '',
+          timer: '',
+          toggle: '',
+          interval: '',
+          cost: '',
+          intervalCost: '',
+          canBuy: false,
+          canBuyInterval: false,
+          hasOption: true
+        }]
   },
   upgrades: {
     overflow: Array(player.upgrades.overflow.length)
@@ -273,9 +308,14 @@ export const ui = ref({
     }
   }
 });
-export const input: Ref<{ fusionUnlockPourMatter: string; notationId: NotationId }> = ref({
+export const input: Ref<{ fusionUnlockPourMatter: string; notationId: NotationId;  autobuyerOption: {
+    matterAutobuyer: [{selectedOrd: number}]
+  } }> = ref({
   fusionUnlockPourMatter: '',
-  notationId: player.notationId
+  notationId: player.notationId,
+  autobuyerOption: {
+    matterAutobuyer: [{selectedOrd: 0}]
+  }
 });
 input.value.notationId = player.notationId;
 export const sanitizedInput = {
@@ -294,6 +334,13 @@ watch(
     player.notationId = input.value.notationId;
   }
 );
+watch(
+  () => input.value.autobuyerOption.matterAutobuyer[0].selectedOrd,
+  () =>{
+    if(player.autobuyers.matterAutobuyer[0].option===undefined) player.autobuyers.matterAutobuyer[0].option = {selectedOrd: input.value.autobuyerOption.matterAutobuyer[0].selectedOrd}
+    else player.autobuyers.matterAutobuyer[0].option.selectedOrd = input.value.autobuyerOption.matterAutobuyer[0].selectedOrd
+  }
+)
 export function updateScreen() {
   ui.value.totalMatter = formatValue(player.totalMatter, player.notationId);
   ui.value.playTime = getPlayTime().toString();
@@ -344,11 +391,12 @@ export function updateScreen() {
     player.notationId
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
-  ui.value.helium = formatValue(player.fusion.helium, player.notationId);
-  ui.value.energy = formatValue(player.fusion.energy, player.notationId);
+  ui.value.helium = formatValue(player.fusion.helium, player.notationId) +' ' + CurrencyName[CurrencyKind.Helium];
+  ui.value.energy = formatValue(player.fusion.energy, player.notationId) + ' ' + CurrencyName[CurrencyKind.Energy];
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0);
+  ui.value.subtabs.autobuyer.overflow.visible = player.overflow.gt(0);
 
   ui.value.statistics.overflow.visible = player.overflow.gt(0);
   //@ts-ignore: this is a valid way of iterating through an Object
@@ -388,7 +436,7 @@ export function updateScreen() {
         .lte(getCurrency(autobuyerCurrency[ak][i]));
       ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak, i)
         .getCurrentCost(player.autobuyers[ak][i].intervalAmount)
-        .lte(getCurrency(autobuyerCurrency[ak][i]));
+        .lte(getCurrency(intervalCurrency[ak][i]));
     }
   });
   //@ts-ignore: same reason

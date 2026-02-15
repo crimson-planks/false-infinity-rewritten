@@ -11,7 +11,6 @@ import { gameCache } from './cache';
 import { load, save, toStringifiableObject, toUsableObject, mergeObj_nocopy, fixSave } from './saveload';
 import { game_devTools } from './devtools';
 import { overflow, OVERFLOW } from './prestige';
-import Autobuyer from './components/Autobuyer.vue';
 import { CurrencyKind, getCurrency } from './currency';
 
 export const VERSION = "0.1.0"
@@ -20,8 +19,6 @@ declare global{
   interface Window{
     Decimal?: typeof Decimal
     player?: typeof player
-    getAutobuyerCostScaling?: typeof getAutobuyerCostScaling
-    getIntervalCostScaling?: typeof getIntervalCostScaling
     toStringifiableObject?: typeof toStringifiableObject
     toUsableObject?: typeof toUsableObject
     save?: typeof save
@@ -32,18 +29,18 @@ declare global{
     game_devTools?: typeof game_devTools
   }
 }
-window.Decimal = Decimal;
-window.player = player;
-window.getAutobuyerCostScaling = getAutobuyerCostScaling;
-window.getIntervalCostScaling = getIntervalCostScaling;
-window.toStringifiableObject = toStringifiableObject;
-window.toUsableObject = toUsableObject;
-window.save = save;
-window.load = load;
-window.getDefaultPlayer = getDefaultPlayer;
-window.setPlayer = setPlayer;
-window.mergeObj_nocopy = mergeObj_nocopy;
-window.game_devTools = game_devTools;
+function loadToWindow(){
+  window.Decimal = Decimal;
+  window.player = player;
+  window.toStringifiableObject = toStringifiableObject;
+  window.toUsableObject = toUsableObject;
+  window.save = save;
+  window.load = load;
+  window.getDefaultPlayer = getDefaultPlayer;
+  window.setPlayer = setPlayer;
+  window.mergeObj_nocopy = mergeObj_nocopy;
+  window.game_devTools = game_devTools;
+}
 
 const app = createApp(App);
 app.mount('#app');
@@ -104,3 +101,5 @@ addEventListener("keypress",(ev)=>{
     }
   }
 });
+;(function(){})();
+setTimeout(loadToWindow,100)
