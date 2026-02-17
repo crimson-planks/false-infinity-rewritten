@@ -9,6 +9,10 @@ import { notationArray, notations } from './notation';
 import { load, save } from './saveload';
 import Upgrade from './components/Upgrade.vue';
 import { VERSION } from './main';
+import NumberDisplay from './components/NumberDisplay.vue';
+import Decimal from 'break_eternity.js';
+import { player } from './player';
+
 </script>
 <template>
   <header>
@@ -61,7 +65,7 @@ import { VERSION } from './main';
       </div>
       <div v-show="ui.subtab==='fusion'">
         <div v-show="!ui.fusionUnlocked">
-          In order to unlock fusion, you need to pour 1e10 matter.<br>
+          In order to unlock fusion, you need to pour <NumberDisplay number=1e10, :notation="ui.notationId"></NumberDisplay> matter.<br>
           You have poured {{ ui.fusionMatterPoured }} matter. ({{ ui.fusionMatterPouredPercentage }}% complete)<br>
           <label for="fusion-pour-matter">Amount of matter to pour: </label>
           <input type="text" id="fusion-pour-matter" v-model="input.fusionUnlockPourMatter"><br>
@@ -97,9 +101,11 @@ import { VERSION } from './main';
       You have played for {{ ui.playTime }} milliseconds.<br>
       You have produced a total of {{ ui.totalMatter }} matter.<br>
       You have deflated {{ ui.deflation }} times.<br>
+      You are on this deflation for milliseconds.<br>
       <div v-show="ui.statistics.overflow.visible">
         <h2>Overflow</h2><br>
-      You have overflown {{ ui.overflow }} times.<br>
+        You are on this overflow for milliseconds.<br>
+        You have overflown {{ ui.overflow }} times.<br>
       </div>
     </div>
   </div>

@@ -9,7 +9,7 @@ export enum NotationIdEnum {
   Inequality = 'inequality',
   BinaryInequality = 'binaryInequality'
 }
-export type NotationId = 'default' | 'scientific' | 'logarithm' | 'inequality' | 'binaryInequality';
+export type NotationId = NotationIdEnum.Default | NotationIdEnum.Scientific | NotationIdEnum.Logarithm | NotationIdEnum.Inequality | NotationIdEnum.BinaryInequality
 export const notationArray = [
   NotationIdEnum.Default,
   NotationIdEnum.Scientific,
@@ -391,7 +391,7 @@ export class InequalityNotation extends Notation {
     return this.formatDecimal(decimal);
   }
 }
-function FormatMufano(value: Decimal){
+export function FormatMufano(value: Decimal){
   const bc = (v:Decimal)=>BaseConvert(v.toNumber(),10,3,-4,0,-1,-1)
   if(value.lt(0)) return '-' //doesn't support negative numbers
   if(value.lt(1e-7)) return '/' //doesn't support negative exponents
@@ -399,8 +399,14 @@ function FormatMufano(value: Decimal){
   if(value.lt(100)) return `a${bc(value)}`
   if(value.lt(1000)) return `b${bc(value)}`
   if(value.lt(10000)) return `c${bc(value)}`
-  if(value.lt("1e300")) return ""
-  else return ""
+  if(value.lt(100000)) return `d${bc(value)}`
+  if(value.lt("1e300")) {
+    const exp = value.log10().floor()
+    const mantissa = value.div(exp.pow10())
+    const manStr = BaseConvert(mantissa.toNumber(),10,3,undefined,undefined,-1,undefined,undefined,undefined,undefined,'')
+    return `e${exp.toString().padStart(3,'0')}_${manStr}`
+  }
+  else return "p"
 }
 export const notations = {
   default: Presets.Default.setNotationGlobals(...[,,,], 'NaN'),
@@ -463,9 +469,9 @@ const HTMLnotations = {default: notations.default,
     ]
   ).setName('Binary Inequality')
 }
-export function formatValue(inputValue: Decimal, notation: string) {
+export function formatValue(inputValue: DecimalSource, notation: string) {
   //if (inputValue.isNan()) return 'NaN';
-  if (inputValue.gt(OVERFLOW)) return 'Error: Overflow';
+  if (Decimal.gt(inputValue,OVERFLOW)) return 'Error: Overflow';
   switch (notation) {
     case NotationIdEnum.Default:
       return notations.default.format(inputValue);

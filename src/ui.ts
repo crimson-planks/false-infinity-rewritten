@@ -209,6 +209,7 @@ export const ui = ref({
     }
   },
   creditsVisible: false,
+  notationId: NotationIdEnum.Default,
   playTime: '',
   matter: '',
   totalMatter: '',
@@ -344,6 +345,7 @@ watch(
 export function updateScreen() {
   ui.value.totalMatter = formatValue(player.totalMatter, player.notationId);
   ui.value.playTime = getPlayTime().toString();
+  ui.value.notationId = player.notationId;
 
   ui.value.matter = formatValue(player.matter, player.notationId);
   ui.value.matterPerSecond = formatValue(getMatterPerSecond(), player.notationId);
@@ -483,4 +485,8 @@ export function handleInput(type: string, args: string[]) {
   if (type === 'ClickConvertMatterButton') convertMatter(Decimal.dOne);
   if (type === 'ChangeTab') ui.value.tab = args[0];
   if (type === 'ChangeSubtab') ui.value.subtab = args[0];
+}
+export function initInput() {
+  input.value.notationId = player.notationId;
+  input.value.autobuyerOption.matterAutobuyer[0].selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd)
 }

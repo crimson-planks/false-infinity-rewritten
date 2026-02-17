@@ -1,3 +1,4 @@
+/** @prettier */
 import './assets/main.css';
 
 import { createApp } from 'vue';
@@ -6,7 +7,7 @@ import Decimal from 'break_eternity.js'
 import App from './App.vue';
 import { AutobuyerKind, AutobuyerTick, BuyInterval, getAutobuyerCostScaling, getIntervalCostScaling } from './autobuyer';
 import { getDefaultPlayer, player, setPlayer } from './player';
-import { updateScreen, ui } from './ui';
+import { updateScreen, ui, initInput } from './ui';
 import { gameCache } from './cache';
 import { load, save, toStringifiableObject, toUsableObject, mergeObj_nocopy, fixSave } from './saveload';
 import { game_devTools } from './devtools';
@@ -46,20 +47,27 @@ const app = createApp(App);
 app.mount('#app');
 load();
 fixSave();
+initInput();
 let autosaveTimer=0;
 export function getPlayTime(){
   return player.currentTime-player.createdTime
 };
 export function getMatterPerSecond(){
-  let result = player.autobuyers.matter[0].amount.mul(player.autobuyers.matter[0].interval.recip()).mul(+player.autobuyers.matter[0].toggle)
-  result = result.minus(getAutobuyerCostScaling(AutobuyerKind.Matter, 0).getTotalCostAfterPurchase(player.autobuyers.matter[0].amount,player.autobuyers.matter[1].amount.mul(player.autobuyers.matter[1].interval.recip())).mul(+player.autobuyers.matter[1].toggle))
+  let result = new Decimal(0);
+  let matterGained = player.autobuyers.matter[0].amount
+               .mul(player.autobuyers.matter[0].interval.recip())
+               .mul(+player.autobuyers.matter[0].toggle)
+  let matterLost = (getAutobuyerCostScaling(AutobuyerKind.Matter, 0).getTotalCostAfterPurchase(player.autobuyers.matter[0].amount,player.autobuyers.matter[1].amount
+                    .mul(player.autobuyers.matter[1].interval.recip())).mul(+player.autobuyers.matter[1].toggle))
+  result = matterGained.sub(matterLost);
   return result
 }
 setInterval(function(){
   const previousTime = player.currentTime;
   player.currentTime = Date.now();
-  const diff = new Decimal(player.currentTime-previousTime).div(1000);
-  autosaveTimer=autosaveTimer+diff.toNumber();
+  const diff = (player.currentTime-previousTime)/1000;
+  const diffDecimal = new Decimal(diff)
+  autosaveTimer=autosaveTimer+diff;
   if(autosaveTimer>=10){
     save();
     autosaveTimer=0;
@@ -69,7 +77,7 @@ setInterval(function(){
   Object.keys(player.autobuyers).forEach((key: AutobuyerKind)=>{
     if(key==AutobuyerKind.Matter && player.isOverflowing) return;
     for(let i=0;i<player.autobuyers[key].length;i++){
-      AutobuyerTick(key, i, diff);
+      AutobuyerTick(key, i, diffDecimal);
     }
   });
 
@@ -81,7 +89,7 @@ setInterval(function(){
   gameCache.translatedDeflationPowerMultiplierWhenSacrifice.invalidate();
   gameCache.translatedDeflationPower.invalidate();
   gameCache.canDeflationSacrifice.invalidate();
-  if(player.matter.gt(OVERFLOW) && !player.isOverflowing){
+  if(player.matter.gte(OVERFLOW) && !player.isOverflowing){
     player.isOverflowing = true;
     player.matter=OVERFLOW;
   }
