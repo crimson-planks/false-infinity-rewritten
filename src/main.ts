@@ -20,26 +20,12 @@ declare global{
   interface Window{
     Decimal?: typeof Decimal
     player?: typeof player
-    toStringifiableObject?: typeof toStringifiableObject
-    toUsableObject?: typeof toUsableObject
-    save?: typeof save
-    load?: typeof load
-    getDefaultPlayer?: typeof getDefaultPlayer
-    setPlayer?: typeof setPlayer
-    mergeObj_nocopy?: typeof mergeObj_nocopy
     game_devTools?: typeof game_devTools
   }
 }
 function loadToWindow(){
   window.Decimal = Decimal;
   window.player = player;
-  window.toStringifiableObject = toStringifiableObject;
-  window.toUsableObject = toUsableObject;
-  window.save = save;
-  window.load = load;
-  window.getDefaultPlayer = getDefaultPlayer;
-  window.setPlayer = setPlayer;
-  window.mergeObj_nocopy = mergeObj_nocopy;
   window.game_devTools = game_devTools;
 }
 
@@ -53,12 +39,19 @@ export function getPlayTime(){
   return player.currentTime-player.createdTime
 };
 export function getMatterPerSecond(){
+  const pa = player.autobuyers;
   let result = new Decimal(0);
   let matterGained = player.autobuyers.matter[0].amount
                .mul(player.autobuyers.matter[0].interval.recip())
                .mul(+player.autobuyers.matter[0].toggle)
-  let matterLost = (getAutobuyerCostScaling(AutobuyerKind.Matter, 0).getTotalCostAfterPurchase(player.autobuyers.matter[0].amount,player.autobuyers.matter[1].amount
-                    .mul(player.autobuyers.matter[1].interval.recip())).mul(+player.autobuyers.matter[1].toggle))
+  let matterLost = new Decimal(0);
+  if(player.autobuyers.matter[1].toggle) matterLost=matterLost.add(getAutobuyerCostScaling(AutobuyerKind.Matter, 0).getTotalCostAfterPurchase(player.autobuyers.matter[0].amount,player.autobuyers.matter[1].amount
+                    .mul(player.autobuyers.matter[1].interval.recip())))
+  const pama_selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd)
+  if(player.autobuyers.matterAutobuyer[0].toggle)
+    matterLost = matterLost.add(getAutobuyerCostScaling(AutobuyerKind.Matter, pama_selectedOrd)
+                                .getTotalCostAfterPurchase(player.autobuyers.matter[pama_selectedOrd].amount, player.autobuyers.matterAutobuyer[0].amount)
+                                .mul(player.autobuyers.matterAutobuyer[0].interval.recip()))
   result = matterGained.sub(matterLost);
   return result
 }

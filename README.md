@@ -1,6 +1,6 @@
 # false-infinity-rewritten
 
-An incremental game.
+An incremental game about getting matter and overflowing.
 
 This template should help get you started developing with Vue 3 in Vite.
 

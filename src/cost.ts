@@ -1,4 +1,11 @@
 import Decimal, { type DecimalSource }  from 'break_eternity.js';
+abstract class CostScaling {
+  abstract getCurrentCost(currentAmount: DecimalSource): Decimal
+  /** How much does it cost when I buy buyAmount?*/
+  abstract getTotalCostAfterPurchase(currentAmount: DecimalSource, buyAmount: Decimal): Decimal
+  /** How many can I buy with money? */
+  abstract getAvailablePurchases(currentAmount: DecimalSource, money: Decimal): Decimal
+}
 /** costs that scales linearly. f(n) = b + an
  */
 export class LinearCostScaling {

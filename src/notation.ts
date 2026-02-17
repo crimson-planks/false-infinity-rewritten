@@ -1,6 +1,6 @@
 /** @prettier */
 import Decimal, { type DecimalSource } from 'break_eternity.js';
-import { Presets, BaseConvert, toDecimal, Notation } from 'eternal_notations';
+import { Presets, BaseConvert, toDecimal, Notation, scientifify, hyperscientifify } from 'eternal_notations';
 import { OVERFLOW } from './prestige.js';
 export enum NotationIdEnum {
   Default = 'default',
@@ -391,22 +391,28 @@ export class InequalityNotation extends Notation {
     return this.formatDecimal(decimal);
   }
 }
-export function FormatMufano(value: Decimal){
-  const bc = (v:Decimal)=>BaseConvert(v.toNumber(),10,3,-4,0,-1,-1)
-  if(value.lt(0)) return '-' //doesn't support negative numbers
-  if(value.lt(1e-7)) return '/' //doesn't support negative exponents
-  if(value.lt(10)) return bc(value)
-  if(value.lt(100)) return `a${bc(value)}`
-  if(value.lt(1000)) return `b${bc(value)}`
-  if(value.lt(10000)) return `c${bc(value)}`
-  if(value.lt(100000)) return `d${bc(value)}`
-  if(value.lt("1e300")) {
-    const exp = value.log10().floor()
-    const mantissa = value.div(exp.pow10())
+export function FormatMufano(value: DecimalSource): string{
+  const valueD = new Decimal(value);
+  const bc = (v:Decimal)=>BaseConvert(v.toNumber(),10,3,-4,0,-1,-1,undefined,undefined,undefined,'_')
+  if(valueD.lt(0)) return '-' //doesn't support negative numbers
+  if(valueD.lt(1e-7) && valueD.neq(0)) return '0/' //doesn't support negative exponents
+  if(valueD.lt(10)) return bc(valueD)
+  if(valueD.lt(100)) return `a${bc(valueD)}`
+  if(valueD.lt(1000)) return `b${bc(valueD)}`
+  if(valueD.lt(10000)) return `c${bc(valueD)}`
+  if(valueD.lt(100000)) return `d${bc(valueD)}`
+  if(valueD.lt("1e300")) {
+    const [mantissa, exp] = scientifify(valueD,10,1e-3)
     const manStr = BaseConvert(mantissa.toNumber(),10,3,undefined,undefined,-1,undefined,undefined,undefined,undefined,'')
     return `e${exp.toString().padStart(3,'0')}_${manStr}`
   }
-  else return "p"
+  else if(valueD.lt(Decimal.fromComponents(1,1e5,1))){
+    //TODO: apply the correct rounding (300 < mag < 1e300)
+    const [mag, hyperExp] = hyperscientifify(valueD,10,undefined,undefined,undefined,undefined);
+
+    return "p"
+  }
+  else return "pp"
 }
 export const notations = {
   default: Presets.Default.setNotationGlobals(...[,,,], 'NaN'),
@@ -442,7 +448,7 @@ export const notations = {
   ).setName('Binary Inequality')
 };
 const HTMLnotations = {default: notations.default,
-  scientific:notations.scientific,
+  scientific: notations.scientific,
   logarithm: notations.logarithm,
   inequality: new InequalityNotation(
     3,
@@ -469,21 +475,12 @@ const HTMLnotations = {default: notations.default,
     ]
   ).setName('Binary Inequality')
 }
-export function formatValue(inputValue: DecimalSource, notation: string) {
+export function formatValue(inputValue: DecimalSource, notation: NotationId) {
   //if (inputValue.isNan()) return 'NaN';
   if (Decimal.gt(inputValue,OVERFLOW)) return 'Error: Overflow';
-  switch (notation) {
-    case NotationIdEnum.Default:
-      return notations.default.format(inputValue);
-    case NotationIdEnum.Scientific:
-      return notations.scientific.format(inputValue);
-    case NotationIdEnum.Logarithm:
-      return notations.logarithm.format(inputValue);
-    case NotationIdEnum.Inequality:
-      return notations.inequality.format(inputValue);
-    case NotationIdEnum.BinaryInequality:
-      return notations.binaryInequality.format(inputValue);
-    default:
-      throw TypeError(`Unknown notation name: ${notation}`);
+  try {
+    return notations[notation].format(inputValue)
+  } catch (error) {
+    throw TypeError(`Unknown notation name: ${notation}`);
   }
 }
