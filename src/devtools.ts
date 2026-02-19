@@ -1,6 +1,6 @@
 import { AutobuyerKind, getAutobuyerCostScaling, getIntervalCostScaling } from "./autobuyer";
 import { BaseConvert, hyperscientifify, scientifify } from "eternal_notations";
-import { FormatMufano, inequality_core, IntegerBase_ConvertToDigitArray, NonIntegerBase_ConvertToDigitArray, notationArray, notations } from "./notation";
+import { floorSlog10, FormatMufano, inequality_core, IntegerBase_ConvertToDigitArray, NonIntegerBase_ConvertToDigitArray, notationArray, notations } from "./notation";
 import { fixSave, load, mergeObj_nocopy, save, toStringifiableObject, toUsableObject } from "./saveload";
 import { ExponentialCostScaling, LinearCostScaling } from "./cost";
 import { getDefaultPlayer, setPlayer } from "./player";
@@ -25,6 +25,7 @@ export const game_devTools={
   BaseConvert,
   scientifify,
   hyperscientifify,
+  floorSlog10,
   FormatMufano,
   IntegerBase_ConvertToDigitArray,
   NonIntegerBase_ConvertToDigitArray,

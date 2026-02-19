@@ -77,7 +77,7 @@ export function overflow(){
 
   resetAutobuyers();
   player.matter = getStartMatter();
-  player.deflationPower=Decimal.dZero;
+  player.deflationPower = Decimal.dZero;
   player.deflation = Decimal.dZero;
   player.deflator = Decimal.dZero;
   player.previousSacrificeDeflationPower = Decimal.dZero;

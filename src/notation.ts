@@ -18,6 +18,57 @@ export const notationArray = [
   NotationIdEnum.BinaryInequality
 ];
 /**
+ * If value = Decimal.tetrate(10,height,payload), this function finds floor(height) if value and payload is given.
+ *
+*/
+export function floorSlog10(value: DecimalSource, payload: DecimalSource){
+  const valueD = new Decimal(value);
+  const payloadD = new Decimal(payload);
+  /*
+  10^x is the same as adding 1 to x.layer
+  log_10(x) is the same as subtracting 1 to x.layer
+  slog10(10^x) = 1 + slog10(x)
+  */
+  if(payloadD.lt(1)) throw RangeError("payload < 1 is not implemented");
+  if(valueD.lt(1)) throw RangeError("value < 1 is not implemented");
+
+
+  //1 <= mag < 9e15
+  /*
+  The naive (and slow) way to do this would be floor(slog10(valueD.mag) - slog10(payloadD.mag)), but we can do better.
+  the result value can be -3, -2, -1, 0, 1, 2
+  The problem is finding where valueD.mag fits in the hierarchy below.
+  -3                          -2                    -1              0                 1                    2
+    log10(log10(payloadD.mag)) < log10(payloadD.mag) < payloadD.mag < 10^payloadD.mag < 10^10^payloadD.mag
+  There are 5 cases. (This can be further optimized by checking if payloadD.mag < valueD.mag)
+
+  If( log10(log10(payloadD.mag)) <= valueD.mag < log10(payloadD.mag) ): result = -2
+  If( log10(payloadD.mag) <= valueD.mag < payloadD.mag ): result = -1
+  If( payloadD.mag <= valueD.mag < 10^payloadD.mag ): result = 0
+  if( 10^payloadD.mag <= valueD.mag < 10^10^payloadD.mag ): result = 1
+  if( 10^10^payloadD.mag <= valueD.mag ): result = 2
+  note: this works because Math.log10(0) = -Infinity
+   */
+  let coreLayerDiff = 0;
+  //result = -3 or -2 or -1
+  const vm = valueD.mag;
+  const pm = payloadD.mag
+  if(vm<pm){
+    //TODO: figure out if log is faster than pow
+    if(vm<Math.log10(Math.log10(pm))) coreLayerDiff = -3;
+    else if(vm<Math.log10(pm)) coreLayerDiff = -2;
+    else coreLayerDiff = -1;
+  }
+  //result = 0 or 1 or 2
+  else{
+    if(vm<Math.pow(10,pm)) coreLayerDiff = 0;
+    else if (vm<Math.pow(10,Math.pow(10,pm))) coreLayerDiff = 1;
+    else coreLayerDiff = 2;
+  }
+
+  return valueD.layer - payloadD.layer + coreLayerDiff;
+}
+/**
  * from https://github.com/MathCookie17/Eternal-Notations/blob/main/src/presets.ts
  * */
 function defaultRound(value: Decimal) {
@@ -110,7 +161,7 @@ export function NonIntegerBase_ConvertToDigitArray(n: number, base: number, numD
   return rsltArray;
 }
 /**
- * @deprecated Use `InequalityNotation` instead
+ * @deprecated Use {@link InequalityNotation} instead
  */
 export function FormatInequality(
   value: Decimal,
@@ -145,7 +196,7 @@ export function FormatInequality(
   if (value.neq(0) && (value.abs().lte(rounding.recip()) || mabsvalue.gte(Decimal.pow(base, 16)))) {
     const layer = mabsvalue
       .slog(base, 100, true)
-      .sub(new Decimal(16).slog(3, 100, true))
+      .sub(new Decimal(16).slog(base, 100, true))
       .floor()
       .toNumber();
     const mag = mabsvalue.iteratedlog(base, layer, true);
@@ -158,7 +209,7 @@ export function FormatInequality(
     const magResDigitArray = NonIntegerBase_ConvertToDigitArray(magResPart.toNumber(), base, 4).map(
       (v) => v * magSign
     );
-    if (layer >= Math.pow(3, 16)) {
+    if (layer >= Math.pow(base, 16)) {
       const logLayer = Math.log2(layer) / Math.log2(base);
       const roundedLogLayer = Math.round(logLayer * superExpRounding) / superExpRounding;
       const logLayerIntPart = Math.floor(roundedLogLayer);
