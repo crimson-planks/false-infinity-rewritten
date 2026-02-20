@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="styles/styles.css" rel="stylesheet">
+    <link href="styles/Autobuyer.css" rel="stylesheet">
+    <title>False Infinity Rewritten</title>
+</head>
+<body>
+<div id="app" style="display: none;">
+  Matter: {{ matter }} <br>
+  Matter per second: <br>
+  <button @click="ClickButton">Click to get {{ clickMatterGain }} matter</button>
+  <div id="tab-div">
+    <button class="change-tab-button" @click="ChangeTab('autobuyer')">Autobuyer</button>
+    <button class="change-tab-button" @click="ChangeTab('overflow')">Overflow</button>
+    <button class="change-tab-button" @click="ChangeTab('statistics')">Statistics</button>
+    <button class="change-tab-button" @click="ChangeTab('option')">Options</button>
+  </div>
+  <div id="autobuyer-div" v-show="currentTab==='autobuyer'">
+    <div class="subtab-div">
+      <button class="change-subtab-button" @click="ChangeSubTab('matter')">Matter</button>
+      <button class="change-subtab-button" @click="ChangeSubTab('deflation')">Deflation</button>
+    </div>
+    <div class="overflow-div" v-show="isOverflow">
+      The simulation overflowed due to an excess of matter.
+      <button @click="overflow">Overflow</button>
+    </div>
+    <div class="flex-container" v-show="!isOverflow">
+      <div v-show="currentSubTab==='matter'">
+        <autobuyer v-for="autobuyer in autobuyers.matter" v-bind="autobuyer" @buy-autobuyer="BuyAutobuyer" @buy-interval="BuyInterval" @toggle-is-active="ToggleIsActive"></autobuyer>
+      </div>
+      <div class="deflation-button" @click="ClickDeflationButton" :class="{'can-buy': canDeflate, 'cannot-buy': !canDeflate}">
+        Deflation ({{ deflation }}) <br>
+        <span v-show="!changeDeflationTextCondition">Reset, but reduce the cost increase by 1, and get {{ potentialDeflators }} deflators, and increase the effectiveness of deflation power</span>
+        <span v-show="changeDeflationTextCondition">Reset, but get {{ potentialDeflators }} deflators, and increase the effectiveness of deflation power</span>
+        <br>
+        Cost: {{ deflationCost }}
+      </div>
+    </div>
+    <div v-show="currentSubTab==='deflation'">
+      You have {{ deflationPower }} deflation power. <br>
+      This, taken to the power of 0.25, and then multiplied by {{ translatedDeflationPowerMultiplier }}, translates to a cost reduction of {{ translatedDeflationPower }} for all matter autobuyers<br>
+      <button @click="ClickDeflationPowerButton">Click to get {{ clickDeflationPowerGain }} deflation power</button><br>
+      You have {{ deflator }} deflators.
+      <autobuyer v-bind="autobuyers.deflation[0]" @buy-autobuyer="BuyAutobuyer" @buy-interval="BuyInterval" @toggle-is-active="ToggleIsActive"></autobuyer>
+      <button @click="ClickDeflationSacrificeButton">Extra Deflator(s): Requires {{ requiredDeflationPowerOnDeflationSacrifice }} deflation power</button>
+    </div>
+  </div>
+  <div v-show="currentTab==='overflow'">
+    Overflow Points: {{ overflowPoint }}
+    <span class="not-implemented">(Coming soon!)</span>
+  </div>
+  <div id="option-div" v-show="currentTab==='option'">
+    <button @click="save">save</button>
+    <button @click="load">load</button>
+    notation: <select>
+    </select>
+  </div>
+</div>
+</body>
+</html>
+<script type="importmap">
+    {
+      "imports": {
+        "vue": "./lib/vue.esm-browser.js",
+        "break_eternity": "./lib/break_eternity.esm.js",
+        "eternal_notations": "./lib/eternal_notations.js"
+      }
+    }
+</script>
+<script src="lib/break_eternity.js"></script>
+<script src="lib/eternal_notations.js"></script>
+<script src="js/cost.js"></script>
+<script src="js/prestige.js"></script>
+<script src="js/saveload.js"></script>
+<script src="js/logic.js"></script>
+<script type="module" src="js/visual.js"></script>
