@@ -1,7 +1,7 @@
 /** @prettier */
 import Decimal from 'break_eternity.js';
-import { AutobuyerKind, type AutobuyerData } from '@/autobuyer';
-import { UpgradeKind, type UpgradeData } from './upgrade';
+import { AutobuyerKindObj, type AutobuyerData } from '@/autobuyer';
+import { type UpgradeKind, UpgradeKindObj, type UpgradeData } from './upgrade';
 import { NotationIdEnum, type NotationId } from './notation';
 export interface Player {
   createdTime: number;
@@ -65,7 +65,7 @@ export function getDefaultPlayer(): Player {
     autobuyers: {
       matter: [
         {
-          kind: AutobuyerKind.Matter,
+          kind: AutobuyerKindObj.Matter,
           ord: 0,
           amount: new Decimal(0),
           timer: new Decimal(0),
@@ -74,7 +74,7 @@ export function getDefaultPlayer(): Player {
           toggle: true
         },
         {
-          kind: AutobuyerKind.Matter,
+          kind: AutobuyerKindObj.Matter,
           ord: 1,
           amount: new Decimal(0),
           timer: new Decimal(0),
@@ -83,7 +83,7 @@ export function getDefaultPlayer(): Player {
           toggle: true
         },
         {
-          kind: AutobuyerKind.Matter,
+          kind: AutobuyerKindObj.Matter,
           ord: 2,
           amount: new Decimal(0),
           timer: new Decimal(0),
@@ -94,7 +94,7 @@ export function getDefaultPlayer(): Player {
       ],
       deflationPower: [
         {
-          kind: AutobuyerKind.DeflationPower,
+          kind: AutobuyerKindObj.DeflationPower,
           ord: 0,
           amount: new Decimal(0),
           timer: new Decimal(0),
@@ -105,56 +105,56 @@ export function getDefaultPlayer(): Player {
       ],
       matterAutobuyer: [
         {
-          kind: AutobuyerKind.MatterAutobuyer,
+          kind: AutobuyerKindObj.MatterAutobuyer,
           ord: 0,
           amount: new Decimal(0),
           timer: new Decimal(0),
           interval: new Decimal(1),
           intervalAmount: new Decimal(0),
           toggle: true,
-          option: {selectedOrd: 0}
+          option: { selectedOrd: 0 }
         }
       ]
     },
     upgrades: {
       overflow: [
         {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: 0,
           amount: new Decimal(0)
         },
         {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: 1,
           amount: new Decimal(0)
         },
         {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: 2,
           amount: new Decimal(0)
         },
         {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: 3,
           amount: new Decimal(0)
         },
         {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: 4,
           amount: new Decimal(0)
         },
         {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: 5,
           amount: new Decimal(0)
         },
         {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: 6,
           amount: new Decimal(0)
         },
         {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: 7,
           amount: new Decimal(0)
         }

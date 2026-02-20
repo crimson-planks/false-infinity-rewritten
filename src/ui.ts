@@ -4,7 +4,8 @@ import { player } from './player';
 import { formatValue, NotationIdEnum, type NotationId } from '@/notation';
 import {
   getAutobuyerCostScaling,
-  AutobuyerKind,
+  type AutobuyerKind,
+  AutobuyerKindObj,
   getIntervalCostScaling,
   autobuyerCurrency,
   autobuyerName,
@@ -19,9 +20,15 @@ import {
   overflow
 } from './prestige';
 import { gameCache } from './cache';
-import { addCurrency, CurrencyKind, CurrencyName, getCurrency } from './currency';
+import { addCurrency, CurrencyKindObj, CurrencyName, getCurrency } from './currency';
 import { getMatterPerSecond, getPlayTime } from './main';
-import { getUpgradeCostScaling, upgradeCurrency, UpgradeKind, upgradeMaxAmount } from './upgrade';
+import {
+  getUpgradeCostScaling,
+  upgradeCurrency,
+  type UpgradeKind,
+  UpgradeKindObj,
+  upgradeMaxAmount
+} from './upgrade';
 import {
   getTranslatedDeflationPowerExponent,
   getTranslatedDeflationPowerMultiplier
@@ -54,9 +61,8 @@ export interface UpgradeVisualData {
   canBuy: boolean;
 }
 export const autobuyerOptions = {
-  matterAutobuyer: [[0,1]]
-}
-export const selectedOrdArray = [0,1]
+  matterAutobuyer: [{ selectedOrd: [0, 1] }]
+} as const;
 export type TabName = 'autobuyer' | 'overflow' | 'option' | 'statistics';
 export type SubtabName = 'matter' | 'deflation' | 'overflow' | 'upgrades' | 'fusion' | 'general';
 export const tabs: {
@@ -124,9 +130,7 @@ export const texts = {
     autobuyer: {
       name: autobuyerName,
       optionName: {
-        matterAutobuyer:[
-          "Selected Matter Autobuyer Number"
-        ]
+        matterAutobuyer: ['Selected Matter Autobuyer Number']
       }
     },
     upgrades: {
@@ -220,7 +224,7 @@ export const ui = ref({
       .fill(0)
       .map((v, i) => {
         return {
-          kind: AutobuyerKind.Matter,
+          kind: AutobuyerKindObj.Matter,
           ord: i,
           name: autobuyerName.matter[i],
           amount: '',
@@ -230,15 +234,15 @@ export const ui = ref({
           cost: '',
           intervalCost: '',
           canBuy: false,
-          canBuyInterval: false
-          ,hasOption: false
+          canBuyInterval: false,
+          hasOption: false
         };
       }),
     deflationPower: Array(player.autobuyers.deflationPower.length)
       .fill(0)
       .map((v, i) => {
         return {
-          kind: AutobuyerKind.DeflationPower,
+          kind: AutobuyerKindObj.DeflationPower,
           ord: i,
           name: autobuyerName.deflationPower[i],
           amount: '',
@@ -251,28 +255,30 @@ export const ui = ref({
           canBuyInterval: false,
           hasOption: false
         };
-      }),matterAutobuyer: [
-        {
-          kind: AutobuyerKind.MatterAutobuyer,
-          ord: 0,
-          name: autobuyerName.matterAutobuyer[0],
-          amount: '',
-          timer: '',
-          toggle: '',
-          interval: '',
-          cost: '',
-          intervalCost: '',
-          canBuy: false,
-          canBuyInterval: false,
-          hasOption: true
-        }]
+      }),
+    matterAutobuyer: [
+      {
+        kind: AutobuyerKindObj.MatterAutobuyer,
+        ord: 0,
+        name: autobuyerName.matterAutobuyer[0],
+        amount: '',
+        timer: '',
+        toggle: '',
+        interval: '',
+        cost: '',
+        intervalCost: '',
+        canBuy: false,
+        canBuyInterval: false,
+        hasOption: true
+      }
+    ]
   },
   upgrades: {
     overflow: Array(player.upgrades.overflow.length)
       .fill(0)
       .map((v, i) => {
         return {
-          kind: UpgradeKind.Overflow,
+          kind: UpgradeKindObj.Overflow,
           ord: i,
           amount: '',
           maxAmount: '',
@@ -309,13 +315,17 @@ export const ui = ref({
     }
   }
 });
-export const input: Ref<{ fusionUnlockPourMatter: string; notationId: NotationId;  autobuyerOption: {
-    matterAutobuyer: [{selectedOrd: number}]
-  } }> = ref({
+export const input: Ref<{
+  fusionUnlockPourMatter: string;
+  notationId: NotationId;
+  autobuyerOption: {
+    matterAutobuyer: [{ selectedOrd: number }];
+  };
+}> = ref({
   fusionUnlockPourMatter: '',
   notationId: player.notationId,
   autobuyerOption: {
-    matterAutobuyer: [{selectedOrd: 0}]
+    matterAutobuyer: [{ selectedOrd: 0 }]
   }
 });
 input.value.notationId = player.notationId;
@@ -337,11 +347,16 @@ watch(
 );
 watch(
   () => input.value.autobuyerOption.matterAutobuyer[0].selectedOrd,
-  () =>{
-    if(player.autobuyers.matterAutobuyer[0].option===undefined) player.autobuyers.matterAutobuyer[0].option = {selectedOrd: input.value.autobuyerOption.matterAutobuyer[0].selectedOrd}
-    else player.autobuyers.matterAutobuyer[0].option.selectedOrd = input.value.autobuyerOption.matterAutobuyer[0].selectedOrd
+  () => {
+    if (player.autobuyers.matterAutobuyer[0].option === undefined)
+      player.autobuyers.matterAutobuyer[0].option = {
+        selectedOrd: input.value.autobuyerOption.matterAutobuyer[0].selectedOrd
+      };
+    else
+      player.autobuyers.matterAutobuyer[0].option.selectedOrd =
+        input.value.autobuyerOption.matterAutobuyer[0].selectedOrd;
   }
-)
+);
 export function updateScreen() {
   ui.value.totalMatter = formatValue(player.totalMatter, player.notationId);
   ui.value.playTime = getPlayTime().toString();
@@ -393,8 +408,14 @@ export function updateScreen() {
     player.notationId
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
-  ui.value.helium = formatValue(player.fusion.helium, player.notationId) + ' ' + CurrencyName[CurrencyKind.Helium];
-  ui.value.energy = formatValue(player.fusion.energy, player.notationId) + ' ' + CurrencyName[CurrencyKind.Energy];
+  ui.value.helium =
+    formatValue(player.fusion.helium, player.notationId) +
+    ' ' +
+    CurrencyName[CurrencyKindObj.Helium];
+  ui.value.energy =
+    formatValue(player.fusion.energy, player.notationId) +
+    ' ' +
+    CurrencyName[CurrencyKindObj.Energy];
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0);
@@ -433,8 +454,16 @@ export function updateScreen() {
         ) +
         ' ' +
         CurrencyName[intervalCurrency[ak][i]];
-      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak, i).canBuy(player.autobuyers[ak][i].amount,Decimal.dOne,getCurrency(autobuyerCurrency[ak][i]));
-      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak, i).canBuy(player.autobuyers[ak][i].intervalAmount,Decimal.dOne,getCurrency(intervalCurrency[ak][i]));
+      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak, i).canBuy(
+        player.autobuyers[ak][i].amount,
+        Decimal.dOne,
+        getCurrency(autobuyerCurrency[ak][i])
+      );
+      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak, i).canBuy(
+        player.autobuyers[ak][i].intervalAmount,
+        Decimal.dOne,
+        getCurrency(intervalCurrency[ak][i])
+      );
     }
   });
   //@ts-ignore: same reason
@@ -458,7 +487,11 @@ export function updateScreen() {
         CurrencyName[upgradeCurrency[uk][i]];
       ui.value.upgrades[uk][i].canBuy =
         !ui.value.upgrades[uk][i].boughtMax &&
-        getUpgradeCostScaling(uk, i).canBuy(player.upgrades[uk][i].amount,Decimal.dOne, getCurrency(upgradeCurrency[uk][i]));
+        getUpgradeCostScaling(uk, i).canBuy(
+          player.upgrades[uk][i].amount,
+          Decimal.dOne,
+          getCurrency(upgradeCurrency[uk][i])
+        );
       ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeMaxAmount[uk][i], player.notationId);
       ui.value.upgrades[uk][i].effectValue = formatValue(
         gameCache.upgradeEffectValue[uk][i].cachedValue,
@@ -472,8 +505,9 @@ export function ClickFusionPourMatterButton() {
   pourMatter(sanitizedInput.fusionUnlockPourMatter.value);
 }
 export function handleInput(type: string, args: string[]) {
-  if (type === 'ClickMatterButton') addCurrency(CurrencyKind.Matter, Decimal.dOne);
-  if (type === 'ClickDeflationPowerButton') addCurrency(CurrencyKind.DeflationPower, Decimal.dOne);
+  if (type === 'ClickMatterButton') addCurrency(CurrencyKindObj.matter, Decimal.dOne);
+  if (type === 'ClickDeflationPowerButton')
+    addCurrency(CurrencyKindObj.DeflationPower, Decimal.dOne);
   if (type === 'ClickDeflationSacrificeButton') deflationSacrifice();
   if (type === 'ClickOverflowButton') overflow();
   if (type === 'ClickConvertMatterButton') convertMatter(Decimal.dOne);
@@ -482,5 +516,7 @@ export function handleInput(type: string, args: string[]) {
 }
 export function initInput() {
   input.value.notationId = player.notationId;
-  input.value.autobuyerOption.matterAutobuyer[0].selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd)
+  input.value.autobuyerOption.matterAutobuyer[0].selectedOrd = Number(
+    player.autobuyers.matterAutobuyer[0].option?.selectedOrd
+  );
 }

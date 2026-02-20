@@ -9,9 +9,6 @@ import { notationArray, notations } from './notation';
 import { load, save } from './saveload';
 import Upgrade from './components/Upgrade.vue';
 import { VERSION_STR } from './constants';
-import NumberDisplay from './components/NumberDisplay.vue';
-import Decimal from 'break_eternity.js';
-import { player } from './player';
 
 </script>
 <template>
@@ -65,7 +62,7 @@ import { player } from './player';
       </div>
       <div v-show="ui.subtab==='fusion'">
         <div v-show="!ui.fusionUnlocked">
-          In order to unlock fusion, you need to pour <NumberDisplay number=1e10, :notation="ui.notationId"></NumberDisplay> matter.<br>
+          In order to unlock fusion, you need to pour 1e10 matter.<br>
           You have poured {{ ui.fusionMatterPoured }} matter. ({{ ui.fusionMatterPouredPercentage }}% complete)<br>
           <label for="fusion-pour-matter">Amount of matter to pour: </label>
           <input type="text" id="fusion-pour-matter" v-model="input.fusionUnlockPourMatter"><br>

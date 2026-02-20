@@ -1,4 +1,4 @@
-import { AutobuyerKind, getAutobuyerCostScaling, getIntervalCostScaling } from "./autobuyer";
+import { getAutobuyerCostScaling, getIntervalCostScaling } from "./autobuyer";
 import { BaseConvert, hyperscientifify, scientifify } from "eternal_notations";
 import { FormatMufano, inequality_core, IntegerBase_ConvertToDigitArray, NonIntegerBase_ConvertToDigitArray, notations } from "./notation";
 import { floorSlog10 } from './decimal';
@@ -8,10 +8,6 @@ import { getDefaultPlayer, setPlayer } from "./player";
 
 export const game_devTools={
   fixSave,
-  print(){
-    console.log(Object.keys(AutobuyerKind))
-    console.log(AutobuyerKind)
-  },
   toStringifiableObject,
   toUsableObject,
   save,

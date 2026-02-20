@@ -1,13 +1,14 @@
 import type Decimal from 'break_eternity.js';
 import { player } from './player';
-export enum CurrencyKind {
-  Matter = 'matter',
-  Deflator = 'deflator',
-  DeflationPower = 'deflationPower',
-  OverflowPoint = 'overflowPoint',
-  Helium = 'helium',
-  Energy = 'energy'
-}
+export const CurrencyKindObj = {
+  matter: 'matter',
+  Deflator: 'deflator',
+  DeflationPower: 'deflationPower',
+  OverflowPoint: 'overflowPoint',
+  Helium: 'helium',
+  Energy: 'energy'
+} as const;
+export type CurrencyKind = typeof CurrencyKindObj[keyof typeof CurrencyKindObj];
 export const CurrencyName={
   matter: "MT",
   deflator: "DF",
@@ -15,59 +16,82 @@ export const CurrencyName={
   overflowPoint: "OP",
   helium: "He",
   energy: "J"
+} as const;
+interface CurrencyOption{
+  kind: CurrencyKind
+  name: string
 }
+
 export function setCurrency(currency: CurrencyKind, v: Decimal) {
   switch (currency) {
-    case CurrencyKind.Matter:
+    case CurrencyKindObj.matter:
       player.matter = v;
       break;
-    case CurrencyKind.Deflator:
+    case CurrencyKindObj.Deflator:
       player.deflator = v;
       break;
-    case CurrencyKind.DeflationPower:
+    case CurrencyKindObj.DeflationPower:
       player.deflationPower = v;
       break;
-    case CurrencyKind.OverflowPoint:
+    case CurrencyKindObj.OverflowPoint:
       player.overflowPoint = v;
-    case CurrencyKind.Helium:
+      break;
+    case CurrencyKindObj.Helium:
       player.fusion.helium = v;
-    case CurrencyKind.Energy:
+      break;
+    case CurrencyKindObj.Energy:
       player.fusion.energy = v;
+      break;
+    default:
+      let leftover: never = currency;
+      throw new TypeError(`Unknown CurrencyKind: ${leftover}`);
+      break;
   }
 }
 export function getCurrency(currency: CurrencyKind) {
   switch (currency) {
-    case CurrencyKind.Matter:
+    case CurrencyKindObj.matter:
       return player.matter;
-    case CurrencyKind.Deflator:
+    case CurrencyKindObj.Deflator:
       return player.deflator
-    case CurrencyKind.DeflationPower:
+    case CurrencyKindObj.DeflationPower:
       return player.deflationPower;
-    case CurrencyKind.OverflowPoint:
+    case CurrencyKindObj.OverflowPoint:
       return player.overflowPoint
-    case CurrencyKind.Helium:
+    case CurrencyKindObj.Helium:
       return player.fusion.helium
-    case CurrencyKind.Energy:
+    case CurrencyKindObj.Energy:
       return player.fusion.energy
+    default:
+      let leftover: never = currency;
+      throw new TypeError(`Unknown CurrencyKind: ${leftover}`);
+      break;
   }
 }
 export function addCurrency(currency: CurrencyKind, v: Decimal) {
   switch (currency) {
-    case CurrencyKind.Matter:
+    case CurrencyKindObj.matter:
       player.totalMatter = player.totalMatter.add(v);
       player.matter = player.matter.add(v);
       break;
-    case CurrencyKind.Deflator:
+    case CurrencyKindObj.Deflator:
       player.deflator = player.deflator.add(v);
       break;
-    case CurrencyKind.DeflationPower:
+    case CurrencyKindObj.DeflationPower:
       player.deflationPower = player.deflationPower.add(v);
       break;
-    case CurrencyKind.OverflowPoint:
+    case CurrencyKindObj.OverflowPoint:
       player.overflowPoint = player.overflowPoint.add(v);
-    case CurrencyKind.Helium:
+      break;
+    case CurrencyKindObj.Helium:
       player.fusion.helium = player.fusion.helium.add(v);
-    case CurrencyKind.Energy:
+      break;
+    case CurrencyKindObj.Energy:
       player.fusion.energy= player.fusion.energy.add(v);
+      break;
+    default:
+      let leftover: never = currency;
+      throw new TypeError(`Unknown CurrencyKind: ${leftover}`);
+      break;
   }
 }

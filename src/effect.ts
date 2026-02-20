@@ -12,7 +12,7 @@ export class Effect{
     this.value.invalidate();
     return this.value.cachedValue;
   }
-  applyEffect(f: (v: Decimal)=>any){
+  applyEffect(f: (v: Decimal)=>void){
     if(this.canBeApplied) f(this.effectValue);
   }
 }

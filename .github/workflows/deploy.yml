@@ -42,3 +42,4 @@ jobs:
           destination_dir: ''
           publish_branch: gh-pages
           publish_dir: ./dist
+          keep_files: true

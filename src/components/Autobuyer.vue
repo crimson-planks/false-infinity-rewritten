@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { BuyAutobuyer, BuyInterval, ToggleAutobuyer } from '@/autobuyer';
 import Decimal from 'break_eternity.js';
-import { autobuyerOptions, input, selectedOrdArray, type AutobuyerVisualData } from '@/ui';
+import { autobuyerOptions, input, type AutobuyerVisualData } from '@/ui';
 import { computed } from 'vue';
 
 const props = defineProps<{data: AutobuyerVisualData}>();

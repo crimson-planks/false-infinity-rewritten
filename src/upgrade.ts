@@ -1,6 +1,6 @@
 /** @prettier */
 import { ExponentialCostScaling, LinearCostScaling } from './cost';
-import { CurrencyKind, getCurrency, setCurrency } from './currency';
+import { CurrencyKindObj, getCurrency, setCurrency } from './currency';
 import { getTranslatedDeflationPower } from './deflation_power';
 import Decimal from 'break_eternity.js';
 import { player } from './player';
@@ -16,15 +16,13 @@ export const initialUpgradeCostScaling = {
     new LinearCostScaling({ baseCost: new Decimal(10), baseIncrease: Decimal.dZero }),
     new ExponentialCostScaling({ baseCost: new Decimal(2), baseIncrease: new Decimal(2) })
   ]
-};
+} as const;
 export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
   return initialUpgradeCostScaling[kind][ord];
 }
-export const upgradeCurrency = {
-  overflow: Array(OVERFLOW_UPGRADE_COUNT)
-    .fill(0)
-    .map((v, i) => CurrencyKind.OverflowPoint)
-};
+export const upgradeCurrency: { overflow: 'overflowPoint'[] } = {
+  overflow: Array(OVERFLOW_UPGRADE_COUNT).fill(CurrencyKindObj.OverflowPoint)
+} as const;
 export const upgradeMaxAmount = {
   overflow: [
     new Decimal(4),
@@ -37,9 +35,10 @@ export const upgradeMaxAmount = {
     new Decimal(8)
   ]
 };
-export enum UpgradeKind {
-  Overflow = 'overflow'
-}
+export const UpgradeKindObj = {
+  Overflow: 'overflow'
+} as const;
+export type UpgradeKind = (typeof UpgradeKindObj)[keyof typeof UpgradeKindObj];
 export interface UpgradeData {
   kind: UpgradeKind;
   ord: number;
@@ -63,7 +62,7 @@ export const upgradeEffectValueFuncArray = {
       return player.upgrades.overflow[4].amount;
     },
     function () {
-      if (player.fastestOverflowTime === undefined) return Decimal.dZero;
+      if (player.fastestOverflowTime == undefined) return Decimal.dZero;
       return new Decimal(1000).div(new Decimal(player.fastestOverflowTime / 2000).max(1));
     },
     function () {
