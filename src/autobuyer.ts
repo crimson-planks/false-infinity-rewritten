@@ -44,7 +44,7 @@ export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): Linea
   if (kind === AutobuyerKindObj.MatterAutobuyer) return initialAutobuyerCostScaling[kind][ord];
   else {
     let leftover: never = kind;
-    throw TypeError(`invalid AutobuyerKind: ${kind}`);
+    throw new TypeError(`invalid AutobuyerKind: ${kind}`);
   }
 }
 export const initialIntervalCostScaling = {
@@ -91,7 +91,7 @@ export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
     return initialIntervalCostScaling[kind][ord];
   else {
     let leftover: never = kind;
-    throw TypeError(`Invalid AutobuyerKind: ${kind}`);
+    throw new TypeError(`Invalid AutobuyerKind: ${kind}`);
   }
 }
 export const autobuyerName = {

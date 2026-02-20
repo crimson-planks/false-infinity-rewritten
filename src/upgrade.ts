@@ -34,7 +34,7 @@ export const upgradeMaxAmount = {
     Decimal.dOne,
     new Decimal(8)
   ]
-};
+} as const;
 export const UpgradeKindObj = {
   Overflow: 'overflow'
 } as const;
@@ -73,7 +73,7 @@ export const upgradeEffectValueFuncArray = {
       return player.upgrades.overflow[7].amount.pow10();
     }
   ]
-};
+} as const;
 export function BuyUpgrade(kind: UpgradeKind, ord: number, buyAmount: Decimal) {
   if (player.upgrades[kind][ord].amount.add(buyAmount).gt(upgradeMaxAmount[kind][ord])) return;
   const currency = upgradeCurrency[kind][ord];

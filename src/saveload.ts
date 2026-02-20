@@ -28,13 +28,13 @@ export function toStringifiableObject(obj: unknown): stringifiableObject {
     return obj;
   }
   if (typeof obj === 'bigint') {
-    throw TypeError('BigInts are not supported');
+    throw new TypeError('BigInts are not supported');
   }
   if (typeof obj === 'function') {
-    throw TypeError('Functions are not supported due to injection attacks');
+    throw new TypeError('Functions are not supported due to injection attacks');
   }
   if (typeof obj === 'symbol') {
-    throw TypeError('Symbols are not supported');
+    throw new TypeError('Symbols are not supported');
   }
   if (typeof obj === 'number') {
     if (isNaN(obj)) return { _type: 'NaN' };
@@ -96,7 +96,7 @@ export function toUsableObject(obj: stringifiableObject): unknown {
       return Decimal.fromComponents(obj.sign, obj.layer, obj.mag);
     return Decimal.fromDecimal(Decimal.dZero);
   }
-  if (obj._type) throw TypeError(`Invalid _type ${obj._type}`);
+  if (obj._type) throw new TypeError(`Invalid _type ${obj._type}`);
   if (typeof obj === 'object') {
     const rslt: { [key: string]: unknown } = {};
     for (let key in obj) {

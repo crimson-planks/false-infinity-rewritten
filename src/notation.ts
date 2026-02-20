@@ -452,9 +452,9 @@ export function FormatMufano(value: DecimalSource): string {
   } else return 'pp';
 }
 export const notations = {
-  default: Presets.Default.setNotationGlobals(...[, , ,], 'NaN'),
-  scientific: Presets.Scientific.setNotationGlobals(...[, , ,], 'NaN'),
-  logarithm: Presets.Logarithm.setNotationGlobals(...[, , ,], 'NaN'),
+  default: Presets.Default.setNotationGlobals(...[, , ,], NaNString),
+  scientific: Presets.Scientific.setNotationGlobals(...[, , ,], NaNString),
+  logarithm: Presets.Logarithm.setNotationGlobals(...[, , ,], NaNString),
   inequality: new InequalityNotation(
     3,
     4,
@@ -466,7 +466,9 @@ export const notations = {
       ['(', ')'],
       [')', '(']
     ]
-  ).setName('Inequality'),
+  )
+    .setNotationGlobals(...[, , ,], NaNString)
+    .setName('Inequality'),
   binaryInequality: new InequalityNotation(
     2,
     6,
@@ -478,7 +480,9 @@ export const notations = {
       ['(', ')'],
       [')', '(']
     ]
-  ).setName('Binary Inequality')
+  )
+    .setNotationGlobals(...[, , ,], NaNString)
+    .setName('Binary Inequality')
 };
 export const HTMLnotations = {
   default: notations.default,
@@ -495,7 +499,9 @@ export const HTMLnotations = {
       ['(', ')'],
       [')', '(']
     ]
-  ).setName('Inequality'),
+  )
+    .setNotationGlobals(...[, , ,], NaNString)
+    .setName('Inequality'),
   binaryInequality: new InequalityNotation(
     2,
     6,
@@ -507,15 +513,18 @@ export const HTMLnotations = {
       ['(', ')'],
       [')', '(']
     ]
-  ).setName('Binary Inequality')
+  )
+    .setNotationGlobals(...[, , ,], NaNString)
+    .setName('Binary Inequality')
 };
 //TODO: add caching to this
 export function formatValue(inputValue: DecimalSource, notation: NotationId) {
-  //if (inputValue.isNan()) return 'NaN';
-  if (Decimal.gt(inputValue, OVERFLOW)) return 'Error: Overflow';
+  inputValue = new Decimal(inputValue);
+  if (inputValue.isNan()) return NaNString;
+  if (Decimal.gt(inputValue, OVERFLOW)) return OverflowString;
   try {
     return notations[notation].format(inputValue);
   } catch (error) {
-    throw TypeError(`Unknown notation name: ${notation}`);
+    throw new TypeError(`Unknown notation name: ${notation}`);
   }
 }
