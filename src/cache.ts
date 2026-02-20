@@ -1,4 +1,4 @@
-import { getTranslatedDeflationPower } from "./deflation_power";
+import { getTranslatedDeflationPower, getTranslatedDeflationPowerExponent } from "./deflation_power";
 import Decimal from "break_eternity.js";
 import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getDeflatorGainOnDeflation } from "./prestige";
 import { OVERFLOW_UPGRADE_COUNT, upgradeEffectValueFuncArray } from "./upgrade";
@@ -7,9 +7,11 @@ export class Lazy<Type>{
   getValue: () => Type;
   _cachedValue: Type | undefined;
   defaultValue: Type;
-  constructor(getValue: () => Type, defaultValue: Type){
+  dependencies: Lazy<any>[];
+  constructor(getValue: () => Type, defaultValue: Type, dependencies: Lazy<any>[] = []){
     this.getValue = getValue;
     this.defaultValue = defaultValue;
+    this.dependencies = dependencies;
   }
   invalidate(){
     this._cachedValue = this.getValue();
@@ -18,6 +20,7 @@ export class Lazy<Type>{
     return this._cachedValue ?? this.defaultValue
   }
 }
+//
 export const gameCache = {
   deflatorGainOnDeflation: new Lazy(getDeflatorGainOnDeflation, Decimal.dOne),
   translatedDeflationPowerMultiplierBySacrificedDeflationPower: new Lazy(getDeflationPowerBoostBySacrificedDeflationPower, Decimal.dOne),

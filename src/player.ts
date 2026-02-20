@@ -41,7 +41,7 @@ export function getDefaultPlayer(): Player {
   return {
     createdTime: Date.now(),
     currentTime: Date.now(),
-    notationId: NotationIdEnum.Default,
+    notationId: NotationIdEnum.default,
     totalMatter: new Decimal(),
     matter: new Decimal(),
     lastDeflationTime: Date.now(),

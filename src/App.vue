@@ -8,7 +8,7 @@ import { ui, input, handleInput, sanitizedInput, ClickFusionPourMatterButton } f
 import { notationArray, notations } from './notation';
 import { load, save } from './saveload';
 import Upgrade from './components/Upgrade.vue';
-import { VERSION } from './main';
+import { VERSION_STR } from './constants';
 import NumberDisplay from './components/NumberDisplay.vue';
 import Decimal from 'break_eternity.js';
 import { player } from './player';
@@ -16,7 +16,7 @@ import { player } from './player';
 </script>
 <template>
   <header>
-    <span id="version">False Infinity Rewritten v{{ VERSION }}</span>
+    <span id="version">False Infinity Rewritten v{{ VERSION_STR }}</span>
     <TabButton tab="autobuyer" :visible="ui.tabs.autobuyer.visible" />
     <TabButton tab="overflow" :visible="ui.tabs.overflow.visible" />
     <TabButton tab="option" :visible="ui.tabs.option.visible" />

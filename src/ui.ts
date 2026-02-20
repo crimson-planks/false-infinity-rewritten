@@ -20,7 +20,7 @@ import {
 } from './prestige';
 import { gameCache } from './cache';
 import { addCurrency, CurrencyKind, CurrencyName, getCurrency } from './currency';
-import { getMatterPerSecond, getPlayTime, VERSION } from './main';
+import { getMatterPerSecond, getPlayTime } from './main';
 import { getUpgradeCostScaling, upgradeCurrency, UpgradeKind, upgradeMaxAmount } from './upgrade';
 import {
   getTranslatedDeflationPowerExponent,
@@ -209,7 +209,7 @@ export const ui = ref({
     }
   },
   creditsVisible: false,
-  notationId: NotationIdEnum.Default,
+  notationId: <NotationId>NotationIdEnum.default,
   playTime: '',
   matter: '',
   totalMatter: '',
@@ -393,7 +393,7 @@ export function updateScreen() {
     player.notationId
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
-  ui.value.helium = formatValue(player.fusion.helium, player.notationId) +' ' + CurrencyName[CurrencyKind.Helium];
+  ui.value.helium = formatValue(player.fusion.helium, player.notationId) + ' ' + CurrencyName[CurrencyKind.Helium];
   ui.value.energy = formatValue(player.fusion.energy, player.notationId) + ' ' + CurrencyName[CurrencyKind.Energy];
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
@@ -433,12 +433,8 @@ export function updateScreen() {
         ) +
         ' ' +
         CurrencyName[intervalCurrency[ak][i]];
-      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak, i)
-        .getCurrentCost(player.autobuyers[ak][i].amount)
-        .lte(getCurrency(autobuyerCurrency[ak][i]));
-      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak, i)
-        .getCurrentCost(player.autobuyers[ak][i].intervalAmount)
-        .lte(getCurrency(intervalCurrency[ak][i]));
+      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak, i).canBuy(player.autobuyers[ak][i].amount,Decimal.dOne,getCurrency(autobuyerCurrency[ak][i]));
+      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak, i).canBuy(player.autobuyers[ak][i].intervalAmount,Decimal.dOne,getCurrency(intervalCurrency[ak][i]));
     }
   });
   //@ts-ignore: same reason
@@ -462,9 +458,7 @@ export function updateScreen() {
         CurrencyName[upgradeCurrency[uk][i]];
       ui.value.upgrades[uk][i].canBuy =
         !ui.value.upgrades[uk][i].boughtMax &&
-        getUpgradeCostScaling(uk, i)
-          .getCurrentCost(player.upgrades[uk][i].amount)
-          .lte(getCurrency(upgradeCurrency[uk][i]));
+        getUpgradeCostScaling(uk, i).canBuy(player.upgrades[uk][i].amount,Decimal.dOne, getCurrency(upgradeCurrency[uk][i]));
       ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeMaxAmount[uk][i], player.notationId);
       ui.value.upgrades[uk][i].effectValue = formatValue(
         gameCache.upgradeEffectValue[uk][i].cachedValue,
