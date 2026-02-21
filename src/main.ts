@@ -19,9 +19,6 @@ import { gameCache } from './cache';
 import {
   load,
   save,
-  toStringifiableObject,
-  toUsableObject,
-  mergeObj_nocopy,
   fixSave
 } from './saveload';
 import { game_devTools } from './devtools';

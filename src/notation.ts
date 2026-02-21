@@ -9,8 +9,10 @@ import {
   hyperscientifify
 } from 'eternal_notations';
 import { OVERFLOW } from './prestige.js';
+
 const NaNString = 'NaN';
 const OverflowString = 'Error: Overflow';
+
 export const NotationIdEnum = {
   default: 'default',
   scientific: 'scientific',
@@ -18,22 +20,19 @@ export const NotationIdEnum = {
   inequality: 'inequality',
   binaryInequality: 'binaryInequality'
 } as const;
-export type NotationId = (typeof NotationIdEnum)[keyof typeof NotationIdEnum];
+export type NotationId = typeof NotationIdEnum[keyof typeof NotationIdEnum];
 export const notationArray = [
   'default',
   'scientific',
   'logarithm',
   'inequality',
-  'binaryInequality'
+  'binaryInequality',
 ] as const;
+//check satisfies
+notationArray satisfies readonly NotationId[];
 
-/**
- * from https://github.com/MathCookie17/Eternal-Notations/blob/main/src/presets.ts
- * */
-function defaultRound(value: Decimal) {
-  if (value.eq(0)) return new Decimal(0);
-  return value.abs().log10().floor().sub(3).pow_base(10).min(1);
-}
+export const NotationIdSet = new Set(notationArray)
+
 /**
  *
  * @param digitsArray an array of arrays of digits.

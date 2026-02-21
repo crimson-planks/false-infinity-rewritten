@@ -21,7 +21,7 @@ export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
   return initialUpgradeCostScaling[kind][ord];
 }
 export const upgradeCurrency: { overflow: 'overflowPoint'[] } = {
-  overflow: Array(OVERFLOW_UPGRADE_COUNT).fill(CurrencyKindObj.OverflowPoint)
+  overflow: Array(OVERFLOW_UPGRADE_COUNT).fill(CurrencyKindObj.overflowPoint)
 } as const;
 export const upgradeMaxAmount = {
   overflow: [

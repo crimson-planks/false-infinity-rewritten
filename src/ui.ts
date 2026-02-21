@@ -7,9 +7,7 @@ import {
   type AutobuyerKind,
   AutobuyerKindObj,
   getIntervalCostScaling,
-  autobuyerCurrency,
-  autobuyerName,
-  intervalCurrency
+  autobuyerConstData
 } from './autobuyer';
 import {
   canDeflate,
@@ -128,7 +126,6 @@ export const texts = {
       binaryInequality: 'Binary Inequality'
     },
     autobuyer: {
-      name: autobuyerName,
       optionName: {
         matterAutobuyer: ['Selected Matter Autobuyer Number']
       }
@@ -226,7 +223,7 @@ export const ui = ref({
         return {
           kind: AutobuyerKindObj.Matter,
           ord: i,
-          name: autobuyerName.matter[i],
+          name: autobuyerConstData.matter[i].name,
           amount: '',
           timer: '',
           toggle: '',
@@ -244,7 +241,7 @@ export const ui = ref({
         return {
           kind: AutobuyerKindObj.DeflationPower,
           ord: i,
-          name: autobuyerName.deflationPower[i],
+          name: autobuyerConstData.deflationPower[i].name,
           amount: '',
           timer: '',
           toggle: '',
@@ -260,7 +257,7 @@ export const ui = ref({
       {
         kind: AutobuyerKindObj.MatterAutobuyer,
         ord: 0,
-        name: autobuyerName.matterAutobuyer[0],
+        name: autobuyerConstData.matterAutobuyer[0].name,
         amount: '',
         timer: '',
         toggle: '',
@@ -411,11 +408,11 @@ export function updateScreen() {
   ui.value.helium =
     formatValue(player.fusion.helium, player.notationId) +
     ' ' +
-    CurrencyName[CurrencyKindObj.Helium];
+    CurrencyName[CurrencyKindObj.helium];
   ui.value.energy =
     formatValue(player.fusion.energy, player.notationId) +
     ' ' +
-    CurrencyName[CurrencyKindObj.Energy];
+    CurrencyName[CurrencyKindObj.energy];
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
   ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0);
@@ -446,23 +443,23 @@ export function updateScreen() {
           player.notationId
         ) +
         ' ' +
-        CurrencyName[autobuyerCurrency[ak][i]];
+        CurrencyName[autobuyerConstData[ak][i].currency];
       ui.value.autobuyers[ak][i].intervalCost =
         formatValue(
           getIntervalCostScaling(ak, i).getCurrentCost(player.autobuyers[ak][i].intervalAmount),
           player.notationId
         ) +
         ' ' +
-        CurrencyName[intervalCurrency[ak][i]];
+        CurrencyName[autobuyerConstData[ak][i].intervalCurrency];
       ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak, i).canBuy(
         player.autobuyers[ak][i].amount,
         Decimal.dOne,
-        getCurrency(autobuyerCurrency[ak][i])
+        getCurrency(autobuyerConstData[ak][i].currency)
       );
       ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak, i).canBuy(
         player.autobuyers[ak][i].intervalAmount,
         Decimal.dOne,
-        getCurrency(intervalCurrency[ak][i])
+        getCurrency(autobuyerConstData[ak][i].intervalCurrency)
       );
     }
   });
@@ -507,7 +504,7 @@ export function ClickFusionPourMatterButton() {
 export function handleInput(type: string, args: string[]) {
   if (type === 'ClickMatterButton') addCurrency(CurrencyKindObj.matter, Decimal.dOne);
   if (type === 'ClickDeflationPowerButton')
-    addCurrency(CurrencyKindObj.DeflationPower, Decimal.dOne);
+    addCurrency(CurrencyKindObj.deflationPower, Decimal.dOne);
   if (type === 'ClickDeflationSacrificeButton') deflationSacrifice();
   if (type === 'ClickOverflowButton') overflow();
   if (type === 'ClickConvertMatterButton') convertMatter(Decimal.dOne);

@@ -1,5 +1,5 @@
 import Decimal, { type DecimalSource }  from 'break_eternity.js';
-abstract class CostScaling {
+export abstract class CostScaling {
   abstract getCurrentCost(currentAmount: DecimalSource): Decimal
   /** How much does it cost when I buy buyAmount? */
   abstract getTotalCostAfterPurchase(currentAmount: DecimalSource, buyAmount: DecimalSource): Decimal

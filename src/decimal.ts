@@ -39,6 +39,8 @@ export function floorSlog10(value: DecimalSource, payload: DecimalSource) {
   const pm = payloadD.mag;
   if (vm < pm) {
     //TODO: figure out if log is faster than pow
+    //result: they're equally as fast, so we can use them interchangebly
+    //pow and log have different domains and ranges, so use pow when the numbers <= 0 and use log when numbers > log10(1.79e308)
     if (vm < Math.log10(Math.log10(pm))) coreLayerDiff = -3;
     else if (vm < Math.log10(pm)) coreLayerDiff = -2;
     else coreLayerDiff = -1;

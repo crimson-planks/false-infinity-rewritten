@@ -1,85 +1,88 @@
 /** @prettier */
 import Decimal from 'break_eternity.js';
-import { ExponentialCostScaling, LinearCostScaling } from './cost';
+import { CostScaling, ExponentialCostScaling, LinearCostScaling } from './cost';
 import { player } from './player';
-import { addCurrency, CurrencyKindObj, getCurrency, setCurrency } from './currency';
+import { addCurrency, type CurrencyKind, CurrencyKindObj, getCurrency, setCurrency } from './currency';
 import { gameCache } from './cache';
-export const initialAutobuyerCostScaling = {
+//You can safely remove these objects
+/*export const initialAutobuyerCostScaling = {
   matter: [
     new LinearCostScaling({
-      baseCost: new Decimal(10),
-      baseIncrease: new Decimal(5)
+      baseCost: 10,
+      baseIncrease: 5
     }),
     new LinearCostScaling({
-      baseCost: new Decimal(500),
-      baseIncrease: new Decimal(100)
+      baseCost: 500,
+      baseIncrease: 100
     }),
     new LinearCostScaling({
-      baseCost: new Decimal(1e7),
-      baseIncrease: new Decimal(1e6)
+      baseCost: 1e7,
+      baseIncrease: 1e6
     })
   ],
   deflationPower: [
     new LinearCostScaling({
-      baseCost: new Decimal(1),
-      baseIncrease: new Decimal(0)
+      baseCost: 1,
+      baseIncrease: 0
     })
   ],
   matterAutobuyer: [
     new LinearCostScaling({
-      baseCost: new Decimal(10),
-      baseIncrease: new Decimal(50)
+      baseCost: 10,
+      baseIncrease: 50
     })
   ]
-};
-export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): LinearCostScaling {
+} as const;*/
+export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): CostScaling {
+  const ics = autobuyerConstData[kind][ord].initialCostScaling;
   if (kind === AutobuyerKindObj.Matter)
     return new LinearCostScaling({
-      baseCost: initialAutobuyerCostScaling[kind][ord].baseCost.sub(
+      baseCost: ics.baseCost.sub(
         gameCache.translatedDeflationPower.cachedValue
       ),
-      baseIncrease: initialAutobuyerCostScaling[kind][ord].baseIncrease.sub(player.deflation.min(4))
+      baseIncrease: ics.baseIncrease.sub(player.deflation.min(4))
     });
-  if (kind === AutobuyerKindObj.DeflationPower) return initialAutobuyerCostScaling[kind][ord];
-  if (kind === AutobuyerKindObj.MatterAutobuyer) return initialAutobuyerCostScaling[kind][ord];
+  if (kind === AutobuyerKindObj.DeflationPower) return ics;
+  if (kind === AutobuyerKindObj.MatterAutobuyer) return ics;
   else {
     let leftover: never = kind;
     throw new TypeError(`invalid AutobuyerKind: ${kind}`);
   }
 }
-export const initialIntervalCostScaling = {
+/*export const initialIntervalCostScaling = {
   matter: [
     new ExponentialCostScaling({
-      baseCost: new Decimal(100),
-      baseIncrease: new Decimal(10)
+      baseCost: 100,
+      baseIncrease: 10
     }),
     new ExponentialCostScaling({
-      baseCost: new Decimal(1000),
-      baseIncrease: new Decimal(100)
+      baseCost: 1000,
+      baseIncrease: 100
     }),
     new ExponentialCostScaling({
-      baseCost: new Decimal(1e8),
-      baseIncrease: new Decimal(1000)
+      baseCost: 1e8,
+      baseIncrease: 1000
     })
   ],
   deflationPower: [
     new ExponentialCostScaling({
-      baseCost: new Decimal(1),
-      baseIncrease: new Decimal(2)
+      baseCost: 1,
+      baseIncrease: 2
     })
   ],
   matterAutobuyer: [
     new ExponentialCostScaling({
-      baseCost: new Decimal(1e-9),
-      baseIncrease: new Decimal(10)
+      baseCost: 1e-9,
+      baseIncrease: 10
     })
   ]
-} as const;
+} as const;*/
 export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
+  const iics = autobuyerConstData[kind][ord].initialIntervalCostScaling
   if (kind === AutobuyerKindObj.Matter) {
     const finalIntervalCostScaling = new ExponentialCostScaling({
-      baseCost: initialIntervalCostScaling[kind][ord].baseCost,
-      baseIncrease: initialIntervalCostScaling[kind][ord].baseIncrease
+      baseCost: iics.baseCost,
+      baseIncrease: iics.baseIncrease
     });
     if (player.upgrades.overflow[3].amount.gt(0))
       finalIntervalCostScaling.baseCost = finalIntervalCostScaling.baseCost.div(
@@ -88,27 +91,28 @@ export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
     return finalIntervalCostScaling;
   }
   if (kind === AutobuyerKindObj.DeflationPower || kind === AutobuyerKindObj.MatterAutobuyer)
-    return initialIntervalCostScaling[kind][ord];
+    return iics;
   else {
     let leftover: never = kind;
     throw new TypeError(`Invalid AutobuyerKind: ${kind}`);
   }
 }
+/*
 export const autobuyerName = {
   matter: ['Autoclicker', 'Autobuyer 1'],
   deflationPower: ['Deflation Power Autoclicker'],
   matterAutobuyer: ['Matter Autobuyer Autobuyer']
-};
-export const autobuyerCurrency = {
+};*/
+/*export const autobuyerCurrency = {
   matter: [CurrencyKindObj.matter, CurrencyKindObj.matter, CurrencyKindObj.matter],
   deflationPower: [CurrencyKindObj.Deflator],
   matterAutobuyer: [CurrencyKindObj.OverflowPoint]
-} as const;
-export const intervalCurrency = {
+} as const;*/
+/*export const intervalCurrency = {
   matter: [CurrencyKindObj.matter, CurrencyKindObj.matter, CurrencyKindObj.matter],
   deflationPower: [CurrencyKindObj.Deflator],
   matterAutobuyer: [CurrencyKindObj.Energy]
-} as const;
+} as const;*/
 export const initialInterval = {
   matter: [new Decimal(1), new Decimal(2), new Decimal(4)],
   deflationPower: [new Decimal(0.5)],
@@ -122,7 +126,112 @@ export const AutobuyerKindObj = {
   MatterAutobuyer: 'matterAutobuyer'
 } as const;
 export type AutobuyerKind = (typeof AutobuyerKindObj)[keyof typeof AutobuyerKindObj];
-export interface AutobuyerData {
+export interface AutobuyerConstData {
+  name: string;
+
+  currency: CurrencyKind;
+  initialCostScaling: CostScaling;
+
+  initialInterval: Decimal;
+  intervalCurrency: CurrencyKind;
+  initialIntervalCostScaling: CostScaling;
+}
+export const autobuyerConstData = {
+  matter: [
+    {
+      name: 'Autoclicker',
+
+      currency: CurrencyKindObj.matter,
+      initialCostScaling: new LinearCostScaling({
+        baseCost: 10,
+        baseIncrease: 5
+      }),
+
+      initialInterval: new Decimal(1),
+      intervalCurrency: CurrencyKindObj.matter,
+      initialIntervalCostScaling: new ExponentialCostScaling({
+        baseCost: 100,
+        baseIncrease: 10
+      })
+    },
+    {
+      name: 'Autobuyer 1',
+
+      currency: CurrencyKindObj.matter,
+      initialCostScaling: new LinearCostScaling({
+        baseCost: 500,
+        baseIncrease: 100
+      }),
+
+      initialInterval: new Decimal(2),
+      intervalCurrency: CurrencyKindObj.matter,
+      initialIntervalCostScaling: new ExponentialCostScaling({
+        baseCost: 1000,
+        baseIncrease: 100
+      }),
+    },
+    {
+      name: 'Autobuyer 2',
+
+      currency: CurrencyKindObj.matter,
+      initialCostScaling: new LinearCostScaling({
+        baseCost: 1e7,
+        baseIncrease: 1e6
+      }),
+
+      initialInterval: new Decimal(4),
+      intervalCurrency: CurrencyKindObj.matter,
+      initialIntervalCostScaling: new ExponentialCostScaling({
+        baseCost: 1e8,
+        baseIncrease: 1000
+      })
+    }
+  ],
+  deflationPower: [
+    {
+      name: 'Deflation Power Autoclicker',
+
+      currency: CurrencyKindObj.deflator,
+      initialCostScaling: new LinearCostScaling({
+        baseCost: 1,
+        baseIncrease: 0
+      }),
+
+      initialInterval: new Decimal(0.5),
+      intervalCurrency: CurrencyKindObj.deflator,
+      initialIntervalCostScaling: new ExponentialCostScaling({
+        baseCost: 1,
+        baseIncrease: 2
+      })
+    }
+  ],
+  matterAutobuyer: [
+    {
+      name: 'Matter Autobuyer Autobuyer',
+
+      currency: CurrencyKindObj.overflowPoint,
+      initialCostScaling: new LinearCostScaling({
+        baseCost: 10,
+        baseIncrease: 50
+      }),
+
+      initialInterval: new Decimal(1),
+      intervalCurrency: CurrencyKindObj.energy,
+      initialIntervalCostScaling: new ExponentialCostScaling({
+        baseCost: 1e-9,
+        baseIncrease: 10
+      }),
+
+
+    }
+  ]
+} as const;
+
+autobuyerConstData.matter satisfies readonly AutobuyerConstData[];
+autobuyerConstData.deflationPower satisfies readonly AutobuyerConstData[];
+autobuyerConstData.matterAutobuyer satisfies readonly AutobuyerConstData[];
+
+export interface AutobuyerSaveData {
   kind: AutobuyerKind;
   ord: number;
   amount: Decimal;
@@ -138,7 +247,7 @@ export function ToggleAutobuyer(kind: AutobuyerKind, ord: number) {
   player.autobuyers[kind][ord].toggle = !player.autobuyers[kind][ord].toggle;
 }
 export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
-  const currency = autobuyerCurrency[kind][ord];
+  const currency = autobuyerConstData[kind][ord].currency;
   const cost = getAutobuyerCostScaling(kind, ord).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].amount,
     buyAmount
@@ -148,7 +257,7 @@ export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decima
   player.autobuyers[kind][ord].amount = player.autobuyers[kind][ord].amount.add(buyAmount);
 }
 export function BuyInterval(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
-  const currency = intervalCurrency[kind][ord];
+  const currency = autobuyerConstData[kind][ord].intervalCurrency;
   const cost = getIntervalCostScaling(kind, ord).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].intervalAmount,
     buyAmount
@@ -202,7 +311,7 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
   } else if (kind === AutobuyerKindObj.DeflationPower) {
     if (ord === 0) {
       addCurrency(
-        CurrencyKindObj.DeflationPower,
+        CurrencyKindObj.deflationPower,
         activationAmount.mul(player.autobuyers[kind][ord].amount)
       );
     }

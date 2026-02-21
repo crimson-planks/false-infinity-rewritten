@@ -1,7 +1,7 @@
 /** @prettier */
 import Decimal from 'break_eternity.js';
-import { AutobuyerKindObj, type AutobuyerData } from '@/autobuyer';
-import { type UpgradeKind, UpgradeKindObj, type UpgradeData } from './upgrade';
+import { AutobuyerKindObj, type AutobuyerSaveData } from '@/autobuyer';
+import { UpgradeKindObj, type UpgradeData } from './upgrade';
 import { NotationIdEnum, type NotationId } from './notation';
 export interface Player {
   createdTime: number;
@@ -28,9 +28,9 @@ export interface Player {
     helium: Decimal;
   };
   autobuyers: {
-    matter: AutobuyerData[];
-    deflationPower: AutobuyerData[];
-    matterAutobuyer: AutobuyerData[];
+    matter: AutobuyerSaveData[];
+    deflationPower: AutobuyerSaveData[];
+    matterAutobuyer: AutobuyerSaveData[];
   };
   upgrades: {
     overflow: UpgradeData[];
@@ -162,7 +162,7 @@ export function getDefaultPlayer(): Player {
     }
   };
 }
-export let player = getDefaultPlayer();
+export const player = getDefaultPlayer();
 export function setPlayer(obj: Player) {
   Object.keys(obj).forEach((key) => {
     //@ts-ignore
