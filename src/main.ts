@@ -7,10 +7,12 @@ import Decimal from 'break_eternity.js';
 import App from './App.vue';
 import {
   type AutobuyerKind,
+  AutobuyerKindArr,
   AutobuyerKindObj,
   AutobuyerTick,
   BuyInterval,
   getAutobuyerCostScaling,
+  getAutobuyerInterval,
   getIntervalCostScaling
 } from './autobuyer';
 import { getDefaultPlayer, player, setPlayer } from './player';
@@ -52,14 +54,14 @@ export function getMatterPerSecond() {
   const pa = player.autobuyers;
   let result = new Decimal(0);
   let matterGained = player.autobuyers.matter[0].amount
-    .mul(player.autobuyers.matter[0].interval.recip())
+    .mul(getAutobuyerInterval('matter', 0).recip())
     .mul(+player.autobuyers.matter[0].toggle);
   let matterLost = new Decimal(0);
   if (player.autobuyers.matter[1].toggle)
     matterLost = matterLost.add(
       getAutobuyerCostScaling(AutobuyerKindObj.Matter, 0).getTotalCostAfterPurchase(
         player.autobuyers.matter[0].amount,
-        player.autobuyers.matter[1].amount.mul(player.autobuyers.matter[1].interval.recip())
+        player.autobuyers.matter[1].amount.mul(getAutobuyerInterval('matter', 1).recip())
       )
     );
   const pama_selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd);
@@ -70,7 +72,7 @@ export function getMatterPerSecond() {
           player.autobuyers.matter[pama_selectedOrd].amount,
           player.autobuyers.matterAutobuyer[0].amount
         )
-        .mul(player.autobuyers.matterAutobuyer[0].interval.recip())
+        .mul(getAutobuyerInterval('matterAutobuyer', 0).recip())
     );
   result = matterGained.sub(matterLost);
   return result;
@@ -86,14 +88,13 @@ setInterval(function () {
     autosaveTimer = 0;
     console.log('game saved!');
   }
-  //@ts-ignore
-  Object.keys(player.autobuyers).forEach((key: AutobuyerKind) => {
-    if (key == AutobuyerKindObj.Matter && player.isOverflowing) return;
-    for (let i = 0; i < player.autobuyers[key].length; i++) {
-      AutobuyerTick(key, i, diffDecimal);
-    }
-  });
 
+  for(let ak of AutobuyerKindArr){
+    if (ak == AutobuyerKindObj.Matter && player.isOverflowing) return;
+    player.autobuyers[ak].forEach((v, i)=>{AutobuyerTick(ak, i, diffDecimal);})
+  }
+
+  //the order is very important.
   gameCache.upgradeEffectValue.overflow.forEach((v, i) => {
     v.invalidate();
   });
@@ -102,6 +103,11 @@ setInterval(function () {
   gameCache.translatedDeflationPowerMultiplierWhenSacrifice.invalidate();
   gameCache.translatedDeflationPower.invalidate();
   gameCache.canDeflationSacrifice.invalidate();
+  for(let ak of AutobuyerKindArr){
+    gameCache.autobuyerInterval[ak].forEach((v)=>{
+      v.invalidate();
+    })
+  }
   if (player.matter.gte(OVERFLOW) && !player.isOverflowing) {
     player.isOverflowing = true;
     player.matter = OVERFLOW;

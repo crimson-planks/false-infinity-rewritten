@@ -20,7 +20,7 @@ export const initialUpgradeCostScaling = {
 } as const;
 */
 export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
-  return upgradeConstData[kind][ord].initialCostScaling;
+  return upgradeConstObj[kind][ord].initialCostScaling;
 }
 export const upgradeCurrency: { overflow: 'overflowPoint'[] } = {
   overflow: Array(OVERFLOW_UPGRADE_COUNT).fill(CurrencyKindObj.overflowPoint)
@@ -60,7 +60,7 @@ export interface UpgradeConstData {
   maxAmount: Decimal;
   effectValueFunction: () => Decimal;
 }
-export const upgradeConstData = {
+export const upgradeConstObj = {
   overflow: [
     {
       kind: UpgradeKindObj.Overflow,
@@ -206,7 +206,7 @@ export const upgradeEffectValueFuncArray = {
  */
 
 export function BuyUpgrade(kind: UpgradeKind, ord: number, buyAmount: Decimal) {
-  if (player.upgrades[kind][ord].amount.add(buyAmount).gt(upgradeConstData[kind][ord].maxAmount)) return;
+  if (player.upgrades[kind][ord].amount.add(buyAmount).gt(upgradeConstObj[kind][ord].maxAmount)) return;
   const currency = upgradeCurrency[kind][ord];
   const cost = getUpgradeCostScaling(kind, ord).getTotalCostAfterPurchase(
     player.upgrades[kind][ord].amount,

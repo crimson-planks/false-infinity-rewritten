@@ -2,12 +2,13 @@
 import { computed, ref, watch } from 'vue';
 import { player } from './player';
 import { formatValue, NotationIdEnum, type NotationId } from '@/notation';
+import { autobuyerConstObj } from './autobuyer_const';
 import {
   getAutobuyerCostScaling,
   type AutobuyerKind,
   AutobuyerKindObj,
   getIntervalCostScaling,
-  autobuyerConstData
+  getAutobuyerInterval
 } from './autobuyer';
 import {
   canDeflate,
@@ -22,7 +23,7 @@ import { addCurrency, CurrencyKindObj, CurrencyName, getCurrency } from './curre
 import { getMatterPerSecond, getPlayTime } from './main';
 import {
   getUpgradeCostScaling,
-  upgradeConstData,
+  upgradeConstObj,
   upgradeCurrency,
   type UpgradeKind,
   UpgradeKindObj
@@ -223,7 +224,7 @@ export const ui = ref({
         return {
           kind: AutobuyerKindObj.Matter,
           ord: i,
-          name: autobuyerConstData.matter[i].name,
+          name: autobuyerConstObj.matter[i].name,
           amount: '',
           timer: '',
           toggle: '',
@@ -241,7 +242,7 @@ export const ui = ref({
         return {
           kind: AutobuyerKindObj.DeflationPower,
           ord: i,
-          name: autobuyerConstData.deflationPower[i].name,
+          name: autobuyerConstObj.deflationPower[i].name,
           amount: '',
           timer: '',
           toggle: '',
@@ -257,7 +258,7 @@ export const ui = ref({
       {
         kind: AutobuyerKindObj.MatterAutobuyer,
         ord: 0,
-        name: autobuyerConstData.matterAutobuyer[0].name,
+        name: autobuyerConstObj.matterAutobuyer[0].name,
         amount: '',
         timer: '',
         toggle: '',
@@ -438,7 +439,7 @@ export function updateScreen() {
         player.notationId
       );
       ui.value.autobuyers[ak][i].interval = formatValue(
-        player.autobuyers[ak][i].interval,
+        getAutobuyerInterval(ak, i),
         player.notationId
       );
       ui.value.autobuyers[ak][i].toggle = player.autobuyers[ak][i].toggle ? 'On' : 'Off';
@@ -448,23 +449,23 @@ export function updateScreen() {
           player.notationId
         ) +
         ' ' +
-        CurrencyName[autobuyerConstData[ak][i].currency];
+        CurrencyName[autobuyerConstObj[ak][i].currency];
       ui.value.autobuyers[ak][i].intervalCost =
         formatValue(
           getIntervalCostScaling(ak, i).getCurrentCost(player.autobuyers[ak][i].intervalAmount),
           player.notationId
         ) +
         ' ' +
-        CurrencyName[autobuyerConstData[ak][i].intervalCurrency];
+        CurrencyName[autobuyerConstObj[ak][i].intervalCurrency];
       ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak, i).canBuy(
         player.autobuyers[ak][i].amount,
         Decimal.dOne,
-        getCurrency(autobuyerConstData[ak][i].currency)
+        getCurrency(autobuyerConstObj[ak][i].currency)
       );
       ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak, i).canBuy(
         player.autobuyers[ak][i].intervalAmount,
         Decimal.dOne,
-        getCurrency(autobuyerConstData[ak][i].intervalCurrency)
+        getCurrency(autobuyerConstObj[ak][i].intervalCurrency)
       );
     }
   });
@@ -478,7 +479,7 @@ export function updateScreen() {
         player.notationId
       );
       ui.value.upgrades[uk][i].boughtMax = player.upgrades[uk][i].amount.gte(
-        upgradeConstData[uk][i].maxAmount
+        upgradeConstObj[uk][i].maxAmount
       );
       ui.value.upgrades[uk][i].cost =
         formatValue(
@@ -494,7 +495,7 @@ export function updateScreen() {
           Decimal.dOne,
           getCurrency(upgradeCurrency[uk][i])
         );
-      ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeConstData[uk][i].maxAmount, player.notationId);
+      ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeConstObj[uk][i].maxAmount, player.notationId);
       ui.value.upgrades[uk][i].effectValue = formatValue(
         gameCache.upgradeEffectValue[uk][i].cachedValue,
         player.notationId

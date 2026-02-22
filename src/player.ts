@@ -69,7 +69,6 @@ export function getDefaultPlayer(): Player {
           ord: 0,
           amount: new Decimal(0),
           timer: new Decimal(0),
-          interval: new Decimal(1),
           intervalAmount: Decimal.dZero,
           toggle: true
         },
@@ -78,7 +77,6 @@ export function getDefaultPlayer(): Player {
           ord: 1,
           amount: new Decimal(0),
           timer: new Decimal(0),
-          interval: new Decimal(2),
           intervalAmount: Decimal.dZero,
           toggle: true
         },
@@ -87,7 +85,6 @@ export function getDefaultPlayer(): Player {
           ord: 2,
           amount: new Decimal(0),
           timer: new Decimal(0),
-          interval: new Decimal(4),
           intervalAmount: Decimal.dZero,
           toggle: true
         }
@@ -98,7 +95,6 @@ export function getDefaultPlayer(): Player {
           ord: 0,
           amount: new Decimal(0),
           timer: new Decimal(0),
-          interval: new Decimal(4),
           intervalAmount: Decimal.dZero,
           toggle: true
         }
@@ -109,7 +105,6 @@ export function getDefaultPlayer(): Player {
           ord: 0,
           amount: new Decimal(0),
           timer: new Decimal(0),
-          interval: new Decimal(1),
           intervalAmount: new Decimal(0),
           toggle: true,
           option: { selectedOrd: 0 }

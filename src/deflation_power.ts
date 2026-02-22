@@ -1,5 +1,4 @@
 import { gameCache } from "./cache";
-import { Effect } from "./effect";
 import Decimal from 'break_eternity.js';
 import { player } from "./player";
 //TODO: cache these
