@@ -40,7 +40,7 @@ npm run build
 npm run lint
 ```
 
-### Format with Prettier
+### Format with [Prettier](https://prettier.io/)
 
 ```sh
 npm run format

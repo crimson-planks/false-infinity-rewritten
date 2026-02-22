@@ -2,7 +2,7 @@
 import Decimal from 'break_eternity.js';
 import { texts, type UpgradeVisualData } from '@/ui';
 import { BuyUpgrade } from '@/upgrade';
-import { upgradeMaxAmount } from '@/upgrade';
+import { upgradeConstData } from '@/upgrade';
 const props = defineProps<{data: UpgradeVisualData}>();
 
 function ClickBuyUpgradeButton(){

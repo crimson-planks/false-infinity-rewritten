@@ -9,15 +9,15 @@ export function resetAutobuyers(){
 export function getStartMatter(){
   return new Decimal(0).add(gameCache.upgradeEffectValue.overflow[7].cachedValue)
 }
-export const deflationCost = new ExponentialCostScaling({
+export const deflationCostScaling = new ExponentialCostScaling({
   baseCost:new Decimal(1000),
   baseIncrease:new Decimal(10)
 })
 //TODO: add caching to the 'get' functions
 export function getDeflationCost(){
   return new ExponentialCostScaling({
-    baseCost: deflationCost.baseCost,
-    baseIncrease: deflationCost.baseIncrease
+    baseCost: deflationCostScaling.baseCost,
+    baseIncrease: deflationCostScaling.baseIncrease
   })
 }
 export function canDeflate(){

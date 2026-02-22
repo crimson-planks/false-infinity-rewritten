@@ -11,7 +11,7 @@ import {
 } from './autobuyer';
 import {
   canDeflate,
-  deflationCost,
+  deflationCostScaling,
   deflationSacrifice,
   getDeflationCost,
   getDeflatorGainOnDeflation,
@@ -22,10 +22,10 @@ import { addCurrency, CurrencyKindObj, CurrencyName, getCurrency } from './curre
 import { getMatterPerSecond, getPlayTime } from './main';
 import {
   getUpgradeCostScaling,
+  upgradeConstData,
   upgradeCurrency,
   type UpgradeKind,
-  UpgradeKindObj,
-  upgradeMaxAmount
+  UpgradeKindObj
 } from './upgrade';
 import {
   getTranslatedDeflationPowerExponent,
@@ -307,7 +307,9 @@ export const ui = ref({
   helium: '',
   energy: '',
   statistics: {
+    timeOnDeflation: '',
     overflow: {
+      timeOn: '',
       visible: false
     }
   }
@@ -418,6 +420,9 @@ export function updateScreen() {
   ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0);
   ui.value.subtabs.autobuyer.overflow.visible = player.overflow.gt(0);
 
+  ui.value.statistics.timeOnDeflation = (player.currentTime - player.lastDeflationTime).toString();
+  ui.value.statistics.overflow.timeOn = (player.currentTime - player.lastOverflowTime).toString()
+
   ui.value.statistics.overflow.visible = player.overflow.gt(0);
   //@ts-ignore: this is a valid way of iterating through an Object
   Object.keys(player.autobuyers).forEach((ak: AutobuyerKind) => {
@@ -473,7 +478,7 @@ export function updateScreen() {
         player.notationId
       );
       ui.value.upgrades[uk][i].boughtMax = player.upgrades[uk][i].amount.gte(
-        upgradeMaxAmount[uk][i]
+        upgradeConstData[uk][i].maxAmount
       );
       ui.value.upgrades[uk][i].cost =
         formatValue(
@@ -489,7 +494,7 @@ export function updateScreen() {
           Decimal.dOne,
           getCurrency(upgradeCurrency[uk][i])
         );
-      ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeMaxAmount[uk][i], player.notationId);
+      ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeConstData[uk][i].maxAmount, player.notationId);
       ui.value.upgrades[uk][i].effectValue = formatValue(
         gameCache.upgradeEffectValue[uk][i].cachedValue,
         player.notationId

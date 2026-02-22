@@ -98,10 +98,10 @@ import { VERSION_STR } from './constants';
       You have played for {{ ui.playTime }} milliseconds.<br>
       You have produced a total of {{ ui.totalMatter }} matter.<br>
       You have deflated {{ ui.deflation }} times.<br>
-      You are on this deflation for milliseconds.<br>
+      You are on this deflation for {{ ui.statistics.timeOnDeflation }} milliseconds.<br>
       <div v-show="ui.statistics.overflow.visible">
         <h2>Overflow</h2><br>
-        You are on this overflow for milliseconds.<br>
+        You are on this overflow for {{ ui.statistics.overflow.timeOn }} milliseconds.<br>
         You have overflown {{ ui.overflow }} times.<br>
       </div>
     </div>

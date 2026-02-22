@@ -225,7 +225,11 @@ export const autobuyerConstData = {
 
     }
   ]
-} as const;
+} as const satisfies {
+  matter: AutobuyerConstData[];
+  deflationPower: AutobuyerConstData[];
+  matterAutobuyer: AutobuyerConstData[];
+};
 
 autobuyerConstData.matter satisfies readonly AutobuyerConstData[];
 autobuyerConstData.deflationPower satisfies readonly AutobuyerConstData[];

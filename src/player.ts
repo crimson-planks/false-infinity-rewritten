@@ -1,7 +1,7 @@
 /** @prettier */
 import Decimal from 'break_eternity.js';
 import { AutobuyerKindObj, type AutobuyerSaveData } from '@/autobuyer';
-import { UpgradeKindObj, type UpgradeData } from './upgrade';
+import { UpgradeKindObj, type UpgradeSaveData } from './upgrade';
 import { NotationIdEnum, type NotationId } from './notation';
 export interface Player {
   createdTime: number;
@@ -33,7 +33,7 @@ export interface Player {
     matterAutobuyer: AutobuyerSaveData[];
   };
   upgrades: {
-    overflow: UpgradeData[];
+    overflow: UpgradeSaveData[];
   };
 }
 
