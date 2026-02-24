@@ -1,11 +1,17 @@
 import Decimal, { type DecimalSource } from 'break_eternity.js';
-
+/**
+ * The naive implementation of floorSlog10, for unit tests.
+ */
+export function floorSlog10_naive(value: DecimalSource, payload: DecimalSource){
+  return new Decimal(value).slog(10).sub(new Decimal(payload).slog(10)).floor();
+}
 /**
  * If value = Decimal.tetrate(10,height,payload), this function finds floor(height) if value and payload is given.
- *
+ * equivalent to floor(slog10(value) - slog10(payload))
  * **NOTE: (value < 1) or (payload < 1) is currently not implemented.**
 */
 export function floorSlog10(value: DecimalSource, payload: DecimalSource) {
+  //TODO: handle negative exponents, negative numbers, and negative numbers with negative exponents.
   const valueD = new Decimal(value);
   const payloadD = new Decimal(payload);
   /*

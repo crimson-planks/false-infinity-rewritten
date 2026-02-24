@@ -1,7 +1,7 @@
 import { getAutobuyerCostScaling, getIntervalCostScaling } from "./autobuyer";
 import { BaseConvert, hyperscientifify, scientifify } from "eternal_notations";
 import { FormatMufano, inequality_core, IntegerBase_ConvertToDigitArray, NonIntegerBase_ConvertToDigitArray, notations } from "./notation";
-import { floorSlog10 } from './decimal';
+import { floorSlog10, floorSlog10_naive } from './decimal';
 import { fixSave, load, mergeObj_nocopy, save, toStringifiableObject, toUsableObject } from "./saveload";
 import { ExponentialCostScaling, LinearCostScaling } from "./cost";
 import { getDefaultPlayer, setPlayer } from "./player";
@@ -12,6 +12,13 @@ export const game_devTools={
   toUsableObject,
   save,
   load,
+  isPowLogSame(x: number){
+    if(typeof x!== "number") return undefined;
+    //also detect 0 and -0
+    const rslt = Math.log10(Math.pow(10,x));
+    if(Object.is(rslt,x)) return undefined;
+    else return rslt;
+  },
   getDefaultPlayer,
   setPlayer,
   mergeObj_nocopy,
@@ -22,6 +29,7 @@ export const game_devTools={
   BaseConvert,
   scientifify,
   hyperscientifify,
+  floorSlog10_naive,
   floorSlog10,
   FormatMufano,
   IntegerBase_ConvertToDigitArray,

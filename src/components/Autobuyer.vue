@@ -29,7 +29,7 @@ const autobuyerSelectId = computed(()=>`autobuyer-${props.data.kind}-${props.dat
 selectedOrd:
     </label>
     <select :id="autobuyerSelectId" v-model="input.autobuyerOption.matterAutobuyer[0].selectedOrd">
-      <option v-for="selectedOrd in autobuyerOptions.matterAutobuyer[0]">{{ selectedOrd }}</option>
+      <option v-for="ordOption in autobuyerOptions.matterAutobuyer[0].selectedOrd">{{ ordOption }}</option>
     </select>
   </span>
     <span class="c-autobuyer-text" @click="ClickToggleButton()">Toggle: {{ props.data.toggle }}</span>

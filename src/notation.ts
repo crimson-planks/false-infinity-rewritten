@@ -420,17 +420,24 @@ export class InequalityNotation extends Notation {
 }
 export function FormatMufano(value: DecimalSource): string {
   const valueD = new Decimal(value);
-  const bc = (v: Decimal) =>
-    BaseConvert(v.toNumber(), 10, 3, -4, 0, -1, -1, undefined, undefined, undefined, '_');
+  const valueN = valueD.toNumber();
+  const bc = (v: number) =>
+    BaseConvert(v, 10, 3, -4, 0, -1, -1, undefined, undefined, undefined, '_');
   if (valueD.lt(0)) return '-'; //doesn't support negative numbers
   if (valueD.lt(1e-7) && valueD.neq(0)) return '0/'; //doesn't support negative exponents
-  if (valueD.lt(10)) return bc(valueD);
-  if (valueD.lt(100)) return `a${bc(valueD)}`;
-  if (valueD.lt(1000)) return `b${bc(valueD)}`;
-  if (valueD.lt(10000)) return `c${bc(valueD)}`;
-  if (valueD.lt(100000)) return `d${bc(valueD)}`;
-  if (valueD.lt('1e300')) {
+  if(valueD.lt(99999.9995)){ //1e5 - maxErrorFromRounding
+    const maxErrorFromRounding = 1e-3/2 //0.0005
+    const roundedN = Math.round(valueN*1e3)/1e3;
+    const bcRoundedN = bc(roundedN);
+    if (valueD.lt(9.9995)) return bcRoundedN; //10 - maxErrorFromRounding
+    if (valueD.lt(99.9995)) return `a${bcRoundedN}`; //100 - maxErrorFromRounding
+    if (valueD.lt(999.9995)) return `b${bcRoundedN}`; //1000 - maxErrorFromRounding
+    if (valueD.lt(9999.9995)) return `c${bcRoundedN}`; //10000 - maxErrorFromRounding
+    return `d${bcRoundedN}`;
+  }
+  else if (valueD.lt(Decimal.fromComponents(1,1,299.999978284733+128*Number.EPSILON))) {
     const [mantissa, exp] = scientifify(valueD, 10, 1e-3);
+    console.log(`${mantissa}, ${exp}`)
     const manStr = BaseConvert(
       mantissa.toNumber(),
       10,
@@ -444,7 +451,7 @@ export function FormatMufano(value: DecimalSource): string {
       undefined,
       ''
     );
-    return `e${exp.toString().padStart(3, '0')}_${manStr}`;
+    return `e${exp.toFixed(0).padStart(3, '0')}_${manStr}`;
   } else if (valueD.lt(Decimal.fromComponents(1, 1e5, 1))) {
     //TODO: apply the correct rounding (300 < mag < 1e300)
     const [mag, hyperExp] = hyperscientifify(
@@ -455,7 +462,6 @@ export function FormatMufano(value: DecimalSource): string {
       undefined,
       undefined
     );
-
     return 'p';
   } else return 'pp';
 }
