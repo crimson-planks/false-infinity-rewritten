@@ -8,7 +8,8 @@ import {
   type AutobuyerKind,
   AutobuyerKindObj,
   getIntervalCostScaling,
-  getAutobuyerInterval
+  getAutobuyerInterval,
+  AutobuyerKindArr
 } from './autobuyer';
 import {
   canDeflate,
@@ -26,6 +27,7 @@ import {
   upgradeConstObj,
   upgradeCurrency,
   type UpgradeKind,
+  UpgradeKindArr,
   UpgradeKindObj
 } from './upgrade';
 import {
@@ -425,8 +427,8 @@ export function updateScreen() {
   ui.value.statistics.overflow.timeOn = (player.currentTime - player.lastOverflowTime).toString()
 
   ui.value.statistics.overflow.visible = player.overflow.gt(0);
-  //@ts-ignore: this is a valid way of iterating through an Object
-  Object.keys(player.autobuyers).forEach((ak: AutobuyerKind) => {
+
+  AutobuyerKindArr.forEach((ak: AutobuyerKind) => {
     for (let i = 0; i < player.autobuyers[ak].length; i++) {
       ui.value.autobuyers[ak][i].kind = player.autobuyers[ak][i].kind;
       ui.value.autobuyers[ak][i].ord = player.autobuyers[ak][i].ord;
@@ -469,8 +471,9 @@ export function updateScreen() {
       );
     }
   });
-  //@ts-ignore: same reason
-  Object.keys(player.upgrades).forEach((uk: UpgradeKind) => {
+
+
+  UpgradeKindArr.forEach((uk: UpgradeKind) => {
     for (let i = 0; i < player.upgrades[uk].length; i++) {
       ui.value.upgrades[uk][i].kind = player.upgrades[uk][i].kind;
       ui.value.upgrades[uk][i].ord = player.upgrades[uk][i].ord;

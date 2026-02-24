@@ -128,9 +128,10 @@ export const AutobuyerKindObj = {
   DeflationPower: 'deflationPower',
   MatterAutobuyer: 'matterAutobuyer'
 } as const;
+Object.freeze(AutobuyerKindObj);
 export type AutobuyerKind = (typeof AutobuyerKindObj)[keyof typeof AutobuyerKindObj];
-export const AutobuyerKindArr = ['matter', 'deflationPower', 'matterAutobuyer'] satisfies AutobuyerKind[];
-
+export const AutobuyerKindArr = ['matter', 'deflationPower', 'matterAutobuyer'] as const satisfies AutobuyerKind[];
+Object.freeze(AutobuyerKindArr);
 export interface AutobuyerSaveData {
   kind: AutobuyerKind;
   ord: number;

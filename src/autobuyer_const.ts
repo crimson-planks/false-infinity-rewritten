@@ -105,3 +105,4 @@ export const autobuyerConstObj = {
 } as const satisfies {
   [key in AutobuyerKind]: AutobuyerConstData[];
 };
+Object.freeze(autobuyerConstObj)

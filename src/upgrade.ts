@@ -25,6 +25,7 @@ export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
 export const upgradeCurrency: { overflow: 'overflowPoint'[] } = {
   overflow: Array(OVERFLOW_UPGRADE_COUNT).fill(CurrencyKindObj.overflowPoint)
 } as const;
+Object.freeze(upgradeCurrency)
 /*
 export const upgradeMaxAmount = {
   overflow: [
@@ -42,7 +43,10 @@ export const upgradeMaxAmount = {
 export const UpgradeKindObj = {
   Overflow: 'overflow'
 } as const;
+Object.freeze(UpgradeKindObj)
 export type UpgradeKind = (typeof UpgradeKindObj)[keyof typeof UpgradeKindObj];
+export const UpgradeKindArr = ['overflow'] as const satisfies UpgradeKind[];
+Object.freeze(UpgradeKindArr)
 export interface UpgradeSaveData {
   kind: UpgradeKind;
   ord: number;
@@ -172,6 +176,7 @@ export const upgradeConstObj = {
 } as const satisfies {
   overflow: UpgradeConstData[];
 };
+Object.freeze(upgradeConstObj)
 /*
 export const upgradeEffectValueFuncArray = {
   overflow: [

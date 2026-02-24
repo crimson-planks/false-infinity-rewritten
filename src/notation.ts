@@ -20,18 +20,27 @@ export const NotationIdEnum = {
   inequality: 'inequality',
   binaryInequality: 'binaryInequality'
 } as const;
+Object.freeze(NotationIdEnum);
 export type NotationId = typeof NotationIdEnum[keyof typeof NotationIdEnum];
+
 export const notationArray = [
   'default',
   'scientific',
   'logarithm',
   'inequality',
   'binaryInequality',
-] as const;
-//check satisfies
-notationArray satisfies readonly NotationId[];
+] as const satisfies NotationId[];
+Object.freeze(notationArray)
 
-export const NotationIdSet = new Set(notationArray)
+export const NotationIdSet = Object.freeze(new Set(notationArray))
+
+/**
+ * From Eternal-Notations/src/presets.ts
+ */
+function defaultRound(value : Decimal) {
+    if (value.eq(0)) return new Decimal(0);
+    return value.abs().log10().floor().sub(3).pow_base(10).min(1);
+}
 
 /**
  *
