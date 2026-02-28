@@ -22,7 +22,7 @@ const selected = computed(()=>ui.value.currentTab==props.tab)
   background-color: #42b153;
 }
 .o-selected-tab-button{
-  background-color: #6ad47a;
-  text-decoration: solid underline black 3px;
+  border-color: black;
+  background-color: #afafaf;
 }
 </style>

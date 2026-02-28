@@ -5,9 +5,11 @@ import { floorSlog10, floorSlog10_naive } from './decimal';
 import { fixSave, load, mergeObj_nocopy, save, toStringifiableObject, toUsableObject } from "./saveload";
 import { ExponentialCostScaling, LinearCostScaling } from "./cost";
 import { getDefaultPlayer, setPlayer } from "./player";
+import { displayError } from "./ui";
 
 export const game_devTools={
   fixSave,
+  displayError,
   toStringifiableObject,
   toUsableObject,
   save,

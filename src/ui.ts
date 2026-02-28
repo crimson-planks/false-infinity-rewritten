@@ -188,6 +188,7 @@ export const texts = {
     }
   }
 };
+
 export const ui = ref({
   currentTab: 'autobuyer' as TabName,
   tabs: {
@@ -346,19 +347,21 @@ export const ui = ref({
   }
 });
 export const input: Ref<{
+  maxAutobuyerIntervalHeld: boolean;
+  MPressed: boolean;
   fusionUnlockPourMatter: string;
-  notationId: NotationId;
   autobuyerOption: {
     matterAutobuyer: [{ selectedOrd: number }];
   };
 }> = ref({
+  maxAutobuyerIntervalHeld: false,
+  MPressed: false,
   fusionUnlockPourMatter: '',
-  notationId: player.notationId,
   autobuyerOption: {
     matterAutobuyer: [{ selectedOrd: 0 }]
   }
 });
-input.value.notationId = player.notationId;
+
 export const sanitizedInput = {
   fusionUnlockPourMatter: computed(() => {
     return sanitizeStringDecimal(input.value.fusionUnlockPourMatter).max(0).floor();
@@ -573,7 +576,6 @@ export const inputFunctions = {
 };
 
 export function initInput() {
-  input.value.notationId = player.notationId;
   input.value.autobuyerOption.matterAutobuyer[0].selectedOrd = Number(
     player.autobuyers.matterAutobuyer[0].option?.selectedOrd
   );
@@ -584,5 +586,12 @@ export function displayError(error: string) {
   if (errorElement == null) {
     return;
   }
-  errorElement.innerHTML = error;
+  errorElement.setAttribute('style','');
+
+  let errorDescriptionElement = document.getElementById('error-description');
+  if(errorDescriptionElement == null) return;
+  const newElement = document.createTextNode(error);
+  const lineBreakElement = document.createElement('br');
+  errorDescriptionElement.appendChild(newElement);
+  errorDescriptionElement.appendChild(lineBreakElement);
 }

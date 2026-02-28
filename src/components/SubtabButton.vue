@@ -19,10 +19,10 @@ const selected = computed(()=>ui.value.subtabs[props.tab].currentSubtab==props.s
   margin-right: 2px;
 }
 .o-subtab-button:hover{
-  background-color: #b4ae75;
+  background-color: #eee16a;
 }
 .o-selected-subtab-button{
-  background-color: #eee16a;
-  text-decoration: solid underline black 3px;
+  border-color: black;
+  background-color: #afafaf;
 }
 </style>

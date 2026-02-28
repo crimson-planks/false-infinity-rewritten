@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BuyMaxInterval } from './autobuyer';
 import Autobuyer from './components/Autobuyer.vue';
 import Credits from './components/Credits.vue';
 import DeflationButton from './components/DeflationButton.vue';
@@ -36,6 +37,13 @@ import { ClickFusionPourMatterButton, input, inputFunctions, notationGroups, san
       <div v-show="ui.subtabs.autobuyer.currentSubtab==='matter' && !ui.isOverflowing" style="display: block">
         <button class="o-gain-currency-button" @click="inputFunctions.ClickMatterButton">Click to get matter</button>
         <div>
+          <button @pointerout="input.maxAutobuyerIntervalHeld=false"
+                  @pointerdown="input.maxAutobuyerIntervalHeld=true"
+                  @pointerup="input.maxAutobuyerIntervalHeld=false"
+                  @click="inputFunctions.ClickMaxMatterAutobuyerInterval"
+                  :class="{'max-button-held': input.maxAutobuyerIntervalHeld}">
+            Max Autobuyer Interval (Hold this button or hold M)
+          </button>
           <Autobuyer :data="ui.autobuyers.matter[0]" />
           <Autobuyer :data="ui.autobuyers.matter[1]" />
         </div>
@@ -188,6 +196,10 @@ button,p,span{
 .currency{
   color:black;
   font-size: 28px;
+}
+.max-button-held{
+  border: 2px solid black;
+  background-color: plum;
 }
 .button--can-buy{
     border-color: #42b153;

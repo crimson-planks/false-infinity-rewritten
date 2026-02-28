@@ -14,7 +14,7 @@ import {
   getAutobuyerCostScaling, getIntervalCostScaling
 } from './autobuyer';
 import { player } from './player';
-import { updateScreen, initInput, ui } from './ui';
+import { updateScreen, initInput, ui, input } from './ui';
 import { gameCache } from './cache';
 import {
   load,
@@ -30,14 +30,14 @@ declare global {
   interface Window {
     Decimal?: typeof Decimal;
     player?: typeof player;
-    ui2?: typeof ui;
+    ui?: any;
     game_devTools?: typeof game_devTools;
   }
 }
 function loadToWindow() {
   window.Decimal = Decimal;
   window.player = player;
-  window.ui2 = ui;
+  window.ui = ui;
   window.game_devTools = game_devTools;
 }
 
@@ -58,7 +58,9 @@ function main(){
     autosaveTimer = 0;
     console.log('game saved!');
   }
-
+  if(input.value.maxAutobuyerIntervalHeld){
+    ClickMaxMatterAutobuyerInterval();
+  }
   for(let ak of AutobuyerKindArr){
     if (ak == AutobuyerKindObj.Matter && player.isOverflowing) break;
     player.autobuyers[ak].forEach((v, i)=>{AutobuyerTick(ak, i, diffDecimal);})
@@ -91,7 +93,8 @@ setInterval(main, 50);
 
 app.mount('#app');
 
-addEventListener('keypress', (ev) => {
+
+addEventListener('keydown', (ev) => {
   if (ev.code === 'KeyM') {
     ClickMaxMatterAutobuyerInterval();
   }
