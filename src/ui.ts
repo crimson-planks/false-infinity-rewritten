@@ -9,11 +9,12 @@ import {
   AutobuyerKindObj,
   getIntervalCostScaling,
   getAutobuyerInterval,
-  AutobuyerKindArr
+  AutobuyerKindArr,
+  type AutobuyerSaveData,
+  ClickMaxMatterAutobuyerInterval
 } from './autobuyer';
 import {
   canDeflate,
-  deflationCostScaling,
   deflationSacrifice,
   getDeflationCost,
   getDeflatorGainOnDeflation,
@@ -21,7 +22,7 @@ import {
 } from './prestige';
 import { gameCache } from './cache';
 import { addCurrency, CurrencyKindObj, CurrencyName, getCurrency } from './currency';
-import { getMatterPerSecond, getPlayTime } from './main';
+import { getMatterPerSecond, getPlayTime } from './game';
 import {
   getUpgradeCostScaling,
   upgradeConstObj,
@@ -51,6 +52,22 @@ export interface AutobuyerVisualData {
   canBuyInterval: boolean;
   hasOption: boolean;
 }
+export function getDefaultAutobuyerVisualData(ad: AutobuyerSaveData): AutobuyerVisualData {
+  return {
+    kind: ad.kind,
+    ord: ad.ord,
+    name: autobuyerConstObj[ad.kind][ad.ord].name,
+    amount: '',
+    timer: '',
+    interval: '',
+    toggle: '',
+    cost: '',
+    intervalCost: '',
+    canBuy: false,
+    canBuyInterval: false,
+    hasOption: false
+  };
+}
 export interface UpgradeVisualData {
   kind: UpgradeKind;
   ord: number;
@@ -66,8 +83,15 @@ export const autobuyerOptions = {
 } as const;
 export type TabName = 'autobuyer' | 'overflow' | 'option' | 'statistics';
 export type SubtabName = 'matter' | 'deflation' | 'overflow' | 'upgrades' | 'fusion' | 'general';
+export const notationGroups = [
+  [NotationIdEnum.default],
+  [NotationIdEnum.scientific],
+  [NotationIdEnum.logarithm],
+  [NotationIdEnum.inequality, NotationIdEnum.binaryInequality]
+] as const;
+Object.freeze(notationGroups);
 export const tabs: {
-  [key: string]: {
+  [key in TabName]: {
     name: string;
     subtab: {
       [key: string]: {
@@ -165,13 +189,13 @@ export const texts = {
   }
 };
 export const ui = ref({
-  tab: 'autobuyer',
+  currentTab: 'autobuyer' as TabName,
   tabs: {
     autobuyer: {
       visible: true
     },
     overflow: {
-      visible: true
+      visible: false
     },
     option: {
       visible: true
@@ -180,9 +204,9 @@ export const ui = ref({
       visible: true
     }
   },
-  subtab: 'matter',
   subtabs: {
     autobuyer: {
+      currentSubtab: 'matter',
       matter: {
         visible: true
       },
@@ -194,6 +218,7 @@ export const ui = ref({
       }
     },
     overflow: {
+      currentSubtab: 'upgrades',
       upgrades: {
         visible: true
       },
@@ -202,16 +227,19 @@ export const ui = ref({
       }
     },
     option: {
+      currentSubtab: 'option',
       option: {
         visible: true
       }
     },
     statistics: {
+      currentSubtab: 'general',
       general: {
         visible: true
       }
     }
   },
+  notationSelectWindowVisible: false,
   creditsVisible: false,
   notationId: <NotationId>NotationIdEnum.default,
   playTime: '',
@@ -220,7 +248,7 @@ export const ui = ref({
   matterPerSecond: '',
   deflationCost: '',
   autobuyers: {
-    matter: Array(player.autobuyers.matter.length)
+    matter: Array(autobuyerConstObj.matter.length)
       .fill(0)
       .map((v, i) => {
         return {
@@ -238,7 +266,7 @@ export const ui = ref({
           hasOption: false
         };
       }),
-    deflationPower: Array(player.autobuyers.deflationPower.length)
+    deflationPower: Array(autobuyerConstObj.deflationPower.length)
       .fill(0)
       .map((v, i) => {
         return {
@@ -274,7 +302,7 @@ export const ui = ref({
     ]
   },
   upgrades: {
-    overflow: Array(player.upgrades.overflow.length)
+    overflow: Array(upgradeConstObj.overflow.length)
       .fill(0)
       .map((v, i) => {
         return {
@@ -341,12 +369,7 @@ export function sanitizeStringDecimal(s: string) {
   if (d.isNan() || !d.isFinite()) return new Decimal(Decimal.dZero);
   else return d;
 }
-watch(
-  () => input.value.notationId,
-  () => {
-    player.notationId = input.value.notationId;
-  }
-);
+
 watch(
   () => input.value.autobuyerOption.matterAutobuyer[0].selectedOrd,
   () => {
@@ -360,6 +383,8 @@ watch(
   }
 );
 export function updateScreen() {
+  //window.performance.mark('updateScreen start')
+
   ui.value.totalMatter = formatValue(player.totalMatter, player.notationId);
   ui.value.playTime = getPlayTime().toString();
   ui.value.notationId = player.notationId;
@@ -406,7 +431,7 @@ export function updateScreen() {
   ui.value.overflowPoint = formatValue(player.overflowPoint, player.notationId);
   ui.value.fusionMatterPoured = formatValue(player.fusion.matterPoured, player.notationId);
   ui.value.fusionMatterPouredPercentage = formatValue(
-    player.fusion.matterPoured.div('1e10').mul(100),
+    player.fusion.matterPoured.div(1e10).mul(100),
     player.notationId
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
@@ -420,15 +445,16 @@ export function updateScreen() {
     CurrencyName[CurrencyKindObj.energy];
 
   ui.value.tabs.overflow.visible = player.overflow.gt(0);
-  ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0);
+  ui.value.subtabs.autobuyer.matter.visible = !player.isOverflowing;
+  ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0) && !player.isOverflowing;
   ui.value.subtabs.autobuyer.overflow.visible = player.overflow.gt(0);
 
-  ui.value.statistics.timeOnDeflation = (player.currentTime - player.lastDeflationTime).toString();
-  ui.value.statistics.overflow.timeOn = (player.currentTime - player.lastOverflowTime).toString()
+  ui.value.statistics.timeOnDeflation = String(player.currentTime - player.lastDeflationTime);
+  ui.value.statistics.overflow.timeOn = String(player.currentTime - player.lastOverflowTime);
 
   ui.value.statistics.overflow.visible = player.overflow.gt(0);
-
-  AutobuyerKindArr.forEach((ak: AutobuyerKind) => {
+  //window.performance.mark("autobuyer loop start")
+  for (const ak of AutobuyerKindArr) {
     for (let i = 0; i < player.autobuyers[ak].length; i++) {
       ui.value.autobuyers[ak][i].kind = player.autobuyers[ak][i].kind;
       ui.value.autobuyers[ak][i].ord = player.autobuyers[ak][i].ord;
@@ -470,10 +496,10 @@ export function updateScreen() {
         getCurrency(autobuyerConstObj[ak][i].intervalCurrency)
       );
     }
-  });
-
-
-  UpgradeKindArr.forEach((uk: UpgradeKind) => {
+  }
+  //window.performance.mark("autobuyer loop end")
+  //window.performance.mark("upgrade loop start")
+  for (const uk of UpgradeKindArr) {
     for (let i = 0; i < player.upgrades[uk].length; i++) {
       ui.value.upgrades[uk][i].kind = player.upgrades[uk][i].kind;
       ui.value.upgrades[uk][i].ord = player.upgrades[uk][i].ord;
@@ -498,31 +524,65 @@ export function updateScreen() {
           Decimal.dOne,
           getCurrency(upgradeCurrency[uk][i])
         );
-      ui.value.upgrades[uk][i].maxAmount = formatValue(upgradeConstObj[uk][i].maxAmount, player.notationId);
+      ui.value.upgrades[uk][i].maxAmount = formatValue(
+        upgradeConstObj[uk][i].maxAmount,
+        player.notationId
+      );
       ui.value.upgrades[uk][i].effectValue = formatValue(
         gameCache.upgradeEffectValue[uk][i].cachedValue,
         player.notationId
       );
     }
-  });
+  }
+  //window.performance.mark("upgrade loop end");
 }
 export function ClickFusionPourMatterButton() {
   if (player.isOverflowing) return;
   pourMatter(sanitizedInput.fusionUnlockPourMatter.value);
 }
-export function handleInput(type: string, args: string[]) {
-  if (type === 'ClickMatterButton') addCurrency(CurrencyKindObj.matter, Decimal.dOne);
-  if (type === 'ClickDeflationPowerButton')
+export const inputFunctions = {
+  ClickMatterButton() {
+    addCurrency(CurrencyKindObj.matter, Decimal.dOne);
+  },
+  ClickMaxMatterAutobuyerInterval,
+  ClickDeflationPowerButton() {
     addCurrency(CurrencyKindObj.deflationPower, Decimal.dOne);
-  if (type === 'ClickDeflationSacrificeButton') deflationSacrifice();
-  if (type === 'ClickOverflowButton') overflow();
-  if (type === 'ClickConvertMatterButton') convertMatter(Decimal.dOne);
-  if (type === 'ChangeTab') ui.value.tab = args[0];
-  if (type === 'ChangeSubtab') ui.value.subtab = args[0];
-}
+  },
+  ClickDeflationSacrificeButton() {
+    deflationSacrifice();
+  },
+  ClickOverflowButton() {
+    overflow();
+  },
+  ClickConvertMatterButton() {
+    convertMatter(Decimal.dOne);
+  },
+  ChangeTab(tab: TabName) {
+    ui.value.currentTab = tab;
+  },
+  ChangeSubtab(subtab: SubtabName) {
+    ui.value.subtabs[ui.value.currentTab].currentSubtab = subtab;
+  },
+  ToggleNotationSelectWindow() {
+    ui.value.notationSelectWindowVisible = !ui.value.notationSelectWindowVisible;
+  },
+  ChangeNotation(notation: NotationId) {
+    player.notationId = notation;
+    ui.value.notationId = notation;
+  }
+};
+
 export function initInput() {
   input.value.notationId = player.notationId;
   input.value.autobuyerOption.matterAutobuyer[0].selectedOrd = Number(
     player.autobuyers.matterAutobuyer[0].option?.selectedOrd
   );
+}
+
+export function displayError(error: string) {
+  let errorElement = document.getElementById('game-error');
+  if (errorElement == null) {
+    return;
+  }
+  errorElement.innerHTML = error;
 }

@@ -1,6 +1,6 @@
 {
   "name": "false-infinity-rewritten",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An incremental game",
   "private": true,
   "type": "module",

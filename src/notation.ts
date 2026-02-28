@@ -9,6 +9,7 @@ import {
   hyperscientifify
 } from 'eternal_notations';
 import { OVERFLOW } from './prestige.js';
+import { floorSlog10 } from './decimal.js';
 
 const NaNString = 'NaN';
 const OverflowString = 'Error: Overflow';
@@ -44,17 +45,17 @@ function defaultRound(value : Decimal) {
 
 /**
  *
- * @param digitsArray an array of arrays of digits.
+ * @param digitsArray an array of arrays of digits. This should be an array of 'components', which is an array of digits.
  *
- * @param signArray an array of numbers (-1, 0, 1).
+ * @param signArray an array of numbers (-1, 0, 1), corresponding to the sign of each component.
  * signArray[i] should correspond to the sign of digitsArray[i].
  * @param lessThanStr string when current digit < next digit. Defaults to `'<'`
- * @param equalToStr string when current digit = next digit. Defaults to `'-'`
+ * @param equalToStr string when current digit = next digit. Defaults to `'='`
  * @param greaterThanStr string when current digit = next digit. Defaults to `'>'`
- * @param positiveOpeningBracket
- * @param negativeOpeningBracket
- * @param positiveClosingBracket
- * @param negativeClosingBracket
+ * @param positiveOpeningBracket the string to place at the end of a component if it is positive. Defaults to `'('`
+ * @param negativeOpeningBracket the string to place at the end of a component if it is negative. Defaults to `')'`
+ * @param positiveClosingBracket the string to place at the start of a component if it is positive. Defaults to `')'`
+ * @param negativeClosingBracket the string to place at the start of a component if it is negative. Defaults to `'('`
  */
 export function inequality_core(
   digitsArray: number[][],
@@ -94,7 +95,7 @@ export function inequality_core(
  * @param n a positive integer
  * @param base a positive integer
  */
-export function IntegerBase_ConvertToDigitArray(n: number, base: number): number[] {
+export function Integer_BaseConvertToDigitArray(n: number, base: number): number[] {
   const rsltArray: number[] = [];
   let currN = n;
   let remainder: number = 0;
@@ -107,7 +108,7 @@ export function IntegerBase_ConvertToDigitArray(n: number, base: number): number
   }
   return rsltArray.reverse();
 }
-export function NonIntegerBase_ConvertToDigitArray(
+export function NonInteger_BaseConvertToDigitArray(
   n: number,
   base: number,
   numDigits: number
@@ -175,10 +176,10 @@ export function FormatInequality(
     const roundedMag = mag.mul(manRounding).round().div(manRounding);
     const magIntPart = roundedMag.floor();
     const magResPart = roundedMag.sub(magIntPart);
-    const magIntDigitArray = IntegerBase_ConvertToDigitArray(magIntPart.toNumber(), base).map(
+    const magIntDigitArray = Integer_BaseConvertToDigitArray(magIntPart.toNumber(), base).map(
       (v) => v * magSign
     );
-    const magResDigitArray = NonIntegerBase_ConvertToDigitArray(magResPart.toNumber(), base, 4).map(
+    const magResDigitArray = NonInteger_BaseConvertToDigitArray(magResPart.toNumber(), base, 4).map(
       (v) => v * magSign
     );
     if (layer >= Math.pow(base, 16)) {
@@ -186,10 +187,10 @@ export function FormatInequality(
       const roundedLogLayer = Math.round(logLayer * superExpRounding) / superExpRounding;
       const logLayerIntPart = Math.floor(roundedLogLayer);
       const logLayerResPart = roundedLogLayer - logLayerIntPart;
-      const logLayerIntDigitArray = IntegerBase_ConvertToDigitArray(logLayerIntPart, base).map(
+      const logLayerIntDigitArray = Integer_BaseConvertToDigitArray(logLayerIntPart, base).map(
         (v) => v * layerSign
       );
-      const logLayerResDigitArray = NonIntegerBase_ConvertToDigitArray(
+      const logLayerResDigitArray = NonInteger_BaseConvertToDigitArray(
         logLayerResPart,
         base,
         4
@@ -206,7 +207,7 @@ export function FormatInequality(
         negativeClosingBracket
       );
     }
-    const layerDigitArray: number[] = IntegerBase_ConvertToDigitArray(layer, base).map(
+    const layerDigitArray: number[] = Integer_BaseConvertToDigitArray(layer, base).map(
       (v) => v * layerSign
     );
     return inequality_core(
@@ -217,10 +218,10 @@ export function FormatInequality(
     const roundedAbsValue = value.abs().mul(rounding).round().div(rounding);
     const intPart = roundedAbsValue.floor();
     const remPart = roundedAbsValue.sub(intPart);
-    const intDigitArray: number[] = IntegerBase_ConvertToDigitArray(intPart.toNumber(), base).map(
+    const intDigitArray: number[] = Integer_BaseConvertToDigitArray(intPart.toNumber(), base).map(
       (v) => v * magSign
     );
-    const remDigitArray: number[] = NonIntegerBase_ConvertToDigitArray(
+    const remDigitArray: number[] = NonInteger_BaseConvertToDigitArray(
       remPart.toNumber(),
       base,
       4
@@ -328,11 +329,11 @@ export class InequalityNotation extends Notation {
       const roundedMag = mag.mul(this.manRounding).round().div(this.manRounding);
       const magIntPart = roundedMag.floor();
       const magResPart = roundedMag.sub(magIntPart);
-      const magIntDigitArray = IntegerBase_ConvertToDigitArray(
+      const magIntDigitArray = Integer_BaseConvertToDigitArray(
         magIntPart.toNumber(),
         this._base
       ).map((v) => v * magSign);
-      const magResDigitArray = NonIntegerBase_ConvertToDigitArray(
+      const magResDigitArray = NonInteger_BaseConvertToDigitArray(
         magResPart.toNumber(),
         this._base,
         this.decimalPlaces
@@ -343,11 +344,11 @@ export class InequalityNotation extends Notation {
           Math.round(logLayer * this.superExpRounding) / this.superExpRounding;
         const logLayerIntPart = Math.floor(roundedLogLayer);
         const logLayerResPart = roundedLogLayer - logLayerIntPart;
-        const logLayerIntDigitArray = IntegerBase_ConvertToDigitArray(
+        const logLayerIntDigitArray = Integer_BaseConvertToDigitArray(
           logLayerIntPart,
           this._base
         ).map((v) => v * layerSign);
-        const logLayerResDigitArray = NonIntegerBase_ConvertToDigitArray(
+        const logLayerResDigitArray = NonInteger_BaseConvertToDigitArray(
           logLayerResPart,
           this._base,
           this.decimalPlaces
@@ -364,7 +365,7 @@ export class InequalityNotation extends Notation {
           this.inBetweenChars[1][1]
         );
       }
-      const layerDigitArray: number[] = IntegerBase_ConvertToDigitArray(layer, this._base).map(
+      const layerDigitArray: number[] = Integer_BaseConvertToDigitArray(layer, this._base).map(
         (v) => v * layerSign
       );
       return inequality_core(
@@ -382,11 +383,11 @@ export class InequalityNotation extends Notation {
       const roundedAbsValue = value.abs().mul(this.rounding).round().div(this.rounding);
       const intPart = roundedAbsValue.floor();
       const remPart = roundedAbsValue.sub(intPart);
-      const intDigitArray: number[] = IntegerBase_ConvertToDigitArray(
+      const intDigitArray: number[] = Integer_BaseConvertToDigitArray(
         intPart.toNumber(),
         this._base
       ).map((v) => v * magSign);
-      const remDigitArray: number[] = NonIntegerBase_ConvertToDigitArray(
+      const remDigitArray: number[] = NonInteger_BaseConvertToDigitArray(
         remPart.toNumber(),
         this._base,
         this.decimalPlaces
@@ -409,7 +410,7 @@ export class InequalityNotation extends Notation {
 
     if (decimal.isNan()) return this.NaNString;
 
-    if (this.isInfinite(decimal)) return decimal.sgn() < 0 ? this.negativeInfinite : this.infinite;
+    if (this.isInfinite(decimal)) return decimal.sign < 0 ? this.negativeInfinite : this.infinite;
 
     if (decimal.neq(0) && this.isInfinite(decimal.recip())) {
       return this.format(0);
@@ -418,6 +419,8 @@ export class InequalityNotation extends Notation {
     return this.formatDecimal(decimal);
   }
 }
+export const mufano_pStartValue = Decimal.fromComponents(1,1,299.999978284733+128*Number.EPSILON);
+export const mufano_pStartLog = 299.999978284733+128*Number.EPSILON;
 export function FormatMufano(value: DecimalSource): string {
   const valueD = new Decimal(value);
   const valueN = valueD.toNumber();
@@ -435,7 +438,7 @@ export function FormatMufano(value: DecimalSource): string {
     if (valueD.lt(9999.9995)) return `c${bcRoundedN}`; //10000 - maxErrorFromRounding
     return `d${bcRoundedN}`;
   }
-  else if (valueD.lt(Decimal.fromComponents(1,1,299.999978284733+128*Number.EPSILON))) {
+  else if (valueD.lt(mufano_pStartValue)) {
     const [mantissa, exp] = scientifify(valueD, 10, 1e-3);
     console.log(`${mantissa}, ${exp}`)
     const manStr = BaseConvert(
@@ -452,18 +455,19 @@ export function FormatMufano(value: DecimalSource): string {
       ''
     );
     return `e${exp.toFixed(0).padStart(3, '0')}_${manStr}`;
-  } else if (valueD.lt(Decimal.fromComponents(1, 1e5, 1))) {
-    //TODO: apply the correct rounding (300 < mag < 1e300)
-    const [mag, hyperExp] = hyperscientifify(
-      valueD,
-      10,
-      undefined,
-      undefined,
-      undefined,
-      undefined
-    );
-    return 'p';
-  } else return 'pp';
+  } else if (valueD.lt(Decimal.fromComponents(1, 1e5, mufano_pStartLog))) {
+    //TODO: apply the correct rounding (pStartValue < mag < 10^pStartValue)
+    const hyperExp = floorSlog10(valueD,mufano_pStartLog)
+    const man = new Decimal(valueD)
+    man.layer-=hyperExp;
+    console.log(man,hyperExp)
+
+    return `p${FormatMufano(hyperExp)}_${FormatMufano(man)}`;
+  }
+  else if(valueD.lt(Decimal.fromComponents(1,1e300,300))){
+    return 'pe';
+  }
+  else return 'pp';
 }
 export const notations = {
   default: Presets.Default.setNotationGlobals(...[, , ,], NaNString),

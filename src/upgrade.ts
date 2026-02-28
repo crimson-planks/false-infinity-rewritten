@@ -4,28 +4,11 @@ import { CurrencyKindObj, getCurrency, setCurrency, type CurrencyKind } from './
 import { getTranslatedDeflationPower } from './deflation_power';
 import Decimal from 'break_eternity.js';
 import { player } from './player';
-export const OVERFLOW_UPGRADE_COUNT = 8;
-/*
-export const initialUpgradeCostScaling = {
-  overflow: [
-    new ExponentialCostScaling({ baseCost: new Decimal(1), baseIncrease: new Decimal(10) }),
-    new ExponentialCostScaling({ baseCost: new Decimal(1), baseIncrease: new Decimal(8) }),
-    new ExponentialCostScaling({ baseCost: new Decimal(2), baseIncrease: new Decimal(2) }),
-    new LinearCostScaling({ baseCost: new Decimal(10), baseIncrease: Decimal.dZero }),
-    new ExponentialCostScaling({ baseCost: new Decimal(2), baseIncrease: new Decimal(2) }),
-    new LinearCostScaling({ baseCost: new Decimal(2), baseIncrease: Decimal.dZero }),
-    new LinearCostScaling({ baseCost: new Decimal(10), baseIncrease: Decimal.dZero }),
-    new ExponentialCostScaling({ baseCost: new Decimal(2), baseIncrease: new Decimal(2) })
-  ]
-} as const;
-*/
+
 export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
   return upgradeConstObj[kind][ord].initialCostScaling;
 }
-export const upgradeCurrency: { overflow: 'overflowPoint'[] } = {
-  overflow: Array(OVERFLOW_UPGRADE_COUNT).fill(CurrencyKindObj.overflowPoint)
-} as const;
-Object.freeze(upgradeCurrency)
+
 /*
 export const upgradeMaxAmount = {
   overflow: [
@@ -96,7 +79,7 @@ export const upgradeConstObj = {
       kind: UpgradeKindObj.Overflow,
       ord: 2,
       initialCostScaling: new ExponentialCostScaling({
-        baseCost: new Decimal(2),
+        baseCost: new Decimal(1),
         baseIncrease: new Decimal(2)
       }),
       currency: CurrencyKindObj.overflowPoint,
@@ -109,7 +92,7 @@ export const upgradeConstObj = {
       kind: UpgradeKindObj.Overflow,
       ord: 3,
       initialCostScaling: new LinearCostScaling({
-        baseCost: new Decimal(10),
+        baseCost: new Decimal(3),
         baseIncrease: Decimal.dZero
       }),
       currency: CurrencyKindObj.overflowPoint,
@@ -122,7 +105,7 @@ export const upgradeConstObj = {
       kind: UpgradeKindObj.Overflow,
       ord: 4,
       initialCostScaling: new ExponentialCostScaling({
-        baseCost: new Decimal(2),
+        baseCost: new Decimal(1),
         baseIncrease: new Decimal(2)
       }),
       currency: CurrencyKindObj.overflowPoint,
@@ -149,7 +132,7 @@ export const upgradeConstObj = {
       kind: UpgradeKindObj.Overflow,
       ord: 6,
       initialCostScaling: new LinearCostScaling({
-        baseCost: new Decimal(10),
+        baseCost: new Decimal(2),
         baseIncrease: Decimal.dZero
       }),
       currency: CurrencyKindObj.overflowPoint,
@@ -177,6 +160,12 @@ export const upgradeConstObj = {
   overflow: UpgradeConstData[];
 };
 Object.freeze(upgradeConstObj)
+
+export const upgradeCurrency: { overflow: 'overflowPoint'[] } = {
+  overflow: Array(upgradeConstObj.overflow.length).fill(CurrencyKindObj.overflowPoint)
+} as const;
+Object.freeze(upgradeCurrency)
+
 /*
 export const upgradeEffectValueFuncArray = {
   overflow: [

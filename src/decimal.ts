@@ -19,6 +19,7 @@ export function floorSlog10(value: DecimalSource, payload: DecimalSource) {
   log_10(x) is the same as subtracting 1 to x.layer (if mag > 0 && layer >= 1)
   slog10(10^x) = 1 + slog10(x)
   */
+  //if 0 < x < 1: pow(10,x) causes precision errors
   if (payloadD.lt(1)) throw RangeError("payload < 1 is not implemented");
   if (valueD.lt(1)) throw RangeError("value < 1 is not implemented");
 
@@ -51,7 +52,6 @@ export function floorSlog10(value: DecimalSource, payload: DecimalSource) {
     else if (vm < Math.log10(pm)) coreLayerDiff = -2;
     else coreLayerDiff = -1;
   }
-
   //result = 0 or 1 or 2
   else {
     if (vm < Math.pow(10, pm)) coreLayerDiff = 0;

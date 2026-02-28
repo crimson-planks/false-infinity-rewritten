@@ -1,17 +1,28 @@
 <script setup lang="ts">
-import { handleInput, type TabName } from '@/ui';
+import { inputFunctions, texts, ui, type TabName } from '@/ui';
+import { computed } from 'vue';
 const props = defineProps<{tab: TabName; visible: boolean}>();
 
 function ChangeTab(tab: TabName){
-  handleInput("ChangeTab",[tab]);
+  inputFunctions.ChangeTab(tab);
 }
+const selected = computed(()=>ui.value.currentTab==props.tab)
 </script>
 <template>
-  <span class="o-tab-button" v-show="visible" @click="ChangeTab(props.tab)">{{ props.tab }}</span>
+  <button class="o-tab-button" :class="{'o-selected-tab-button': selected}" v-show="visible" @click="ChangeTab(props.tab)">{{ texts['en-US'].tabs[props.tab].name }}</button>
 </template>
 <style>
 .o-tab-button{
-  font-size: 20px;
-  margin-right: 30px;
+  border: 2px solid #42b153;
+  background-color: white;
+  font-size: 26px;
+  margin-right: 10px;
+}
+.o-tab-button:hover{
+  background-color: #42b153;
+}
+.o-selected-tab-button{
+  background-color: #6ad47a;
+  text-decoration: solid underline black 3px;
 }
 </style>

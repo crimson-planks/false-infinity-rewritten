@@ -16,11 +16,15 @@ export const CurrencyName={
   overflowPoint: "OP",
   helium: "He",
   energy: "J"
-} as const;
+} as const satisfies {
+  [key in CurrencyKind]: string;
+};
+
 interface CurrencyConstData{
   kind: CurrencyKind
   name: string
-}
+};
+const currencyConstObj = {}
 
 export function setCurrency(currency: CurrencyKind, v: Decimal) {
   switch (currency) {

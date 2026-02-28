@@ -2,12 +2,18 @@
 <html lang="">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.svg" />
+    <link rel="icon" href="/src/assets/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>False Infinity Rewritten</title>
   </head>
   <body>
-    <div id="app"></div>
+    <noscript>Javascript must be enabled to view this page.</noscript>
+    <div id="game-error" style="display:none">An error has occured. :(
+      <p></p>
+    </div>
+    <div id="app">
+      Loading...
+    </div>
   </body>
   <script type="module" src="/src/player.ts"></script>
   <script type="module" src="/src/main.ts"></script>

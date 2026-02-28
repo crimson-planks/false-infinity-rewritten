@@ -3,7 +3,9 @@ import Decimal from 'break_eternity.js';
 import { AutobuyerKindObj, type AutobuyerSaveData } from '@/autobuyer';
 import { UpgradeKindObj, type UpgradeSaveData } from './upgrade';
 import { NotationIdEnum, type NotationId } from './notation';
+import { VERSION_STR } from './constants';
 export interface Player {
+  version: string;
   createdTime: number;
   currentTime: number;
   notationId: NotationId;
@@ -39,6 +41,7 @@ export interface Player {
 
 export function getDefaultPlayer(): Player {
   return {
+    version: VERSION_STR,
     createdTime: Date.now(),
     currentTime: Date.now(),
     notationId: NotationIdEnum.default,
@@ -158,7 +161,7 @@ export function getDefaultPlayer(): Player {
   };
 }
 export const player = getDefaultPlayer();
-export function setPlayer(obj: Player) {
+export function setPlayer(obj: Partial<Player>) {
   Object.keys(obj).forEach((key) => {
     //@ts-ignore
     player[key] = obj[key];

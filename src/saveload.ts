@@ -1,6 +1,7 @@
 /** @prettier */
 import Decimal from 'break_eternity.js';
 import { getDefaultPlayer, player, setPlayer, type Player } from './player';
+import { displayError } from './ui';
 const LEGACY_DECIMAL_CONVERSION = false;
 export type stringifiableObject =
   | string
@@ -113,8 +114,15 @@ export function save() {
 export function load() {
   let storageStr = localStorage.getItem('FalseInfinityRSave');
   if (storageStr === null) storageStr = '{}';
-  setPlayer(toUsableObject(JSON.parse(storageStr ?? '{}')) as Player);
-  fixSave();
+  try{
+    setPlayer(toUsableObject(JSON.parse(storageStr ?? '{}')) as Player);
+  }
+  catch(err: unknown){
+    displayError("While loading player data from localStorage:\n"+String(err))
+  }
+  finally{
+    fixSave();
+  }
 }
 export function mergeObj_nocopy(
   obj_to: { [key: string | number | symbol]: any },

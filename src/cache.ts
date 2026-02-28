@@ -1,10 +1,9 @@
 import { getTranslatedDeflationPower } from "./deflation_power";
 import Decimal from "break_eternity.js";
 import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getDeflatorGainOnDeflation } from "./prestige";
-import { OVERFLOW_UPGRADE_COUNT, upgradeConstObj } from "./upgrade";
-import { player } from "./player";
+import { upgradeConstObj } from "./upgrade";
 import { autobuyerConstObj } from "./autobuyer_const";
-import { type AutobuyerKind ,AutobuyerKindObj, getAutobuyerInterval } from "./autobuyer";
+import { type AutobuyerKind, getAutobuyerInterval } from "./autobuyer";
 
 export class Lazy<Type>{
   getValue: () => Type;
@@ -31,7 +30,7 @@ export const gameCache = {
   translatedDeflationPower: new Lazy(getTranslatedDeflationPower, Decimal.dZero),
   canDeflationSacrifice: new Lazy(canDeflationSacrifice, false),
   upgradeEffectValue: {
-    overflow: Array(OVERFLOW_UPGRADE_COUNT).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, Decimal.dOne))
+    overflow: Array(upgradeConstObj.overflow.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, Decimal.dOne))
   },
   autobuyerInterval: {
     matter: Array(autobuyerConstObj.matter.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval('matter',i), Decimal.dOne)),
