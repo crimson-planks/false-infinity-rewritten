@@ -155,6 +155,11 @@ export function getDefaultPlayer(): Player {
           kind: UpgradeKindObj.Overflow,
           ord: 7,
           amount: new Decimal(0)
+        },
+        {
+          kind: UpgradeKindObj.Overflow,
+          ord: 8,
+          amount: new Decimal(0)
         }
       ]
     }

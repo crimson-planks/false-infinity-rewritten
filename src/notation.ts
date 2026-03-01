@@ -539,7 +539,7 @@ export const HTMLnotations = {
 export function formatValue(inputValue: DecimalSource, notation: NotationId) {
   inputValue = new Decimal(inputValue);
   if (inputValue.isNan()) return NaNString;
-  if (Decimal.gt(inputValue, OVERFLOW)) return OverflowString;
+  if (Decimal.gte(inputValue, OVERFLOW)) return OverflowString;
   try {
     return notations[notation].format(inputValue);
   } catch (error) {

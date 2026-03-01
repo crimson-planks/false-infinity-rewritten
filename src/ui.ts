@@ -41,6 +41,7 @@ import { convertMatter, pourMatter } from './fusion';
 import { type Ref } from '@vue/reactivity';
 export interface AutobuyerVisualData {
   loc: AutobuyerLocation;
+  visible: boolean;
   name: string;
   amount: string;
   timer: string;
@@ -55,6 +56,7 @@ export interface AutobuyerVisualData {
 export function getDefaultAutobuyerVisualData(ad: AutobuyerSaveData): AutobuyerVisualData {
   return {
     loc: {kind: ad.kind, ord: ad.ord},
+    visible: true,
     name: autobuyerConstObj[ad.kind][ad.ord].name,
     amount: '',
     timer: '',
@@ -182,6 +184,9 @@ export const texts = {
         },
         {
           description: 'Start with matter'
+        },
+        {
+          description: 'Unlock the 2nd matter autobuyer'
         }
       ]
     }
@@ -254,6 +259,7 @@ export const ui = ref({
         return {
           loc: {kind: AutobuyerKindObj.Matter,
           ord: i},
+          visible: false,
           name: autobuyerConstObj.matter[i].name,
           amount: '',
           timer: '',
@@ -272,6 +278,7 @@ export const ui = ref({
         return {
           loc: {kind: AutobuyerKindObj.DeflationPower,
           ord: i},
+          visible: true,
           name: autobuyerConstObj.deflationPower[i].name,
           amount: '',
           timer: '',
@@ -288,6 +295,7 @@ export const ui = ref({
       {
         loc: {kind: AutobuyerKindObj.MatterAutobuyer,
         ord: 0},
+        visible: true,
         name: autobuyerConstObj.matterAutobuyer[0].name,
         amount: '',
         timer: '',
@@ -456,6 +464,9 @@ export function updateScreen() {
 
   ui.value.statistics.overflow.visible = player.overflow.gt(0);
   //window.performance.mark("autobuyer loop start")
+  ui.value.autobuyers.matter[0].visible = true;
+  ui.value.autobuyers.matter[1].visible = true;
+  ui.value.autobuyers.matter[2].visible = gameCache.upgradeEffectValue.overflow?.[8]?.cachedValue?.gt(0) ?? false;
   for (const ak of AutobuyerKindArr) {
     for (let i = 0; i < player.autobuyers[ak].length; i++) {
       ui.value.autobuyers[ak][i].loc.kind = player.autobuyers[ak][i].kind;

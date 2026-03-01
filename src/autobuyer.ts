@@ -145,11 +145,11 @@ export function getAutobuyerInterval(loc: AutobuyerLocation) {
 }
 export function AutobuyerTick(loc: AutobuyerLocation, timeS: Decimal) {
   const {kind, ord} = loc;
+  if (!player.autobuyers[kind][ord].toggle || player.autobuyers[kind][ord].amount.eq(0)) return;
   const interval = getAutobuyerInterval(loc);
   const totalTime = timeS.add(player.autobuyers[kind][ord].timer ?? Decimal.dZero);
   player.autobuyers[kind][ord].timer = totalTime.mod(interval, true);
   const activationAmount = totalTime.div(interval).floor();
-  if (!player.autobuyers[kind][ord].toggle) return;
   if (activationAmount.eq(Decimal.dZero)) return;
   if (kind === AutobuyerKindObj.Matter) {
     if (ord === 0) {

@@ -74,7 +74,7 @@ import { ClickFusionPourMatterButton, input, inputFunctions, notationGroups, san
       You have <span class="currency">{{ ui.overflowPoint }}</span> Overflow points.
       <div v-show="ui.subtabs.overflow.currentSubtab==='upgrades'" style="display: block;">
         <p>Upgrades</p>
-        <Upgrade v-for="i in Array(8).fill(0).map((v,i)=>i)" :data="ui.upgrades.overflow[i]" />
+        <Upgrade v-for="i in Array(ui.upgrades.overflow.length).fill(0).map((v,i)=>i)" :data="ui.upgrades.overflow[i]" />
       </div>
       <div v-show="ui.subtabs.overflow.currentSubtab==='fusion'">
         <div v-show="!ui.fusionUnlocked">

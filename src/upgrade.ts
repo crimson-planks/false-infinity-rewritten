@@ -1,5 +1,5 @@
 /** @prettier */
-import { CostScaling, ExponentialCostScaling, LinearCostScaling } from './cost';
+import { ConstantCostScaling, CostScaling, ExponentialCostScaling, LinearCostScaling } from './cost';
 import { CurrencyKindObj, getCurrency, setCurrency, type CurrencyKind } from './currency';
 import { getTranslatedDeflationPower } from './deflation_power';
 import Decimal from 'break_eternity.js';
@@ -154,6 +154,16 @@ export const upgradeConstObj = {
       effectValueFunction: () => {
         if (player.upgrades.overflow[7].amount.eq(0)) return Decimal.dZero;
         return player.upgrades.overflow[7].amount.pow10();
+      }
+    },
+    {
+      kind: UpgradeKindObj.Overflow,
+      ord: 8,
+      initialCostScaling: new ConstantCostScaling(1000),
+      currency: CurrencyKindObj.overflowPoint,
+      maxAmount: new Decimal(Decimal.dOne),
+      effectValueFunction: () => {
+        return player.upgrades.overflow?.[8]?.amount
       }
     }
   ]
