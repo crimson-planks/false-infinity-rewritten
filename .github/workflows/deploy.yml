@@ -42,4 +42,4 @@ jobs:
           destination_dir: 'latest'
           publish_branch: gh-pages
           publish_dir: ./dist
-          keep_files: true
+          keep_files: false

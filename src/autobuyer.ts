@@ -11,41 +11,14 @@ import {
 } from './currency';
 import { autobuyerConstObj } from './autobuyer_const';
 import { gameCache } from './cache';
-//You can safely remove these objects
-/*export const initialAutobuyerCostScaling = {
-  matter: [
-    new LinearCostScaling({
-      baseCost: 10,
-      baseIncrease: 5
-    }),
-    new LinearCostScaling({
-      baseCost: 500,
-      baseIncrease: 100
-    }),
-    new LinearCostScaling({
-      baseCost: 1e7,
-      baseIncrease: 1e6
-    })
-  ],
-  deflationPower: [
-    new LinearCostScaling({
-      baseCost: 1,
-      baseIncrease: 0
-    })
-  ],
-  matterAutobuyer: [
-    new LinearCostScaling({
-      baseCost: 10,
-      baseIncrease: 50
-    })
-  ]
-} as const;*/
-export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): CostScaling {
+import { getMatterAutobuyerCostScalingReductionByDeflation } from './prestige';
+
+export function getAutobuyerCostScaling({kind, ord}: AutobuyerLocation): CostScaling {
   const ics = autobuyerConstObj[kind][ord].initialCostScaling;
   if (kind === AutobuyerKindObj.Matter)
     return new LinearCostScaling({
       baseCost: ics.baseCost.sub(gameCache.translatedDeflationPower.cachedValue),
-      baseIncrease: ics.baseIncrease.sub(player.deflation.min(4))
+      baseIncrease: ics.baseIncrease.sub(getMatterAutobuyerCostScalingReductionByDeflation())
     });
   if (kind === AutobuyerKindObj.DeflationPower) return ics;
   if (kind === AutobuyerKindObj.MatterAutobuyer) return ics;
@@ -54,35 +27,8 @@ export function getAutobuyerCostScaling(kind: AutobuyerKind, ord: number): CostS
     throw new TypeError(`invalid AutobuyerKind: ${kind}`);
   }
 }
-/*export const initialIntervalCostScaling = {
-  matter: [
-    new ExponentialCostScaling({
-      baseCost: 100,
-      baseIncrease: 10
-    }),
-    new ExponentialCostScaling({
-      baseCost: 1000,
-      baseIncrease: 100
-    }),
-    new ExponentialCostScaling({
-      baseCost: 1e8,
-      baseIncrease: 1000
-    })
-  ],
-  deflationPower: [
-    new ExponentialCostScaling({
-      baseCost: 1,
-      baseIncrease: 2
-    })
-  ],
-  matterAutobuyer: [
-    new ExponentialCostScaling({
-      baseCost: 1e-9,
-      baseIncrease: 10
-    })
-  ]
-} as const;*/
-export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
+
+export function getIntervalCostScaling({kind, ord}: AutobuyerLocation) {
   const iics = autobuyerConstObj[kind][ord].initialIntervalCostScaling;
   if (kind === AutobuyerKindObj.Matter) {
     const finalIntervalCostScaling = new ExponentialCostScaling({
@@ -102,29 +48,7 @@ export function getIntervalCostScaling(kind: AutobuyerKind, ord: number) {
     throw new TypeError(`Invalid AutobuyerKind: ${kind}`);
   }
 }
-/*
-export const autobuyerName = {
-  matter: ['Autoclicker', 'Autobuyer 1'],
-  deflationPower: ['Deflation Power Autoclicker'],
-  matterAutobuyer: ['Matter Autobuyer Autobuyer']
-};*/
-/*export const autobuyerCurrency = {
-  matter: [CurrencyKindObj.matter, CurrencyKindObj.matter, CurrencyKindObj.matter],
-  deflationPower: [CurrencyKindObj.Deflator],
-  matterAutobuyer: [CurrencyKindObj.OverflowPoint]
-} as const;*/
-/*export const intervalCurrency = {
-  matter: [CurrencyKindObj.matter, CurrencyKindObj.matter, CurrencyKindObj.matter],
-  deflationPower: [CurrencyKindObj.Deflator],
-  matterAutobuyer: [CurrencyKindObj.Energy]
-} as const;*/
-/*
-export const initialInterval = {
-  matter: [new Decimal(1), new Decimal(2), new Decimal(4)],
-  deflationPower: [new Decimal(0.5)],
-  matterAutobuyer: [new Decimal(1)]
-} as const;
-*/
+
 //all the methods here only change its internal state
 //the functionality that changes external state are in seperate functions
 export const AutobuyerKindObj = {
@@ -151,12 +75,18 @@ export interface AutobuyerSaveData {
     [propName: string]: unknown;
   };
 }
-export function ToggleAutobuyer(kind: AutobuyerKind, ord: number) {
+export interface AutobuyerLocation {
+  kind: AutobuyerKind;
+  ord: number;
+}
+export function ToggleAutobuyer(loc: AutobuyerLocation) {
+  const {kind, ord} = loc;
   player.autobuyers[kind][ord].toggle = !player.autobuyers[kind][ord].toggle;
 }
-export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
+export function BuyAutobuyer(loc: AutobuyerLocation, buyAmount: Decimal) {
+  const {kind, ord} = loc;
   const currency = autobuyerConstObj[kind][ord].currency;
-  const cost = getAutobuyerCostScaling(kind, ord).getTotalCostAfterPurchase(
+  const cost = getAutobuyerCostScaling(loc).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].amount,
     buyAmount
   );
@@ -164,9 +94,10 @@ export function BuyAutobuyer(kind: AutobuyerKind, ord: number, buyAmount: Decima
   setCurrency(currency, getCurrency(currency).sub(cost));
   player.autobuyers[kind][ord].amount = player.autobuyers[kind][ord].amount.add(buyAmount);
 }
-export function BuyInterval(kind: AutobuyerKind, ord: number, buyAmount: Decimal) {
+export function BuyInterval(loc: AutobuyerLocation, buyAmount: Decimal) {
+  const {kind, ord} = loc;
   const currency = autobuyerConstObj[kind][ord].intervalCurrency;
-  const cost = getIntervalCostScaling(kind, ord).getTotalCostAfterPurchase(
+  const cost = getIntervalCostScaling({kind, ord}).getTotalCostAfterPurchase(
     player.autobuyers[kind][ord].intervalAmount,
     buyAmount
   );
@@ -175,11 +106,11 @@ export function BuyInterval(kind: AutobuyerKind, ord: number, buyAmount: Decimal
   player.autobuyers[kind][ord].intervalAmount =
     player.autobuyers[kind][ord].intervalAmount.add(buyAmount);
 }
-export function BuyMaxInterval(kind: AutobuyerKind, ord: number) {
+export function BuyMaxInterval(loc: AutobuyerLocation) {
+  const {kind, ord} = loc;
   BuyInterval(
-    kind,
-    ord,
-    getIntervalCostScaling(kind, ord)
+    loc,
+    getIntervalCostScaling(loc)
       .getAvailablePurchases(
         player.autobuyers[kind][ord].intervalAmount,
         getCurrency(autobuyerConstObj[kind][ord].currency)
@@ -190,17 +121,18 @@ export function BuyMaxInterval(kind: AutobuyerKind, ord: number) {
 }
 export function ClickMaxMatterAutobuyerInterval() {
   for (let i = 0; i < autobuyerConstObj.matter.length; i++) {
-    BuyMaxInterval(AutobuyerKindObj.Matter, i);
+    BuyMaxInterval({kind: AutobuyerKindObj.Matter, ord: i});
   }
 }
-export function getIntervalMultiplierByBying(kind: AutobuyerKind, ord: number) {
+export function getIntervalMultiplierByBying({kind, ord}: AutobuyerLocation) {
   if (kind === AutobuyerKindObj.Matter || kind === AutobuyerKindObj.DeflationPower)
     return new Decimal(2).add(gameCache.upgradeEffectValue.overflow[2].cachedValue).recip();
   return new Decimal(0.5);
 }
-export function getAutobuyerInterval(kind: AutobuyerKind, ord: number) {
+export function getAutobuyerInterval(loc: AutobuyerLocation) {
+  const {kind, ord} = loc;
   let interval = autobuyerConstObj[kind][ord].initialInterval.mul(
-    getIntervalMultiplierByBying(kind, ord).pow(player.autobuyers[kind][ord].intervalAmount)
+    getIntervalMultiplierByBying(loc).pow(player.autobuyers[kind][ord].intervalAmount)
   );
   if (kind === AutobuyerKindObj.DeflationPower) {
     interval = interval.div(
@@ -211,8 +143,9 @@ export function getAutobuyerInterval(kind: AutobuyerKind, ord: number) {
   }
   return interval;
 }
-export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) {
-  const interval = getAutobuyerInterval(kind, ord);
+export function AutobuyerTick(loc: AutobuyerLocation, timeS: Decimal) {
+  const {kind, ord} = loc;
+  const interval = getAutobuyerInterval(loc);
   const totalTime = timeS.add(player.autobuyers[kind][ord].timer ?? Decimal.dZero);
   player.autobuyers[kind][ord].timer = totalTime.mod(interval, true);
   const activationAmount = totalTime.div(interval).floor();
@@ -227,10 +160,10 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
     } else {
       if (player.autobuyers[kind][ord].amount.eq(0)) return;
       BuyAutobuyer(
-        kind,
-        ord - 1,
+        {kind: kind,
+        ord: ord - 1},
         activationAmount.mul(player.autobuyers[kind][ord].amount).min(
-          getAutobuyerCostScaling(kind, ord - 1)
+          getAutobuyerCostScaling({kind: kind, ord: ord - 1})
             .getAvailablePurchases(player.autobuyers[kind][ord - 1].amount, player.matter)
             .max(0)
             .floor()
@@ -248,12 +181,12 @@ export function AutobuyerTick(kind: AutobuyerKind, ord: number, timeS: Decimal) 
     const selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd);
     if (ord === 0)
       BuyAutobuyer(
-        AutobuyerKindObj.Matter,
-        selectedOrd,
+        {kind: AutobuyerKindObj.Matter,
+        ord: selectedOrd},
         activationAmount
           .mul(player.autobuyers[kind][ord].amount)
           .min(
-            getAutobuyerCostScaling(AutobuyerKindObj.Matter, selectedOrd)
+            getAutobuyerCostScaling({kind: AutobuyerKindObj.Matter, ord: selectedOrd})
               .getAvailablePurchases(
                 player.autobuyers[AutobuyerKindObj.Matter][selectedOrd].amount,
                 player.matter

@@ -12,6 +12,8 @@ export abstract class CostScaling {
 }
 
 /** costs that scales linearly. f(n) = b + an
+ * @param baseCost
+ * @param baseIncrease
  */
 export class LinearCostScaling extends CostScaling{
   baseCost: Decimal;
@@ -79,7 +81,20 @@ export class ExponentialCostScaling extends CostScaling{
     return money.mul(this.baseIncrease.add(1)).div(this.getCurrentCost(currentAmount)).add(1).log(this.baseIncrease);
   }
 }
-/** for cost scaling fast enough such that f(n+1)/f(n)>MAX_SAFE_INTEGER for all n>=0*/
-export class CostScalingThatIsVeryFast {
-
+/** Costs that stay constant after any purchase. */
+export class ConstantCostScaling extends CostScaling{
+  baseCost: Decimal;
+  constructor(baseCost: DecimalSource){
+    super();
+    this.baseCost = new Decimal(baseCost);
+  }
+  getCurrentCost(currentAmount: DecimalSource): Decimal {
+    return this.baseCost;
+  }
+  getTotalCostAfterPurchase(currentAmount: DecimalSource, buyAmount: DecimalSource): Decimal {
+    return this.baseCost.mul(buyAmount);
+  }
+  getAvailablePurchases(currentAmount: DecimalSource, money: DecimalSource): Decimal {
+    return Decimal.div(money, this.baseCost);
+  }
 }

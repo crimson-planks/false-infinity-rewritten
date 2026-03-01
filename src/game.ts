@@ -15,7 +15,7 @@ export function getMatterPerSecond() {
   let matterLost = new Decimal(0);
   if (player.autobuyers.matter[1].toggle)
     matterLost = matterLost.add(
-      getAutobuyerCostScaling(AutobuyerKindObj.Matter, 0).getTotalCostAfterPurchase(
+      getAutobuyerCostScaling({kind: AutobuyerKindObj.Matter, ord: 0}).getTotalCostAfterPurchase(
         player.autobuyers.matter[0].amount,
         player.autobuyers.matter[1].amount.mul(gameCache.autobuyerInterval.matter[1].cachedValue.recip())
       )
@@ -23,7 +23,7 @@ export function getMatterPerSecond() {
   const pama_selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd);
   if (player.autobuyers.matterAutobuyer[0].toggle)
     matterLost = matterLost.add(
-      getAutobuyerCostScaling(AutobuyerKindObj.Matter, pama_selectedOrd)
+      getAutobuyerCostScaling({kind: AutobuyerKindObj.Matter, ord: pama_selectedOrd})
         .getTotalCostAfterPurchase(
           player.autobuyers.matter[pama_selectedOrd].amount,
           player.autobuyers.matterAutobuyer[0].amount

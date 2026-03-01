@@ -63,7 +63,7 @@ function main(){
   }
   for(let ak of AutobuyerKindArr){
     if (ak == AutobuyerKindObj.Matter && player.isOverflowing) break;
-    player.autobuyers[ak].forEach((v, i)=>{AutobuyerTick(ak, i, diffDecimal);})
+    player.autobuyers[ak].forEach((v, i)=>{AutobuyerTick({kind: ak, ord: i}, diffDecimal);})
   }
 
   //the order is very important.

@@ -21,6 +21,9 @@ export function getDeflationCost(){
     baseIncrease: deflationCostScaling.baseIncrease
   })
 }
+export function getMatterAutobuyerCostScalingReductionByDeflation(){
+  return player.deflation.min(4);
+}
 export function canDeflate(){
   return player.matter.gte(getDeflationCost().getCurrentCost(player.deflation))
 }

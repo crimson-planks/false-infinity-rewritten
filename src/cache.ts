@@ -1,6 +1,6 @@
 import { getTranslatedDeflationPower } from "./deflation_power";
 import Decimal from "break_eternity.js";
-import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getDeflatorGainOnDeflation } from "./prestige";
+import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getDeflatorGainOnDeflation, getMatterAutobuyerCostScalingReductionByDeflation } from "./prestige";
 import { upgradeConstObj } from "./upgrade";
 import { autobuyerConstObj } from "./autobuyer_const";
 import { type AutobuyerKind, getAutobuyerInterval } from "./autobuyer";
@@ -24,18 +24,19 @@ export class Lazy<Type>{
 }
 //
 export const gameCache = {
-  deflatorGainOnDeflation: new Lazy(getDeflatorGainOnDeflation, Decimal.dOne),
-  translatedDeflationPowerMultiplierBySacrificedDeflationPower: new Lazy(getDeflationPowerBoostBySacrificedDeflationPower, Decimal.dOne),
-  translatedDeflationPowerMultiplierWhenSacrifice: new Lazy(getDeflationPowerBoostWhenSacrifice, Decimal.dOne),
-  translatedDeflationPower: new Lazy(getTranslatedDeflationPower, Decimal.dZero),
+  deflatorGainOnDeflation: new Lazy(getDeflatorGainOnDeflation, new Decimal(Decimal.dOne)),
+  matterAutobuyerCostScalingReductionByDeflation: new Lazy(getMatterAutobuyerCostScalingReductionByDeflation, new Decimal(Decimal.dZero)),
+  translatedDeflationPowerMultiplierBySacrificedDeflationPower: new Lazy(getDeflationPowerBoostBySacrificedDeflationPower, new Decimal(Decimal.dOne)),
+  translatedDeflationPowerMultiplierWhenSacrifice: new Lazy(getDeflationPowerBoostWhenSacrifice, new Decimal(Decimal.dOne)),
+  translatedDeflationPower: new Lazy(getTranslatedDeflationPower, new Decimal(Decimal.dZero)),
   canDeflationSacrifice: new Lazy(canDeflationSacrifice, false),
   upgradeEffectValue: {
-    overflow: Array(upgradeConstObj.overflow.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, Decimal.dOne))
+    overflow: Array(upgradeConstObj.overflow.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, new Decimal(Decimal.dOne)))
   },
   autobuyerInterval: {
-    matter: Array(autobuyerConstObj.matter.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval('matter',i), Decimal.dOne)),
-    deflationPower: Array(autobuyerConstObj.deflationPower.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval('deflationPower',i), Decimal.dOne)),
-    matterAutobuyer: Array(autobuyerConstObj.matterAutobuyer.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval('matterAutobuyer',i), Decimal.dOne)),
+    matter: Array(autobuyerConstObj.matter.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval({kind: 'matter',ord: i}), new Decimal(Decimal.dOne))),
+    deflationPower: Array(autobuyerConstObj.deflationPower.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval({kind: 'deflationPower',ord: i}), new Decimal(Decimal.dOne))),
+    matterAutobuyer: Array(autobuyerConstObj.matterAutobuyer.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval({kind: 'matterAutobuyer',ord: i}), new Decimal(Decimal.dOne))),
   }
 };
 gameCache.autobuyerInterval satisfies {

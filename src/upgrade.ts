@@ -35,10 +35,11 @@ export interface UpgradeSaveData {
   ord: number;
   amount: Decimal;
 }
-export interface UpgradeRef {
+export interface UpgradeLocation {
   kind: UpgradeKind;
   ord: number;
 }
+
 export interface UpgradeConstData {
   kind: UpgradeKind;
   ord: number;

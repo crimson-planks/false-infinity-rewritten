@@ -19,7 +19,7 @@ const selected = computed(()=>ui.value.currentTab==props.tab)
   margin-right: 10px;
 }
 .o-tab-button:hover{
-  background-color: #42b153;
+  background-color: #6ad47a;
 }
 .o-selected-tab-button{
   border-color: black;

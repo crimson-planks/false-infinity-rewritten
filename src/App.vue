@@ -202,9 +202,9 @@ button,p,span{
   background-color: plum;
 }
 .button--can-buy{
-    border-color: #42b153;
-    background-color: #6ad47a;
-    cursor: pointer;
+  border-color: #42b153;
+  background-color: #6ad47a;
+  cursor: pointer;
 
 }
 .button--can-buy:hover{

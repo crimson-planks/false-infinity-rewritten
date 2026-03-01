@@ -6,15 +6,15 @@ import { computed } from 'vue';
 
 const props = defineProps<{data: AutobuyerVisualData}>();
 function ClickBuyAutobuyerButton(){
-  BuyAutobuyer(props.data.kind, props.data.ord, Decimal.dOne);
+  BuyAutobuyer(props.data.loc, Decimal.dOne);
 }
 function ClickBuyIntervalButton(){
-  BuyInterval(props.data.kind, props.data.ord, Decimal.dOne)
+  BuyInterval(props.data.loc, Decimal.dOne)
 }
 function ClickToggleButton(){
-  ToggleAutobuyer(props.data.kind, props.data.ord);
+  ToggleAutobuyer(props.data.loc);
 }
-const autobuyerSelectId = computed(()=>`autobuyer-${props.data.kind}-${props.data.ord}-select`)
+const autobuyerSelectId = computed(()=>`autobuyer-${props.data.loc.kind}-${props.data.loc.ord}-select`)
 </script>
 <template>
   <div class="c-autobuyer">

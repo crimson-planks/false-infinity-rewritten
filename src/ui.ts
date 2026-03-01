@@ -11,7 +11,8 @@ import {
   getAutobuyerInterval,
   AutobuyerKindArr,
   type AutobuyerSaveData,
-  ClickMaxMatterAutobuyerInterval
+  ClickMaxMatterAutobuyerInterval,
+  type AutobuyerLocation
 } from './autobuyer';
 import {
   canDeflate,
@@ -39,8 +40,7 @@ import Decimal from 'break_eternity.js';
 import { convertMatter, pourMatter } from './fusion';
 import { type Ref } from '@vue/reactivity';
 export interface AutobuyerVisualData {
-  kind: AutobuyerKind;
-  ord: number;
+  loc: AutobuyerLocation;
   name: string;
   amount: string;
   timer: string;
@@ -54,8 +54,7 @@ export interface AutobuyerVisualData {
 }
 export function getDefaultAutobuyerVisualData(ad: AutobuyerSaveData): AutobuyerVisualData {
   return {
-    kind: ad.kind,
-    ord: ad.ord,
+    loc: {kind: ad.kind, ord: ad.ord},
     name: autobuyerConstObj[ad.kind][ad.ord].name,
     amount: '',
     timer: '',
@@ -253,8 +252,8 @@ export const ui = ref({
       .fill(0)
       .map((v, i) => {
         return {
-          kind: AutobuyerKindObj.Matter,
-          ord: i,
+          loc: {kind: AutobuyerKindObj.Matter,
+          ord: i},
           name: autobuyerConstObj.matter[i].name,
           amount: '',
           timer: '',
@@ -271,8 +270,8 @@ export const ui = ref({
       .fill(0)
       .map((v, i) => {
         return {
-          kind: AutobuyerKindObj.DeflationPower,
-          ord: i,
+          loc: {kind: AutobuyerKindObj.DeflationPower,
+          ord: i},
           name: autobuyerConstObj.deflationPower[i].name,
           amount: '',
           timer: '',
@@ -287,8 +286,8 @@ export const ui = ref({
       }),
     matterAutobuyer: [
       {
-        kind: AutobuyerKindObj.MatterAutobuyer,
-        ord: 0,
+        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
+        ord: 0},
         name: autobuyerConstObj.matterAutobuyer[0].name,
         amount: '',
         timer: '',
@@ -459,8 +458,8 @@ export function updateScreen() {
   //window.performance.mark("autobuyer loop start")
   for (const ak of AutobuyerKindArr) {
     for (let i = 0; i < player.autobuyers[ak].length; i++) {
-      ui.value.autobuyers[ak][i].kind = player.autobuyers[ak][i].kind;
-      ui.value.autobuyers[ak][i].ord = player.autobuyers[ak][i].ord;
+      ui.value.autobuyers[ak][i].loc.kind = player.autobuyers[ak][i].kind;
+      ui.value.autobuyers[ak][i].loc.ord = player.autobuyers[ak][i].ord;
       ui.value.autobuyers[ak][i].amount = formatValue(
         player.autobuyers[ak][i].amount,
         player.notationId
@@ -470,30 +469,30 @@ export function updateScreen() {
         player.notationId
       );
       ui.value.autobuyers[ak][i].interval = formatValue(
-        getAutobuyerInterval(ak, i),
+        getAutobuyerInterval({kind: ak, ord: i}),
         player.notationId
       );
       ui.value.autobuyers[ak][i].toggle = player.autobuyers[ak][i].toggle ? 'On' : 'Off';
       ui.value.autobuyers[ak][i].cost =
         formatValue(
-          getAutobuyerCostScaling(ak, i).getCurrentCost(player.autobuyers[ak][i].amount),
+          getAutobuyerCostScaling({kind: ak, ord: i}).getCurrentCost(player.autobuyers[ak][i].amount),
           player.notationId
         ) +
         ' ' +
         CurrencyName[autobuyerConstObj[ak][i].currency];
       ui.value.autobuyers[ak][i].intervalCost =
         formatValue(
-          getIntervalCostScaling(ak, i).getCurrentCost(player.autobuyers[ak][i].intervalAmount),
+          getIntervalCostScaling({kind: ak, ord: i}).getCurrentCost(player.autobuyers[ak][i].intervalAmount),
           player.notationId
         ) +
         ' ' +
         CurrencyName[autobuyerConstObj[ak][i].intervalCurrency];
-      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling(ak, i).canBuy(
+      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling({kind: ak, ord: i}).canBuy(
         player.autobuyers[ak][i].amount,
         Decimal.dOne,
         getCurrency(autobuyerConstObj[ak][i].currency)
       );
-      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling(ak, i).canBuy(
+      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling({kind: ak, ord: i}).canBuy(
         player.autobuyers[ak][i].intervalAmount,
         Decimal.dOne,
         getCurrency(autobuyerConstObj[ak][i].intervalCurrency)
