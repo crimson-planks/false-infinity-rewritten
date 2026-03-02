@@ -15,11 +15,14 @@ import {
   type AutobuyerLocation
 } from './autobuyer';
 import {
+  BuyStar,
   canDeflate,
+  deflationCostScaling,
   deflationSacrifice,
-  getDeflationCost,
   getDeflatorGainOnDeflation,
-  overflow
+  getStarCost,
+  overflow,
+  starCostScaling
 } from './prestige';
 import { gameCache } from './cache';
 import { addCurrency, CurrencyKindObj, CurrencyName, getCurrency } from './currency';
@@ -37,7 +40,7 @@ import {
   getTranslatedDeflationPowerMultiplier
 } from './deflation_power';
 import Decimal from 'break_eternity.js';
-import { convertMatter, pourMatter } from './fusion';
+import { allocateStar, convertMatter, pourMatter } from './fusion';
 import { type Ref } from '@vue/reactivity';
 export interface AutobuyerVisualData {
   loc: AutobuyerLocation;
@@ -327,8 +330,10 @@ export const ui = ref({
   },
   deflation: '',
   canDeflate: false,
+  hasDeflated: false,
   deflatorGainOnDeflation: '',
   canDeflationSacrifice: false,
+  matterAutobuyerCostScalingReductionByDeflation: '',
   deflationPower: '',
   translatedDeflationPower: '',
   translatedDeflationPowerExponent: '',
@@ -343,6 +348,10 @@ export const ui = ref({
   fusionMatterPoured: '',
   fusionMatterPouredPercentage: '',
   fusionUnlocked: false,
+  star: '',
+  starCost: '',
+  canBuyStar: false,
+  allocatedStar: '',
   helium: '',
   energy: '',
   statistics: {
@@ -357,6 +366,7 @@ export const input: Ref<{
   maxAutobuyerIntervalHeld: boolean;
   MPressed: boolean;
   fusionUnlockPourMatter: string;
+  starAllocateAmount: string;
   autobuyerOption: {
     matterAutobuyer: [{ selectedOrd: number }];
   };
@@ -364,6 +374,7 @@ export const input: Ref<{
   maxAutobuyerIntervalHeld: false,
   MPressed: false,
   fusionUnlockPourMatter: '',
+  starAllocateAmount: '',
   autobuyerOption: {
     matterAutobuyer: [{ selectedOrd: 0 }]
   }
@@ -372,7 +383,10 @@ export const input: Ref<{
 export const sanitizedInput = {
   fusionUnlockPourMatter: computed(() => {
     return sanitizeStringDecimal(input.value.fusionUnlockPourMatter).max(0).floor();
-  })
+  }),
+  starAllocateAmount: computed(()=>{
+    return sanitizeStringDecimal(input.value.starAllocateAmount).max(0).floor();
+  }),
 };
 export function sanitizeStringDecimal(s: string) {
   let d = new Decimal(s);
@@ -392,6 +406,10 @@ watch(
         input.value.autobuyerOption.matterAutobuyer[0].selectedOrd;
   }
 );
+export function getBuyableClassBinding(canBuy: boolean){
+  return { 'button--can-buy': canBuy, 'button--cannot-buy': !canBuy}
+}
+
 export function updateScreen() {
   //window.performance.mark('updateScreen start')
 
@@ -402,12 +420,14 @@ export function updateScreen() {
   ui.value.matter = formatValue(player.matter, player.notationId);
   ui.value.matterPerSecond = formatValue(getMatterPerSecond(), player.notationId);
   ui.value.deflationCost = formatValue(
-    getDeflationCost().getCurrentCost(player.deflation),
+    deflationCostScaling.getCurrentCost(player.deflation),
     player.notationId
   );
   ui.value.canDeflate = canDeflate();
+  ui.value.hasDeflated = gameCache.hasDeflated.cachedValue
   ui.value.deflatorGainOnDeflation = formatValue(getDeflatorGainOnDeflation(), player.notationId);
   ui.value.canDeflationSacrifice = gameCache.canDeflationSacrifice.cachedValue;
+  ui.value.matterAutobuyerCostScalingReductionByDeflation = formatValue(gameCache.matterAutobuyerCostScalingReductionByDeflation.cachedValue, player.notationId);
   ui.value.deflation = formatValue(player.deflation, player.notationId);
 
   ui.value.deflationPower = formatValue(player.deflationPower, player.notationId);
@@ -445,6 +465,10 @@ export function updateScreen() {
     player.notationId
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
+  ui.value.star = formatValue(player.fusion.star, player.notationId);
+  ui.value.starCost = formatValue(getStarCost(), player.notationId);
+  ui.value.canBuyStar = starCostScaling.canBuy(player.fusion.star, Decimal.dOne, getCurrency('matter'));
+  ui.value.allocatedStar = formatValue(player.fusion.allocatedStar, player.notationId);
   ui.value.helium =
     formatValue(player.fusion.helium, player.notationId) +
     ' ' +
@@ -454,10 +478,10 @@ export function updateScreen() {
     ' ' +
     CurrencyName[CurrencyKindObj.energy];
 
-  ui.value.tabs.overflow.visible = player.overflow.gt(0);
+  ui.value.tabs.overflow.visible = gameCache.hasOverflowed.cachedValue;
   ui.value.subtabs.autobuyer.matter.visible = !player.isOverflowing;
-  ui.value.subtabs.autobuyer.deflation.visible = player.deflation.gt(0) && !player.isOverflowing;
-  ui.value.subtabs.autobuyer.overflow.visible = player.overflow.gt(0);
+  ui.value.subtabs.autobuyer.deflation.visible = gameCache.hasDeflated.cachedValue && !player.isOverflowing;
+  ui.value.subtabs.autobuyer.overflow.visible = gameCache.hasOverflowed.cachedValue;
 
   ui.value.statistics.timeOnDeflation = String(player.currentTime - player.lastDeflationTime);
   ui.value.statistics.overflow.timeOn = String(player.currentTime - player.lastOverflowTime);
@@ -566,6 +590,12 @@ export const inputFunctions = {
   },
   ClickOverflowButton() {
     overflow();
+  },
+  BuyStar() {
+    BuyStar();
+  },
+  AllocateStar(d: Decimal) {
+    allocateStar(d);
   },
   ClickConvertMatterButton() {
     convertMatter(Decimal.dOne);

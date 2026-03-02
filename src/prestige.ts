@@ -2,6 +2,7 @@ import { gameCache } from "./cache";
 import { ExponentialCostScaling } from "./cost";
 import Decimal from 'break_eternity.js';
 import { getDefaultPlayer, player } from "./player";
+import { getCurrency, setCurrency } from "./currency";
 
 export const OVERFLOW = new Decimal(2_147_483_647) //new Decimal(2).pow(31).sub(1)
 export function resetAutobuyers(){
@@ -14,18 +15,23 @@ export const deflationCostScaling = new ExponentialCostScaling({
   baseCost:new Decimal(1000),
   baseIncrease:new Decimal(10)
 })
-//TODO: add caching to the 'get' functions
-export function getDeflationCost(){
-  return new ExponentialCostScaling({
-    baseCost: deflationCostScaling.baseCost,
-    baseIncrease: deflationCostScaling.baseIncrease
-  })
+export const starCostScaling = new ExponentialCostScaling({
+  baseCost: new Decimal(1e9),
+  baseIncrease: 10
+})
+export function getStarCost(){
+  return starCostScaling.getCurrentCost(player.fusion.star);
 }
 export function getMatterAutobuyerCostScalingReductionByDeflation(){
   return player.deflation.min(4);
 }
+export function BuyStar(){
+  if(!starCostScaling.canBuy(player.fusion.star, Decimal.dOne, getCurrency('matter'))) return;
+  setCurrency('matter', getCurrency('matter').sub(getStarCost()));
+  player.fusion.star = player.fusion.star.add(1);
+}
 export function canDeflate(){
-  return player.matter.gte(getDeflationCost().getCurrentCost(player.deflation))
+  return player.matter.gte(deflationCostScaling.getCurrentCost(player.deflation))
 }
 export function canOverflow(){
   return player.matter.gte(OVERFLOW) || player.isOverflowing;
@@ -42,6 +48,9 @@ export function deflate(){
   resetAutobuyers();
   player.matter = getStartMatter();
   player.deflationPower=Decimal.dZero;
+}
+export function hasDeflated(){
+  return player.deflation.gt(0);
 }
 export function getSacrificeDeflationPowerToDeflationPowerBoost(deflationPower: Decimal){
   return deflationPower.sqr().add(1).log10().div(6).max(1)
@@ -65,6 +74,9 @@ export function getOverflowPointGain(){
   let finalGain = new Decimal(1)
   if(player.upgrades.overflow[5].amount.gt(0)) finalGain = finalGain.add(gameCache.upgradeEffectValue.overflow[5].cachedValue.floor()).mul(gameCache.upgradeEffectValue.overflow[6].cachedValue)
   return finalGain
+}
+export function hasOverflowed(){
+  return player.overflow.gt(0);
 }
 export function overflow(){
   if(!canOverflow()) return;

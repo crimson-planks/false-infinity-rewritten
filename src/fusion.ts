@@ -1,7 +1,7 @@
 import { CurrencyKindObj, setCurrency } from "./currency";
 import Decimal from 'break_eternity.js'
 import { player } from "./player";
-const HYDROGEN_FUSION_ENERGY_MULTIPLIER = new Decimal(4.282_618_142_682e-18) // 26.73 eV * J/eV
+const HYDROGEN_FUSION_ENERGY_MULTIPLIER = new Decimal(26.73) // 26.73 eV per hydrogen fusion
 export const fusionUnlockRequiredMatter = new Decimal(1e10);
 function getFusionUnlockRequiredMatter(){ return fusionUnlockRequiredMatter;}
 export function pourMatter(amount: Decimal){
@@ -17,4 +17,8 @@ export function convertMatter(amount: Decimal){
   player.fusion.helium = player.fusion.helium.add(actualAmount.div(4))
   player.fusion.energy = player.fusion.energy.add(actualAmount.mul(HYDROGEN_FUSION_ENERGY_MULTIPLIER))
   setCurrency(CurrencyKindObj.matter,player.matter.sub(actualAmount))
+}
+export function allocateStar(amount: Decimal){
+  const actualAmount = amount.clamp(player.fusion.allocatedStar.neg(),player.fusion.star.sub(player.fusion.allocatedStar));
+  player.fusion.allocatedStar = player.fusion.allocatedStar.add(actualAmount);
 }

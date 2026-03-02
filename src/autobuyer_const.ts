@@ -95,7 +95,7 @@ export const autobuyerConstObj = {
       initialInterval: new Decimal(1),
       intervalCurrency: CurrencyKindObj.energy,
       initialIntervalCostScaling: new ExponentialCostScaling({
-        baseCost: 1e-9,
+        baseCost: 1e10,
         baseIncrease: 10
       }),
 

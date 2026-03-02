@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { BuyMaxInterval } from './autobuyer';
 import Autobuyer from './components/Autobuyer.vue';
 import Credits from './components/Credits.vue';
@@ -7,10 +8,9 @@ import SubtabButton from './components/SubtabButton.vue';
 import TabButton from './components/TabButton.vue';
 import Upgrade from './components/Upgrade.vue';
 import { VERSION_STR } from './constants';
-import { notationArray, notations } from './notation';
+import { notations } from './notation';
 import { load, save } from './saveload';
-import { ClickFusionPourMatterButton, input, inputFunctions, notationGroups, sanitizedInput, ui } from './ui';
-
+import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFunctions, notationGroups, sanitizedInput, ui } from './ui';
 
 </script>
 <template>
@@ -37,6 +37,7 @@ import { ClickFusionPourMatterButton, input, inputFunctions, notationGroups, san
       <div v-show="ui.subtabs.autobuyer.currentSubtab==='matter' && !ui.isOverflowing" style="display: block">
         <button class="o-gain-currency-button" @click="inputFunctions.ClickMatterButton">Click to get matter</button>
         <div>
+          <p v-show="ui.hasDeflated">By deflating, the cost scaling of matter autobuyers has been decreased by {{ ui.matterAutobuyerCostScalingReductionByDeflation }}.</p>
           <button @pointerout="input.maxAutobuyerIntervalHeld=false"
                   @pointerdown="input.maxAutobuyerIntervalHeld=true"
                   @pointerup="input.maxAutobuyerIntervalHeld=false"
@@ -84,12 +85,17 @@ import { ClickFusionPourMatterButton, input, inputFunctions, notationGroups, san
           <input type="text" id="fusion-pour-matter" v-model="input.fusionUnlockPourMatter"><br>
           <button @click="ClickFusionPourMatterButton()">Pour {{ sanitizedInput.fusionUnlockPourMatter }} Matter</button>
         </div>
-        <p v-show="ui.fusionUnlocked">
-          Fusion is Unlocked.
-          <button class="not-implemented" @click="inputFunctions.ClickConvertMatterButton">Convert 1 matter to helium and energy.</button>
-          Helium: {{ ui.helium }}<br>
-          Energy: {{ ui.energy }}<br>
-        </p>
+        <div v-show="ui.fusionUnlocked">
+          <p>Fusion is Unlocked.</p>
+          You have <span class="currency">{{ ui.star }}</span> stars.
+          <button @click="inputFunctions.BuyStar" :class="getBuyableClassBinding(ui.canBuyStar)">Buy a star. Cost: {{ ui.starCost }}</button>
+          You allocated {{ ui.allocatedStar }} stars.<br>
+          <input type="text" id="star-allocate-input" v-model="input.starAllocateAmount"><br>
+          <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value)">Allocate {{ sanitizedInput.starAllocateAmount }} stars.</button>
+          <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value.neg())">Allocate {{ sanitizedInput.starAllocateAmount.value.neg() }} stars.</button>
+          You have {{ ui.helium }}<br>
+          You have {{ ui.energy }}<br>
+        </div>
       </div>
     </div>
   <div v-show="ui.currentTab==='option'" style="display: block">

@@ -34,7 +34,7 @@ selectedOrd:
   </span>
     <button class="c-autobuyer-text" @click="ClickToggleButton()">Toggle: {{ props.data.toggle }}</button>
   </div>
-</template>x
+</template>
 <style>
 .c-autobuyer-name{
   text-align: center;

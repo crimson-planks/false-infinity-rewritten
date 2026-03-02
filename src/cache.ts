@@ -1,6 +1,6 @@
 import { getTranslatedDeflationPower } from "./deflation_power";
 import Decimal from "break_eternity.js";
-import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getDeflatorGainOnDeflation, getMatterAutobuyerCostScalingReductionByDeflation } from "./prestige";
+import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getDeflatorGainOnDeflation, getMatterAutobuyerCostScalingReductionByDeflation, hasDeflated, hasOverflowed } from "./prestige";
 import { upgradeConstObj } from "./upgrade";
 import { autobuyerConstObj } from "./autobuyer_const";
 import { type AutobuyerKind, getAutobuyerInterval } from "./autobuyer";
@@ -25,6 +25,8 @@ export class Lazy<Type>{
 //
 export const gameCache = {
   deflatorGainOnDeflation: new Lazy(getDeflatorGainOnDeflation, new Decimal(Decimal.dOne)),
+  hasDeflated: new Lazy(hasDeflated, false),
+  hasOverflowed: new Lazy(hasOverflowed, false),
   matterAutobuyerCostScalingReductionByDeflation: new Lazy(getMatterAutobuyerCostScalingReductionByDeflation, new Decimal(Decimal.dZero)),
   translatedDeflationPowerMultiplierBySacrificedDeflationPower: new Lazy(getDeflationPowerBoostBySacrificedDeflationPower, new Decimal(Decimal.dOne)),
   translatedDeflationPowerMultiplierWhenSacrifice: new Lazy(getDeflationPowerBoostWhenSacrifice, new Decimal(Decimal.dOne)),

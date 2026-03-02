@@ -30,6 +30,7 @@ export function getMatterPerSecond() {
         )
         .mul(gameCache.autobuyerInterval.matterAutobuyer[0].cachedValue.recip())
     );
+  if(player.fusion.allocatedStar.gt(0)) matterLost = matterLost.add(player.fusion.allocatedStar);
   result = matterGained.sub(matterLost);
   return result;
 }

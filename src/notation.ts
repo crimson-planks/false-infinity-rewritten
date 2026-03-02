@@ -5,8 +5,7 @@ import {
   BaseConvert,
   toDecimal,
   Notation,
-  scientifify,
-  hyperscientifify
+  scientifify
 } from 'eternal_notations';
 import { OVERFLOW } from './prestige.js';
 import { floorSlog10 } from './decimal.js';
@@ -22,25 +21,25 @@ export const NotationIdEnum = {
   binaryInequality: 'binaryInequality'
 } as const;
 Object.freeze(NotationIdEnum);
-export type NotationId = typeof NotationIdEnum[keyof typeof NotationIdEnum];
+export type NotationId = (typeof NotationIdEnum)[keyof typeof NotationIdEnum];
 
 export const notationArray = [
   'default',
   'scientific',
   'logarithm',
   'inequality',
-  'binaryInequality',
+  'binaryInequality'
 ] as const satisfies NotationId[];
-Object.freeze(notationArray)
+Object.freeze(notationArray);
 
-export const NotationIdSet = Object.freeze(new Set(notationArray))
+export const NotationIdSet = Object.freeze(new Set(notationArray));
 
 /**
  * From Eternal-Notations/src/presets.ts
  */
-function defaultRound(value : Decimal) {
-    if (value.eq(0)) return new Decimal(0);
-    return value.abs().log10().floor().sub(3).pow_base(10).min(1);
+function defaultRound(value: Decimal) {
+  if (value.eq(0)) return new Decimal(0);
+  return value.abs().log10().floor().sub(3).pow_base(10).min(1);
 }
 
 /**
@@ -136,7 +135,7 @@ export function NonInteger_BaseConvertToDigitArray(
 /**
  * @deprecated Use {@link InequalityNotation} instead
  */
-export function FormatInequality(
+function FormatInequality(
   value: Decimal,
   base: number,
   rounding: Decimal = Decimal.pow(base, 4),
@@ -419,8 +418,9 @@ export class InequalityNotation extends Notation {
     return this.formatDecimal(decimal);
   }
 }
-export const mufano_pStartValue = Decimal.fromComponents(1,1,299.999978284733+128*Number.EPSILON);
-export const mufano_pStartLog = 299.999978284733+128*Number.EPSILON;
+export const mufano_pStartLog = 299.999978284733 + 128 * Number.EPSILON;
+export const mufano_pStartValue = Decimal.fromComponents(1, 1, mufano_pStartLog);
+
 export function FormatMufano(value: DecimalSource): string {
   const valueD = new Decimal(value);
   const valueN = valueD.toNumber();
@@ -428,19 +428,19 @@ export function FormatMufano(value: DecimalSource): string {
     BaseConvert(v, 10, 3, -4, 0, -1, -1, undefined, undefined, undefined, '_');
   if (valueD.lt(0)) return '-'; //doesn't support negative numbers
   if (valueD.lt(1e-7) && valueD.neq(0)) return '0/'; //doesn't support negative exponents
-  if(valueD.lt(99999.9995)){ //1e5 - maxErrorFromRounding
-    const maxErrorFromRounding = 1e-3/2 //0.0005
-    const roundedN = Math.round(valueN*1e3)/1e3;
+  if (valueD.lt(99999.9995)) {
+    //1e5 - maxErrorFromRounding
+    const maxErrorFromRounding = 1e-3 / 2; //0.0005
+    const roundedN = Math.round(valueN * 1e3) / 1e3;
     const bcRoundedN = bc(roundedN);
     if (valueD.lt(9.9995)) return bcRoundedN; //10 - maxErrorFromRounding
     if (valueD.lt(99.9995)) return `a${bcRoundedN}`; //100 - maxErrorFromRounding
     if (valueD.lt(999.9995)) return `b${bcRoundedN}`; //1000 - maxErrorFromRounding
     if (valueD.lt(9999.9995)) return `c${bcRoundedN}`; //10000 - maxErrorFromRounding
     return `d${bcRoundedN}`;
-  }
-  else if (valueD.lt(mufano_pStartValue)) {
+  } else if (valueD.lt(mufano_pStartValue)) {
     const [mantissa, exp] = scientifify(valueD, 10, 1e-3);
-    console.log(`${mantissa}, ${exp}`)
+    console.log(`${mantissa}, ${exp}`);
     const manStr = BaseConvert(
       mantissa.toNumber(),
       10,
@@ -457,22 +457,32 @@ export function FormatMufano(value: DecimalSource): string {
     return `e${exp.toFixed(0).padStart(3, '0')}_${manStr}`;
   } else if (valueD.lt(Decimal.fromComponents(1, 1e5, mufano_pStartLog))) {
     //TODO: apply the correct rounding (pStartValue < mag < 10^pStartValue)
-    const hyperExp = floorSlog10(valueD,mufano_pStartLog)
-    const man = new Decimal(valueD)
-    man.layer-=hyperExp;
-    console.log(man,hyperExp)
+    const hyperExp = floorSlog10(valueD, mufano_pStartLog);
+    const man = new Decimal(valueD);
+    man.layer -= hyperExp;
+    console.log(man, hyperExp);
 
     return `p${FormatMufano(hyperExp)}_${FormatMufano(man)}`;
-  }
-  else if(valueD.lt(Decimal.fromComponents(1,1e300,300))){
+  } else if (valueD.lt(Decimal.fromComponents(1, 1e300, 300))) {
     return 'pe';
-  }
-  else return 'pp';
+  } else return 'pp';
 }
+function isInfinite(d: Decimal) {
+  return Decimal.gte(d, OVERFLOW);
+}
+const defaultNotationGlobals = [
+  undefined,
+  OverflowString,
+  OverflowString,
+  NaNString,
+  isInfinite
+] as const;
 export const notations = {
-  default: Presets.Default.setNotationGlobals(...[, , ,], NaNString),
-  scientific: Presets.Scientific.setNotationGlobals(...[, , ,], NaNString),
-  logarithm: Presets.Logarithm.setNotationGlobals(...[, , ,], NaNString),
+  default: Presets.Default.setNotationGlobals(...defaultNotationGlobals),
+  scientific: Presets.Scientific.setNotationGlobals(...defaultNotationGlobals),
+  logarithm: Presets.Logarithm.setNotationGlobals(...defaultNotationGlobals),
+  standard: Presets.Standard.setNotationGlobals(...defaultNotationGlobals),
+  mixedScientific: Presets.MixedScientific.setNotationGlobals(...defaultNotationGlobals),
   inequality: new InequalityNotation(
     3,
     4,
@@ -484,9 +494,7 @@ export const notations = {
       ['(', ')'],
       [')', '(']
     ]
-  )
-    .setNotationGlobals(...[, , ,], NaNString)
-    .setName('Inequality'),
+  ).setName('Inequality'),
   binaryInequality: new InequalityNotation(
     2,
     6,
@@ -498,9 +506,7 @@ export const notations = {
       ['(', ')'],
       [')', '(']
     ]
-  )
-    .setNotationGlobals(...[, , ,], NaNString)
-    .setName('Binary Inequality')
+  ).setName('Binary Inequality')
 };
 export const HTMLnotations = {
   default: notations.default,
@@ -517,9 +523,7 @@ export const HTMLnotations = {
       ['(', ')'],
       [')', '(']
     ]
-  )
-    .setNotationGlobals(...[, , ,], NaNString)
-    .setName('Inequality'),
+  ).setName('Inequality'),
   binaryInequality: new InequalityNotation(
     2,
     6,
@@ -531,15 +535,11 @@ export const HTMLnotations = {
       ['(', ')'],
       [')', '(']
     ]
-  )
-    .setNotationGlobals(...[, , ,], NaNString)
-    .setName('Binary Inequality')
+  ).setName('Binary Inequality')
 };
 //TODO: add caching to this
 export function formatValue(inputValue: DecimalSource, notation: NotationId) {
   inputValue = new Decimal(inputValue);
-  if (inputValue.isNan()) return NaNString;
-  if (Decimal.gte(inputValue, OVERFLOW)) return OverflowString;
   try {
     return notations[notation].format(inputValue);
   } catch (error) {

@@ -24,7 +24,7 @@ import {
 import { game_devTools } from './devtools';
 import { OVERFLOW } from './prestige';
 import { CurrencyKindObj, getCurrency } from './currency';
-import { fusionUnlockRequiredMatter } from './fusion';
+import { convertMatter, fusionUnlockRequiredMatter } from './fusion';
 
 declare global {
   interface Window {
@@ -65,8 +65,12 @@ function main(){
     if (ak == AutobuyerKindObj.Matter && player.isOverflowing) break;
     player.autobuyers[ak].forEach((v, i)=>{AutobuyerTick({kind: ak, ord: i}, diffDecimal);})
   }
+  if(player.fusion.allocatedStar.gt(0)) convertMatter(player.fusion.allocatedStar.mul(diffDecimal));
 
   //the order is very important.
+  gameCache.hasDeflated.invalidate();
+  gameCache.hasOverflowed.invalidate();
+  gameCache.matterAutobuyerCostScalingReductionByDeflation.invalidate();
   gameCache.upgradeEffectValue.overflow.forEach((v, i) => {
     v.invalidate();
   });

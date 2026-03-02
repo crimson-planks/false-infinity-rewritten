@@ -26,6 +26,8 @@ export interface Player {
     matterPoured: Decimal;
     unlocked: boolean;
     matterConverted: Decimal;
+    star: Decimal;
+    allocatedStar: Decimal;
     energy: Decimal;
     helium: Decimal;
   };
@@ -62,6 +64,8 @@ export function getDefaultPlayer(): Player {
       matterPoured: new Decimal(),
       unlocked: false,
       matterConverted: new Decimal(),
+      star: new Decimal(),
+      allocatedStar: new Decimal(),
       energy: new Decimal(),
       helium: new Decimal()
     },

@@ -15,7 +15,7 @@ export const CurrencyName={
   deflationPower: "DP",
   overflowPoint: "OP",
   helium: "He",
-  energy: "J"
+  energy: "eV"
 } as const satisfies {
   [key in CurrencyKind]: string;
 };
