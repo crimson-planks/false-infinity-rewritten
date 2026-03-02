@@ -17,6 +17,8 @@ export const NotationIdEnum = {
   default: 'default',
   scientific: 'scientific',
   logarithm: 'logarithm',
+  standard: 'standard',
+  mixedScientific: 'mixedScientific',
   inequality: 'inequality',
   binaryInequality: 'binaryInequality'
 } as const;
@@ -27,6 +29,8 @@ export const notationArray = [
   'default',
   'scientific',
   'logarithm',
+  'standard',
+  'mixedScientific',
   'inequality',
   'binaryInequality'
 ] as const satisfies NotationId[];
@@ -468,7 +472,7 @@ export function FormatMufano(value: DecimalSource): string {
   } else return 'pp';
 }
 function isInfinite(d: Decimal) {
-  return Decimal.gte(d, OVERFLOW);
+  return Decimal.gte(Decimal.abs(d), OVERFLOW);
 }
 const defaultNotationGlobals = [
   undefined,

@@ -12,6 +12,7 @@ import {
 import { autobuyerConstObj } from './autobuyer_const';
 import { gameCache } from './cache';
 import { getMatterAutobuyerCostScalingReductionByDeflation } from './prestige';
+import { getEnergyEffect } from './fusion';
 
 export function getAutobuyerCostScaling({kind, ord}: AutobuyerLocation): CostScaling {
   const ics = autobuyerConstObj[kind][ord].initialCostScaling;

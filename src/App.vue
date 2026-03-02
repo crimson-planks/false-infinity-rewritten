@@ -93,8 +93,8 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
           <input type="text" id="star-allocate-input" v-model="input.starAllocateAmount"><br>
           <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value)">Allocate {{ sanitizedInput.starAllocateAmount }} stars.</button>
           <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value.neg())">Allocate {{ sanitizedInput.starAllocateAmount.value.neg() }} stars.</button>
-          You have {{ ui.helium }}<br>
-          You have {{ ui.energy }}<br>
+          You have <span class="currency">{{ ui.helium }}</span> (helium)<br>
+          You have <span class="currency">{{ ui.energy }}</span> (energy), which multiplies the effect of deflation power by {{ ui.energyEffect }}<br>
         </div>
       </div>
     </div>

@@ -73,7 +73,7 @@ export const upgradeConstObj = {
       currency: CurrencyKindObj.overflowPoint,
       maxAmount: new Decimal(3),
       effectValueFunction: () => {
-        return player.upgrades.overflow[1].amount.pow_base(2);
+        return player.upgrades.overflow[1].amount.pow_base(3);
       }
     },
     {

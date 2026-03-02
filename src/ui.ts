@@ -40,7 +40,7 @@ import {
   getTranslatedDeflationPowerMultiplier
 } from './deflation_power';
 import Decimal from 'break_eternity.js';
-import { allocateStar, convertMatter, pourMatter } from './fusion';
+import { allocateStar, convertMatter, getEnergyEffect, pourMatter } from './fusion';
 import { type Ref } from '@vue/reactivity';
 export interface AutobuyerVisualData {
   loc: AutobuyerLocation;
@@ -91,6 +91,7 @@ export const notationGroups = [
   [NotationIdEnum.default],
   [NotationIdEnum.scientific],
   [NotationIdEnum.logarithm],
+  [NotationIdEnum.standard, NotationIdEnum.mixedScientific],
   [NotationIdEnum.inequality, NotationIdEnum.binaryInequality]
 ] as const;
 Object.freeze(notationGroups);
@@ -153,6 +154,8 @@ export const texts = {
       default: 'Default',
       scientific: 'Scientific',
       logarithm: 'Logarithm',
+      standard: 'Standard',
+      mixedScientific: 'Mixed Scientific',
       inequality: 'Inequality',
       binaryInequality: 'Binary Inequality'
     },
@@ -167,7 +170,7 @@ export const texts = {
           description: 'Increase the exponent of translated deflation power.'
         },
         {
-          description: 'Deflations give twice as many deflators.'
+          description: 'Deflations give *3 as many deflators.'
         },
         {
           description: 'Increase the effectiveness of buying an interval'
@@ -354,6 +357,7 @@ export const ui = ref({
   allocatedStar: '',
   helium: '',
   energy: '',
+  energyEffect: '',
   statistics: {
     timeOnDeflation: '',
     overflow: {
@@ -477,7 +481,7 @@ export function updateScreen() {
     formatValue(player.fusion.energy, player.notationId) +
     ' ' +
     CurrencyName[CurrencyKindObj.energy];
-
+  ui.value.energyEffect = formatValue(getEnergyEffect(),player.notationId);
   ui.value.tabs.overflow.visible = gameCache.hasOverflowed.cachedValue;
   ui.value.subtabs.autobuyer.matter.visible = !player.isOverflowing;
   ui.value.subtabs.autobuyer.deflation.visible = gameCache.hasDeflated.cachedValue && !player.isOverflowing;

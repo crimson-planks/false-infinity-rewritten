@@ -98,8 +98,6 @@ export const autobuyerConstObj = {
         baseCost: 1e10,
         baseIncrease: 10
       }),
-
-
     }
   ]
 } as const satisfies {
