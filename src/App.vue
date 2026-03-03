@@ -59,12 +59,16 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
         <button :class="{'button--can-buy': ui.canDeflationSacrifice, 'button--cannot-buy': !ui.canDeflationSacrifice}" @click="inputFunctions.ClickDeflationSacrificeButton">Set multiplier to {{ ui.translatedDeflationPowerMultiplierWhenSacrifice }} with deflation sacrifice</button>
         <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
       </div>
-      <div v-show="ui.isOverflowing">
+      <div v-show="ui.isOverflowing && (ui.subtabs.autobuyer.currentSubtab==='matter' || ui.subtabs.autobuyer.currentSubtab==='deflation')">
         The simulation has overflown due to an excess of matter.<br>
         <button class="o-prestige-button" @click="inputFunctions.ClickOverflowButton">Overflow</button>
       </div>
       <div v-show="ui.subtabs.autobuyer.currentSubtab==='overflow'" style="display: block">
         <Autobuyer :data="ui.autobuyers.matterAutobuyer[0]"></Autobuyer>
+        <Autobuyer :data="ui.autobuyers.matterAutobuyer[1]"></Autobuyer>
+        <Autobuyer :data="ui.autobuyers.matterAutobuyer[2]"></Autobuyer>
+        <Autobuyer :data="ui.autobuyers.matterAutobuyer[3]"></Autobuyer>
+        <Autobuyer :data="ui.autobuyers.matterAutobuyer[4]"></Autobuyer>
       </div>
     </div>
     <div v-show="ui.currentTab==='overflow'" style="display: block">

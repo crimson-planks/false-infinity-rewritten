@@ -1,0 +1,50 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+%SetFonts
+
+%SetFonts
+
+
+\title{}
+\author{}
+\date{2026/03/03}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+If $f(k)$ represents the cost of buying $1$ when $k$ are already bought, an geometric (exponential) cost scaling can be represented as:
+\[
+f(k) = ab^k
+\]
+In the code, $f(k)$ is equivalent to new ExponentialCostScaling().getCurrentCost(k).
+In the code, $a=$ this.baseCost, $b=$ this.baseIncrease, $m=$ currentAmount, $n=$ buyAmount.
+
+If m is already bought, the cost of buying n extra (C) can be represented as:
+\[
+C(m,n)=\sum_{k=m}^{m+n-1}f(k)
+=\dfrac{ab^m(b^n-1)}{b-1}
+\]
+\[C(m,n)(b-1)=ab^m(b^n-1)  (b\ne1)\]
+\[C(m,n)\cdot\frac{b-1}{ab^m}=b^n-1\]
+\[C(m,n)\cdot\frac{b-1}{ab^m}+1=b^n\]
+\[\log_b
+\left( C(m,n)\cdot\frac{b-1}{ab^m}+1 \right)
+=n\]
+If M stands for money,
+\[n=\left\lfloor
+\log_b\left( M \cdot \frac{b-1}{ab^m}+1 \right)
+\right\rfloor\]
+
+%\section{}
+%\subsection{}
+
+
+
+\end{document}  

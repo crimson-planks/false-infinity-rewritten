@@ -217,7 +217,7 @@ export const ui = ref({
   },
   subtabs: {
     autobuyer: {
-      currentSubtab: 'matter',
+      currentSubtab: 'matter' as SubtabName,
       matter: {
         visible: true
       },
@@ -229,7 +229,7 @@ export const ui = ref({
       }
     },
     overflow: {
-      currentSubtab: 'upgrades',
+      currentSubtab: 'upgrades' as SubtabName,
       upgrades: {
         visible: true
       },
@@ -238,13 +238,13 @@ export const ui = ref({
       }
     },
     option: {
-      currentSubtab: 'option',
+      currentSubtab: 'option' as SubtabName,
       option: {
         visible: true
       }
     },
     statistics: {
-      currentSubtab: 'general',
+      currentSubtab: 'general' as SubtabName,
       general: {
         visible: true
       }
@@ -312,7 +312,67 @@ export const ui = ref({
         canBuy: false,
         canBuyInterval: false,
         hasOption: true
-      }
+      },
+      {
+        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
+        ord: 1},
+        visible: true,
+        name: autobuyerConstObj.matterAutobuyer[1].name,
+        amount: '',
+        timer: '',
+        toggle: '',
+        interval: '',
+        cost: '',
+        intervalCost: '',
+        canBuy: false,
+        canBuyInterval: false,
+        hasOption: false
+      },
+      {
+        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
+        ord: 2},
+        visible: true,
+        name: autobuyerConstObj.matterAutobuyer[2].name,
+        amount: '',
+        timer: '',
+        toggle: '',
+        interval: '',
+        cost: '',
+        intervalCost: '',
+        canBuy: false,
+        canBuyInterval: false,
+        hasOption: false
+      },
+      {
+        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
+        ord: 3},
+        visible: true,
+        name: autobuyerConstObj.matterAutobuyer[3].name,
+        amount: '',
+        timer: '',
+        toggle: '',
+        interval: '',
+        cost: '',
+        intervalCost: '',
+        canBuy: false,
+        canBuyInterval: false,
+        hasOption: false
+      },
+      {
+        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
+        ord: 4},
+        visible: true,
+        name: autobuyerConstObj.matterAutobuyer[4].name,
+        amount: '',
+        timer: '',
+        toggle: '',
+        interval: '',
+        cost: '',
+        intervalCost: '',
+        canBuy: false,
+        canBuyInterval: false,
+        hasOption: false
+      },
     ]
   },
   upgrades: {
@@ -483,8 +543,8 @@ export function updateScreen() {
     CurrencyName[CurrencyKindObj.energy];
   ui.value.energyEffect = formatValue(getEnergyEffect(),player.notationId);
   ui.value.tabs.overflow.visible = gameCache.hasOverflowed.cachedValue;
-  ui.value.subtabs.autobuyer.matter.visible = !player.isOverflowing;
-  ui.value.subtabs.autobuyer.deflation.visible = gameCache.hasDeflated.cachedValue && !player.isOverflowing;
+  ui.value.subtabs.autobuyer.matter.visible = true;
+  ui.value.subtabs.autobuyer.deflation.visible = gameCache.hasDeflated.cachedValue;
   ui.value.subtabs.autobuyer.overflow.visible = gameCache.hasOverflowed.cachedValue;
 
   ui.value.statistics.timeOnDeflation = String(player.currentTime - player.lastDeflationTime);

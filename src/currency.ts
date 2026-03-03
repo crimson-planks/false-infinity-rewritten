@@ -1,5 +1,5 @@
 import type Decimal from 'break_eternity.js';
-import { player } from './player';
+import { player } from '@/player';
 export const CurrencyKindObj = {
   matter: 'matter',
   deflator: 'deflator',

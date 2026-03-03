@@ -115,6 +115,38 @@ export function getDefaultPlayer(): Player {
           intervalAmount: new Decimal(0),
           toggle: true,
           option: { selectedOrd: 0 }
+        },
+        {
+          kind: AutobuyerKindObj.MatterAutobuyer,
+          ord: 1,
+          amount: new Decimal(0),
+          timer: new Decimal(0),
+          intervalAmount: new Decimal(0),
+          toggle: true
+        },
+        {
+          kind: AutobuyerKindObj.MatterAutobuyer,
+          ord: 2,
+          amount: new Decimal(0),
+          timer: new Decimal(0),
+          intervalAmount: new Decimal(0),
+          toggle: true
+        },
+        {
+          kind: AutobuyerKindObj.MatterAutobuyer,
+          ord: 3,
+          amount: new Decimal(0),
+          timer: new Decimal(0),
+          intervalAmount: new Decimal(0),
+          toggle: true
+        },
+        {
+          kind: AutobuyerKindObj.MatterAutobuyer,
+          ord: 4,
+          amount: new Decimal(0),
+          timer: new Decimal(0),
+          intervalAmount: new Decimal(0),
+          toggle: true
         }
       ]
     },
@@ -172,7 +204,7 @@ export function getDefaultPlayer(): Player {
 export const player = getDefaultPlayer();
 export function setPlayer(obj: Partial<Player>) {
   Object.keys(obj).forEach((key) => {
-    //@ts-ignore
+    //@ts-ignore I'll put this until I can come up with a better algorithm
     player[key] = obj[key];
   });
 }

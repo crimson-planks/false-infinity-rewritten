@@ -62,8 +62,11 @@ function main(){
     ClickMaxMatterAutobuyerInterval();
   }
   for(let ak of AutobuyerKindArr){
-    if (ak == AutobuyerKindObj.Matter && player.isOverflowing) break;
-    player.autobuyers[ak].forEach((v, i)=>{AutobuyerTick({kind: ak, ord: i}, diffDecimal);})
+    if (player.isOverflowing && (ak == AutobuyerKindObj.Matter)) continue;
+    player.autobuyers[ak].forEach((v, i)=>{
+      if(player.isOverflowing && (ak == AutobuyerKindObj.MatterAutobuyer && (i==0 || i==1 || i==2 || i==3))) return;
+      AutobuyerTick({kind: ak, ord: i}, diffDecimal);
+    })
   }
   if(player.fusion.allocatedStar.gt(0)) convertMatter(player.fusion.allocatedStar.mul(diffDecimal));
 

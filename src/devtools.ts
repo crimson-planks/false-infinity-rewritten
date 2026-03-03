@@ -1,4 +1,4 @@
-import { getAutobuyerCostScaling, getIntervalCostScaling } from "./autobuyer";
+import { BuyMaxInterval, getAutobuyerCostScaling, getIntervalCostScaling } from "./autobuyer";
 import { BaseConvert, hyperscientifify, scientifify } from "eternal_notations";
 import { FormatMufano, inequality_core, Integer_BaseConvertToDigitArray, mufano_pStartValue, NonInteger_BaseConvertToDigitArray, notations } from "./notation";
 import { floorSlog10, floorSlog10_naive } from './decimal';
@@ -23,6 +23,7 @@ export const game_devTools={
   },
   getDefaultPlayer,
   setPlayer,
+  BuyMaxInterval,
   mergeObj_nocopy,
   LinearCostScaling,
   ExponentialCostScaling,

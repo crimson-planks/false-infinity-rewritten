@@ -40,7 +40,7 @@ export function getDeflatorGainOnDeflation(): Decimal{
   return player.deflation.add(1).mul(gameCache.upgradeEffectValue.overflow[1].cachedValue);
 }
 export function deflate(){
-  if(!canDeflate()) return;
+  if(!canDeflate() || player.isOverflowing) return;
   player.lastDeflationTime = Date.now();
   player.deflation = player.deflation.add(1);
   player.deflator = player.deflator.add(getDeflatorGainOnDeflation());

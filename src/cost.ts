@@ -78,7 +78,7 @@ export class ExponentialCostScaling extends CostScaling{
   }
   getAvailablePurchases(currentAmount: DecimalSource, money: DecimalSource): Decimal {
     money = new Decimal(money);
-    return money.mul(this.baseIncrease.add(1)).div(this.getCurrentCost(currentAmount)).add(1).log(this.baseIncrease);
+    return money.mul(this.baseIncrease.sub(1)).div(this.getCurrentCost(currentAmount)).add(1).log(this.baseIncrease);
   }
 }
 /** Costs that stay constant after any purchase. */
