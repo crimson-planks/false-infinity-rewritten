@@ -7,7 +7,7 @@ import {
   Notation,
   scientifify
 } from 'eternal_notations';
-import { OVERFLOW } from './prestige.js';
+import { getOverflowLimit, OVERFLOW } from './prestige.js';
 import { floorSlog10 } from './decimal.js';
 
 const NaNString = 'NaN';
@@ -472,7 +472,7 @@ export function FormatMufano(value: DecimalSource): string {
   } else return 'pp';
 }
 function isInfinite(d: Decimal) {
-  return Decimal.gte(Decimal.abs(d), OVERFLOW);
+  return Decimal.gt(Decimal.abs(d), getOverflowLimit());
 }
 const defaultNotationGlobals = [
   undefined,

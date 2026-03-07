@@ -2,6 +2,7 @@ import Decimal from "break_eternity.js";
 import { player } from "./player";
 import { gameCache } from "./cache";
 import { AutobuyerKindObj, getAutobuyerCostScaling } from "./autobuyer";
+import { autobuyerConstObj } from "./autobuyer_const";
 
 export function getPlayTime() {
   return player.currentTime - player.createdTime;
@@ -20,16 +21,18 @@ export function getMatterPerSecond() {
         player.autobuyers.matter[1].amount.mul(gameCache.autobuyerInterval.matter[1].cachedValue.recip())
       )
     );
-  const pama_selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd);
-  if (player.autobuyers.matterAutobuyer[0].toggle)
-    matterLost = matterLost.add(
-      getAutobuyerCostScaling({kind: AutobuyerKindObj.Matter, ord: pama_selectedOrd})
-        .getTotalCostAfterPurchase(
-          player.autobuyers.matter[pama_selectedOrd].amount,
-          player.autobuyers.matterAutobuyer[0].amount
-        )
-        .mul(gameCache.autobuyerInterval.matterAutobuyer[0].cachedValue.recip())
-    );
+  if (player.autobuyers.matterAutobuyer[0].toggle){
+    for(let i=0;i<autobuyerConstObj.matter.length;i++){
+      matterLost = matterLost.add(
+        getAutobuyerCostScaling({kind: AutobuyerKindObj.Matter, ord: i})
+          .getTotalCostAfterPurchase(
+            player.autobuyers.matter[i].amount,
+            player.autobuyers.matterAutobuyer[0].amount
+          )
+          .mul(gameCache.autobuyerInterval.matterAutobuyer[0].cachedValue.recip())
+      );
+    }
+  }
   if(player.fusion.allocatedStar.gt(0)) matterLost = matterLost.add(player.fusion.allocatedStar);
   result = matterGained.sub(matterLost);
   return result;

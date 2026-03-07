@@ -1,0 +1,5 @@
+Use multiplie tiers of seperators.
+Camel case is 1st tier
+one underscore(_) is 2nd tier
+two underscores(__) is 3rd tier
+...

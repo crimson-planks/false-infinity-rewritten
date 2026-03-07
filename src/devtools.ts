@@ -1,4 +1,4 @@
-import { BuyMaxInterval, getAutobuyerCostScaling, getIntervalCostScaling } from "./autobuyer";
+import { BuyMaxInterval, BuyPossibleAutobuyer, getAutobuyerCostScaling, getDeflationPowerAutobuyerIntervalDivideByDeflation, getIntervalCostScaling } from "./autobuyer";
 import { BaseConvert, hyperscientifify, scientifify } from "eternal_notations";
 import { FormatMufano, inequality_core, Integer_BaseConvertToDigitArray, mufano_pStartValue, NonInteger_BaseConvertToDigitArray, notations } from "./notation";
 import { floorSlog10, floorSlog10_naive } from './decimal';
@@ -6,6 +6,7 @@ import { fixSave, load, mergeObj_nocopy, save, toStringifiableObject, toUsableOb
 import { ExponentialCostScaling, LinearCostScaling } from "./cost";
 import { getDefaultPlayer, setPlayer } from "./player";
 import { displayError } from "./ui";
+import { canDeflate, deflate, getDeflatorGainScaling, getOverflowLimit, getPossibleDeflateAmount, overflow } from "./prestige";
 
 export const game_devTools={
   fixSave,
@@ -23,7 +24,15 @@ export const game_devTools={
   },
   getDefaultPlayer,
   setPlayer,
+  getDeflationPowerAutobuyerIntervalDivideByDeflation,
+  getOverflowLimit,
+  getDeflatorGainScaling,
+  BuyPossibleAutobuyer,
   BuyMaxInterval,
+  getPossibleDeflateAmount,
+  canDeflate,
+  deflate,
+  overflow,
   mergeObj_nocopy,
   LinearCostScaling,
   ExponentialCostScaling,

@@ -31,6 +31,12 @@ export interface Player {
     energy: Decimal;
     helium: Decimal;
   };
+  extendOverflow: {
+    currentLevel: Decimal;
+    matter: Decimal;
+    deflationPower: Decimal;
+    overflowPoint: Decimal;
+  }
   autobuyers: {
     matter: AutobuyerSaveData[];
     deflationPower: AutobuyerSaveData[];
@@ -68,6 +74,12 @@ export function getDefaultPlayer(): Player {
       allocatedStar: new Decimal(),
       energy: new Decimal(),
       helium: new Decimal()
+    },
+    extendOverflow: {
+      currentLevel: new Decimal(),
+      matter: new Decimal(),
+      deflationPower: new Decimal(),
+      overflowPoint: new Decimal()
     },
     autobuyers: {
       matter: [
@@ -113,8 +125,7 @@ export function getDefaultPlayer(): Player {
           amount: new Decimal(0),
           timer: new Decimal(0),
           intervalAmount: new Decimal(0),
-          toggle: true,
-          option: { selectedOrd: 0 }
+          toggle: true
         },
         {
           kind: AutobuyerKindObj.MatterAutobuyer,

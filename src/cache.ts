@@ -1,7 +1,7 @@
-import { getTranslatedDeflationPower } from "./deflation_power";
+import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getTranslatedDeflationPower } from "./deflation_power";
 import Decimal from "break_eternity.js";
-import { canDeflationSacrifice, getDeflationPowerBoostBySacrificedDeflationPower, getDeflationPowerBoostWhenSacrifice, getDeflatorGainOnDeflation, getMatterAutobuyerCostScalingReductionByDeflation, hasDeflated, hasOverflowed } from "./prestige";
-import { upgradeConstObj } from "./upgrade";
+import { getDeflatorGainOnDeflation, getMatterAutobuyerCostScalingReductionByDeflation, hasDeflated, hasOverflowed } from "./prestige";
+import { upgradeConstObj, type UpgradeKind } from "./upgrade";
 import { autobuyerConstObj } from "./autobuyer_const";
 import { type AutobuyerKind, getAutobuyerInterval } from "./autobuyer";
 
@@ -22,8 +22,30 @@ export class Lazy<Type>{
     return this._cachedValue ?? this.defaultValue
   }
 }
-//
-export const gameCache = {
+export function getUpgradeEffectValueCachedValue(kind: UpgradeKind, ord: number){
+  return gameCache_upgradeEffectValue[kind][ord].cachedValue;
+}
+export const gameCache_upgradeEffectValue = {
+   overflow: Array(upgradeConstObj.overflow.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, new Decimal(Decimal.dOne)))
+}
+export const gameCache: {
+  deflatorGainOnDeflation: Lazy<Decimal>;
+hasDeflated: Lazy<boolean>;
+hasOverflowed: Lazy<boolean>;
+matterAutobuyerCostScalingReductionByDeflation: Lazy<Decimal>;
+translatedDeflationPowerMultiplierBySacrificedDeflationPower: Lazy<Decimal>;
+translatedDeflationPowerMultiplierWhenSacrifice: Lazy<Decimal>;
+translatedDeflationPower: Lazy<Decimal>;
+canDeflationSacrifice: Lazy<boolean>;
+upgradeEffectValue: {
+  overflow: Lazy<Decimal>[];
+}
+autobuyerInterval: {
+  matter: Lazy<Decimal>[];
+  deflationPower: Lazy<Decimal>[];
+  matterAutobuyer: Lazy<Decimal>[];
+}
+} = {
   deflatorGainOnDeflation: new Lazy(getDeflatorGainOnDeflation, new Decimal(Decimal.dOne)),
   hasDeflated: new Lazy(hasDeflated, false),
   hasOverflowed: new Lazy(hasOverflowed, false),
@@ -32,9 +54,7 @@ export const gameCache = {
   translatedDeflationPowerMultiplierWhenSacrifice: new Lazy(getDeflationPowerBoostWhenSacrifice, new Decimal(Decimal.dOne)),
   translatedDeflationPower: new Lazy(getTranslatedDeflationPower, new Decimal(Decimal.dZero)),
   canDeflationSacrifice: new Lazy(canDeflationSacrifice, false),
-  upgradeEffectValue: {
-    overflow: Array(upgradeConstObj.overflow.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, new Decimal(Decimal.dOne)))
-  },
+  upgradeEffectValue: gameCache_upgradeEffectValue,
   autobuyerInterval: {
     matter: Array(autobuyerConstObj.matter.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval({kind: 'matter',ord: i}), new Decimal(Decimal.dOne))),
     deflationPower: Array(autobuyerConstObj.deflationPower.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval({kind: 'deflationPower',ord: i}), new Decimal(Decimal.dOne))),

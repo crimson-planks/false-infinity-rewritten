@@ -1,8 +1,7 @@
 import Decimal from "break_eternity.js";
-import { type CurrencyKind } from "./currency";
-import { CostScaling, LinearCostScaling, ExponentialCostScaling } from "./cost";
-import { CurrencyKindObj } from "./currency";
 import type { AutobuyerKind } from "./autobuyer";
+import { CostScaling, ExponentialCostScaling, LinearCostScaling } from "./cost";
+import { CurrencyKindObj, type CurrencyKind } from "./currency";
 export interface AutobuyerConstData {
   name: string;
 
@@ -13,6 +12,7 @@ export interface AutobuyerConstData {
   intervalCurrency: CurrencyKind;
   initialIntervalCostScaling: CostScaling;
 }
+
 export const autobuyerConstObj = {
   matter: [
     {
@@ -29,7 +29,8 @@ export const autobuyerConstObj = {
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 100,
         baseIncrease: 10
-      })
+      }),
+
     },
     {
       name: 'Autobuyer 1',
@@ -46,6 +47,7 @@ export const autobuyerConstObj = {
         baseCost: 1000,
         baseIncrease: 100
       }),
+
     },
     {
       name: 'Autobuyer 2',
@@ -97,7 +99,7 @@ export const autobuyerConstObj = {
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e10,
         baseIncrease: 2
-      })
+      }),
     },
     {
       name: 'Auto Deflator',
@@ -113,7 +115,8 @@ export const autobuyerConstObj = {
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e11,
         baseIncrease: 4
-      })
+      }),
+
     },
     {
       name: 'Auto Maxer',
@@ -129,10 +132,11 @@ export const autobuyerConstObj = {
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e9,
         baseIncrease: 2
-      })
+      }),
+
     },
     {
-      name: 'Deflation Power Autobuyer Autobuyer (Not Implemented)',
+      name: 'Deflation Power Autobuyer Autobuyer',
 
       currency: CurrencyKindObj.overflowPoint,
       initialCostScaling: new LinearCostScaling({
@@ -145,7 +149,8 @@ export const autobuyerConstObj = {
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 2e10,
         baseIncrease: 3
-      })
+      }),
+
     },
     {
       name: 'Auto Overflower',
@@ -161,10 +166,11 @@ export const autobuyerConstObj = {
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e12,
         baseIncrease: 5
-      })
+      }),
+
     }
   ]
 } as const satisfies {
   [key in AutobuyerKind]: AutobuyerConstData[];
 };
-Object.freeze(autobuyerConstObj)
+Object.freeze(autobuyerConstObj);

@@ -8,45 +8,30 @@ import App from './App.vue';
 import {
   AutobuyerKindArr,
   AutobuyerKindObj,
-  AutobuyerTick,
-  BuyInterval,
-  ClickMaxMatterAutobuyerInterval,
-  getAutobuyerCostScaling, getIntervalCostScaling
+  AutobuyerTick, ClickMaxMatterAutobuyerInterval
 } from './autobuyer';
 import { player } from './player';
-import { updateScreen, initInput, ui, input } from './ui';
+import { updateScreen, initInput, input } from './ui';
 import { gameCache } from './cache';
 import {
   load,
   save,
   fixSave
 } from './saveload';
-import { game_devTools } from './devtools';
-import { OVERFLOW } from './prestige';
-import { CurrencyKindObj, getCurrency } from './currency';
+import { getOverflowLimit, OVERFLOW } from './prestige';
 import { convertMatter, fusionUnlockRequiredMatter } from './fusion';
-
-declare global {
-  interface Window {
-    Decimal?: typeof Decimal;
-    player?: typeof player;
-    ui?: any;
-    game_devTools?: typeof game_devTools;
-  }
-}
-function loadToWindow() {
-  window.Decimal = Decimal;
-  window.player = player;
-  window.ui = ui;
-  window.game_devTools = game_devTools;
-}
+import { loadToWindow } from './shims';
 
 const app = createApp(App);
 load();
 fixSave();
 initInput();
 let autosaveTimer = 0;
-
+//TODO: fix player.
+function offlineProgressCheck(){
+  const diff = Date.now() - player.currentTime;
+  if(diff>10000) console.log(diff+" milliseconds");
+}
 function main(){
   const previousTime = player.currentTime;
   player.currentTime = Date.now();
@@ -62,7 +47,7 @@ function main(){
     ClickMaxMatterAutobuyerInterval();
   }
   for(let ak of AutobuyerKindArr){
-    if (player.isOverflowing && (ak == AutobuyerKindObj.Matter)) continue;
+    if (player.isOverflowing && (ak == AutobuyerKindObj.Matter || ak === AutobuyerKindObj.DeflationPower)) continue;
     player.autobuyers[ak].forEach((v, i)=>{
       if(player.isOverflowing && (ak == AutobuyerKindObj.MatterAutobuyer && (i==0 || i==1 || i==2 || i==3))) return;
       AutobuyerTick({kind: ak, ord: i}, diffDecimal);
@@ -87,9 +72,9 @@ function main(){
       v.invalidate();
     })
   }
-  if (player.matter.gte(OVERFLOW) && !player.isOverflowing) {
+  if (player.matter.gt(getOverflowLimit()) && !player.isOverflowing) {
     player.isOverflowing = true;
-    player.matter = OVERFLOW;
+    //player.matter = getOverflowLimit();
   }
   if (player.fusion.matterPoured.gte(fusionUnlockRequiredMatter) && !player.fusion.unlocked) {
     player.fusion.unlocked = true;

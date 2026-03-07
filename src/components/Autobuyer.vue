@@ -17,21 +17,13 @@ function ClickToggleButton(){
 const autobuyerSelectId = computed(()=>`autobuyer-${props.data.loc.kind}-${props.data.loc.ord}-select`)
 </script>
 <template>
-  <div class="c-autobuyer">
+  <div class="c-autobuyer" v-show="data.visible">
     <span class="c-autobuyer-name">{{ props.data.name }}</span>
     <span class="c-autobuyer-text">Amount: {{ props.data.amount }}</span>
     <button class="c-autobuyer-text" :class="{ 'button--can-buy': props.data.canBuy, 'button--cannot-buy': !props.data.canBuy}" @click="ClickBuyAutobuyerButton">Cost: {{ props.data.cost }}</button>
     <span class="c-autobuyer-text">Interval: {{ props.data.interval }}</span>
     <button class="c-autobuyer-text" :class="{ 'button--can-buy': props.data.canBuyInterval, 'button--cannot-buy': !props.data.canBuyInterval}" @click="ClickBuyIntervalButton">Interval Cost: {{ props.data.intervalCost }}</button>
     <span class="c-autobuyer-text">Timer: {{ props.data.timer }}</span>
-    <span v-show="props.data.hasOption">
-      <label :for="autobuyerSelectId">
-selectedOrd:
-    </label>
-    <select :id="autobuyerSelectId" v-model="input.autobuyerOption.matterAutobuyer[0].selectedOrd">
-      <option v-for="ordOption in autobuyerOptions.matterAutobuyer[0].selectedOrd">{{ ordOption }}</option>
-    </select>
-  </span>
     <button class="c-autobuyer-text" @click="ClickToggleButton()">Toggle: {{ props.data.toggle }}</button>
   </div>
 </template>

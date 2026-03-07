@@ -3,26 +3,25 @@ import Decimal from 'break_eternity.js';
 import { CostScaling, ExponentialCostScaling, LinearCostScaling } from './cost';
 import { player } from './player';
 import {
-  addCurrency,
-  type CurrencyKind,
-  CurrencyKindObj,
+  addCurrency, CurrencyKindObj,
   getCurrency,
   setCurrency
 } from './currency';
 import { autobuyerConstObj } from './autobuyer_const';
 import { gameCache } from './cache';
-import { deflate, getMatterAutobuyerCostScalingReductionByDeflation, overflow } from './prestige';
-import { getEnergyEffect } from './fusion';
+import { deflate, getMatterAutobuyerCostScalingReductionByDeflation, getPossibleDeflateAmount, overflow } from './prestige';
 
 export function getAutobuyerCostScaling({ kind, ord }: AutobuyerLocation): CostScaling {
   const ics = autobuyerConstObj[kind][ord].initialCostScaling;
-  if (kind === AutobuyerKindObj.Matter)
+  if (kind === AutobuyerKindObj.Matter){
+    if(!(ics instanceof LinearCostScaling)) return ics; //this should never happen
     return new LinearCostScaling({
       baseCost: ics.baseCost.sub(gameCache.translatedDeflationPower.cachedValue),
       baseIncrease: ics.baseIncrease.sub(getMatterAutobuyerCostScalingReductionByDeflation())
     });
-  if (kind === AutobuyerKindObj.DeflationPower) return ics;
-  if (kind === AutobuyerKindObj.MatterAutobuyer) return ics;
+  }
+  else if (kind === AutobuyerKindObj.DeflationPower) return ics;
+  else if (kind === AutobuyerKindObj.MatterAutobuyer) return ics;
   else {
     let leftover: never = kind;
     throw new TypeError(`invalid AutobuyerKind: ${kind}`);
@@ -32,6 +31,7 @@ export function getAutobuyerCostScaling({ kind, ord }: AutobuyerLocation): CostS
 export function getIntervalCostScaling({ kind, ord }: AutobuyerLocation) {
   const iics = autobuyerConstObj[kind][ord].initialIntervalCostScaling;
   if (kind === AutobuyerKindObj.Matter) {
+    if(!(iics instanceof ExponentialCostScaling)) return iics; //this should never happen
     const finalIntervalCostScaling = new ExponentialCostScaling({
       baseCost: iics.baseCost,
       baseIncrease: iics.baseIncrease
@@ -80,11 +80,30 @@ export interface AutobuyerLocation {
   kind: AutobuyerKind;
   ord: number;
 }
+export function isAutobuyerUnlocked(loc: AutobuyerLocation){
+  const {kind, ord} = loc;
+  if(kind=='matter'){
+    if(ord==0||ord==1) return true;
+    else if(ord==2) return gameCache.upgradeEffectValue.overflow[8].cachedValue.gt(0) ?? false;
+  }
+  else if(kind=='deflationPower'){
+    return gameCache.hasDeflated.cachedValue;
+  }
+  else if(kind=='matterAutobuyer'){
+    return gameCache.hasOverflowed.cachedValue;
+  }
+  else{
+    let leftover: never = kind;
+    throw TypeError(`Unknown AutobuyerKind: ${kind}`);
+    return false;
+  }
+}
 export function ToggleAutobuyer(loc: AutobuyerLocation) {
   const { kind, ord } = loc;
   player.autobuyers[kind][ord].toggle = !player.autobuyers[kind][ord].toggle;
 }
 export function BuyAutobuyer(loc: AutobuyerLocation, buyAmount: Decimal) {
+  if(!isAutobuyerUnlocked(loc)) return;
   const { kind, ord } = loc;
   const currency = autobuyerConstObj[kind][ord].currency;
   const cost = getAutobuyerCostScaling(loc).getTotalCostAfterPurchase(
@@ -95,7 +114,21 @@ export function BuyAutobuyer(loc: AutobuyerLocation, buyAmount: Decimal) {
   setCurrency(currency, getCurrency(currency).sub(cost));
   player.autobuyers[kind][ord].amount = player.autobuyers[kind][ord].amount.add(buyAmount);
 }
+/** Buys `buyAmount` if possible, if not possible, buys the maximum amount that can be bought.
+ */
+export function BuyPossibleAutobuyer(loc: AutobuyerLocation, buyAmount: Decimal) {
+  if(!isAutobuyerUnlocked(loc)) return;
+  const {kind, ord} = loc;
+  const currency = autobuyerConstObj[kind][ord].currency;
+  const acs = getAutobuyerCostScaling(loc);
+  const possibleMaxAmount = acs.getAvailablePurchases(player.autobuyers[kind][ord].amount, getCurrency(currency)).floor();
+  const actualBuyAmount = possibleMaxAmount.min(buyAmount);
+  const cost = acs.getTotalCostAfterPurchase(player.autobuyers[kind][ord].amount, actualBuyAmount);
+  setCurrency(currency, getCurrency(currency).sub(cost));
+  player.autobuyers[kind][ord].amount = player.autobuyers[kind][ord].amount.add(actualBuyAmount);
+}
 export function BuyInterval(loc: AutobuyerLocation, buyAmount: Decimal) {
+  if(!isAutobuyerUnlocked(loc)) return;
   const { kind, ord } = loc;
   const currency = autobuyerConstObj[kind][ord].intervalCurrency;
   const cost = getIntervalCostScaling({ kind, ord }).getTotalCostAfterPurchase(
@@ -108,6 +141,7 @@ export function BuyInterval(loc: AutobuyerLocation, buyAmount: Decimal) {
     player.autobuyers[kind][ord].intervalAmount.add(buyAmount);
 }
 export function BuyMaxInterval(loc: AutobuyerLocation) {
+  if(!isAutobuyerUnlocked(loc)) return;
   const { kind, ord } = loc;
   BuyInterval(
     loc,
@@ -121,14 +155,21 @@ export function BuyMaxInterval(loc: AutobuyerLocation) {
   );
 }
 export function ClickMaxMatterAutobuyerInterval() {
+  if(player.isOverflowing) return;
   for (let i = 0; i < autobuyerConstObj.matter.length; i++) {
     BuyMaxInterval({ kind: AutobuyerKindObj.Matter, ord: i });
   }
 }
-export function getIntervalMultiplierByBying({ kind, ord }: AutobuyerLocation) {
-  if (kind === AutobuyerKindObj.Matter || kind === AutobuyerKindObj.DeflationPower)
+export function getIntervalMultiplierByBying(loc: AutobuyerLocation) {
+  const {kind, ord} = loc;
+  if (kind === AutobuyerKindObj.Matter)
     return new Decimal(2).add(gameCache.upgradeEffectValue.overflow[2].cachedValue).recip();
   return new Decimal(0.5);
+}
+export function getDeflationPowerAutobuyerIntervalDivideByDeflation(){
+  return player.deflation
+        .add(1)
+        .pow(new Decimal(1).add(gameCache.upgradeEffectValue.overflow[4].cachedValue));
 }
 export function getAutobuyerInterval(loc: AutobuyerLocation) {
   const { kind, ord } = loc;
@@ -137,13 +178,12 @@ export function getAutobuyerInterval(loc: AutobuyerLocation) {
   );
   if (kind === AutobuyerKindObj.DeflationPower) {
     interval = interval.div(
-      player.deflation
-        .add(1)
-        .mul(Decimal.dOne.add(gameCache.upgradeEffectValue.overflow[4].cachedValue))
+      getDeflationPowerAutobuyerIntervalDivideByDeflation()
     );
   }
   return interval;
 }
+
 export function AutobuyerTick(loc: AutobuyerLocation, timeS: Decimal) {
   const { kind, ord } = loc;
   if (!player.autobuyers[kind][ord].toggle || player.autobuyers[kind][ord].amount.eq(0)) return;
@@ -178,34 +218,45 @@ export function AutobuyerTick(loc: AutobuyerLocation, timeS: Decimal) {
       );
     }
   } else if (kind === AutobuyerKindObj.MatterAutobuyer) {
-    const selectedOrd = Number(player.autobuyers.matterAutobuyer[0].option?.selectedOrd);
-    if (ord === 0)
-      BuyAutobuyer(
-        { kind: AutobuyerKindObj.Matter, ord: selectedOrd },
-        activationAmount
-          .mul(player.autobuyers[kind][ord].amount)
-          .min(
-            getAutobuyerCostScaling({ kind: AutobuyerKindObj.Matter, ord: selectedOrd })
-              .getAvailablePurchases(
-                player.autobuyers[AutobuyerKindObj.Matter][selectedOrd].amount,
-                player.matter
-              )
-              .max(0)
-              .floor()
-          )
-      );
+    if (ord === 0){
+      const l = player.autobuyers.matter.length;
+      for(let i=0;i<l;i++){
+        BuyAutobuyer(
+          { kind: AutobuyerKindObj.Matter, ord: i },
+          activationAmount
+            .mul(player.autobuyers[kind][ord].amount)
+            .min(
+              getAutobuyerCostScaling({ kind: AutobuyerKindObj.Matter, ord: i })
+                .getAvailablePurchases(
+                  player.autobuyers[AutobuyerKindObj.Matter][i].amount,
+                  player.matter
+                )
+                .max(0)
+                .floor()
+            )
+        );
+      }
+    }
     if (ord === 1) {
-      deflate();
+      deflate(activationAmount.mul(player.autobuyers[kind][ord].amount).min(getPossibleDeflateAmount()));
     }
     if (ord === 2) {
-      for (let i = 0; i < autobuyerConstObj.matter.length; i++) {
+      const ml = autobuyerConstObj.matter.length;
+      for (let i = 0; i < ml; i++) {
         BuyMaxInterval({ kind: AutobuyerKindObj.Matter, ord: i });
       }
-      for (let i = 0; i < autobuyerConstObj.deflationPower.length; i++) {
+      const dl = autobuyerConstObj.deflationPower.length;
+      for (let i = 0; i < dl; i++) {
         BuyMaxInterval({ kind: AutobuyerKindObj.DeflationPower, ord: i });
       }
     }
     if (ord === 3) {
+      const l = autobuyerConstObj.deflationPower.length;
+      for(let i=0; i<l; i++){
+        BuyPossibleAutobuyer({ kind: AutobuyerKindObj.DeflationPower, ord: i},
+          activationAmount.mul(player.autobuyers[kind][ord].amount)
+        );
+      }
     }
     if (ord === 4) {
       overflow();

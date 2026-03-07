@@ -1,10 +1,14 @@
 import { gameCache } from "./cache";
-import { ExponentialCostScaling } from "./cost";
+import { ExponentialCostScaling, LinearCostScaling } from "./cost";
 import Decimal from 'break_eternity.js';
 import { getDefaultPlayer, player } from "./player";
 import { getCurrency, setCurrency } from "./currency";
+import { getOverflowPointMultiplierByExtension, getTotalOverflowExtension } from "./extend_overflow";
 
 export const OVERFLOW = new Decimal(2_147_483_647) //new Decimal(2).pow(31).sub(1)
+export function getOverflowLimit(){
+  return new Decimal(2).pow(player.extendOverflow.currentLevel.add(31)).sub(1);
+}
 export function resetAutobuyers(){
   player.autobuyers.matter = getDefaultPlayer().autobuyers.matter;
 }
@@ -15,10 +19,20 @@ export const deflationCostScaling = new ExponentialCostScaling({
   baseCost:new Decimal(1000),
   baseIncrease:new Decimal(10)
 })
+export const deflatorGainScaling = new LinearCostScaling({
+  baseCost: 1,
+  baseIncrease: 1
+})
 export const starCostScaling = new ExponentialCostScaling({
   baseCost: new Decimal(1e9),
   baseIncrease: 10
 })
+export function getDeflatorGainScaling(){
+  return new LinearCostScaling({
+    baseCost: deflatorGainScaling.baseCost.mul(new Decimal(1).add(gameCache.upgradeEffectValue.overflow[1].cachedValue)),
+    baseIncrease: deflatorGainScaling.baseIncrease.mul(new Decimal(1).add(gameCache.upgradeEffectValue.overflow[1].cachedValue))
+  })
+}
 export function getStarCost(){
   return starCostScaling.getCurrentCost(player.fusion.star);
 }
@@ -26,24 +40,30 @@ export function getMatterAutobuyerCostScalingReductionByDeflation(){
   return player.deflation.min(4);
 }
 export function BuyStar(){
+  if(player.isOverflowing) return;
   if(!starCostScaling.canBuy(player.fusion.star, Decimal.dOne, getCurrency('matter'))) return;
   setCurrency('matter', getCurrency('matter').sub(getStarCost()));
   player.fusion.star = player.fusion.star.add(1);
 }
-export function canDeflate(){
-  return player.matter.gte(deflationCostScaling.getCurrentCost(player.deflation))
+export function getPossibleDeflateAmount(){
+  return deflationCostScaling.getAvailablePurchases(player.deflation, player.matter).floor();
+}
+export function canDeflate(bulk = new Decimal(1)){
+  return player.matter.gte(deflationCostScaling.getCurrentCost(player.deflation.add(bulk).sub(1)))
 }
 export function canOverflow(){
-  return player.matter.gte(OVERFLOW) || player.isOverflowing;
+  return player.matter.gte(getOverflowLimit()) || player.isOverflowing;
 }
-export function getDeflatorGainOnDeflation(): Decimal{
-  return player.deflation.add(1).mul(gameCache.upgradeEffectValue.overflow[1].cachedValue);
+export function getDeflatorGainOnDeflation(bulk = new Decimal(1)): Decimal{
+  return getDeflatorGainScaling().getTotalCostAfterPurchase(player.deflation, bulk);
 }
-export function deflate(){
-  if(!canDeflate() || player.isOverflowing) return;
+export function deflate(bulk = new Decimal(1)){
+  if(bulk.lt(1)) return;
+  if(!canDeflate(bulk) || player.isOverflowing) return;
+  console.log("deflate")
   player.lastDeflationTime = Date.now();
-  player.deflation = player.deflation.add(1);
-  player.deflator = player.deflator.add(getDeflatorGainOnDeflation());
+  player.deflator = player.deflator.add(getDeflatorGainOnDeflation(bulk));
+  player.deflation = player.deflation.add(bulk);
 
   resetAutobuyers();
   player.matter = getStartMatter();
@@ -52,27 +72,11 @@ export function deflate(){
 export function hasDeflated(){
   return player.deflation.gt(0);
 }
-export function getSacrificeDeflationPowerToDeflationPowerBoost(deflationPower: Decimal){
-  return deflationPower.sqr().add(1).log10().div(6).max(1)
-}
-export function getDeflationPowerBoostWhenSacrifice(){
-  return getSacrificeDeflationPowerToDeflationPowerBoost(player.deflationPower)
-}
-export function getDeflationPowerBoostBySacrificedDeflationPower(){
-  return getSacrificeDeflationPowerToDeflationPowerBoost(player.previousSacrificeDeflationPower)
-}
-export function canDeflationSacrifice(): boolean{
-  return gameCache.translatedDeflationPowerMultiplierWhenSacrifice.cachedValue.gt(gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.cachedValue) &&
-   player.deflationPower.gt(player.previousSacrificeDeflationPower)
-}
-export function deflationSacrifice(){
-  if(!canDeflationSacrifice()) return;
-  player.previousSacrificeDeflationPower=player.deflationPower;
-  player.deflationPower=new Decimal();
-}
+
 export function getOverflowPointGain(){
   let finalGain = new Decimal(1)
-  if(player.upgrades.overflow[5].amount.gt(0)) finalGain = finalGain.add(gameCache.upgradeEffectValue.overflow[5].cachedValue.floor()).mul(gameCache.upgradeEffectValue.overflow[6].cachedValue)
+  if(player.upgrades.overflow[5].amount.gt(0)) finalGain = finalGain.add(gameCache.upgradeEffectValue.overflow[5].cachedValue.floor()).mul(gameCache.upgradeEffectValue.overflow[6].cachedValue);
+  if(player.extendOverflow.currentLevel.gt(0)){ finalGain = finalGain.mul(getOverflowPointMultiplierByExtension())}
   return finalGain
 }
 export function hasOverflowed(){

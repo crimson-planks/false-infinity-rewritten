@@ -34,7 +34,7 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
         <SubtabButton tab="autobuyer" subtab="deflation" :data="ui.subtabs.autobuyer.deflation"/>
         <SubtabButton tab="autobuyer" subtab="overflow" :data="ui.subtabs.autobuyer.overflow"/>
       </div>
-      <div v-show="ui.subtabs.autobuyer.currentSubtab==='matter' && !ui.isOverflowing" style="display: block">
+      <div v-show="ui.subtabs.autobuyer.currentSubtab==='matter' && ui.subtabs.autobuyer.matter.visible && !ui.isOverflowing" style="display: block">
         <button class="o-gain-currency-button" @click="inputFunctions.ClickMatterButton">Click to get matter</button>
         <div>
           <p v-show="ui.hasDeflated">By deflating, the cost scaling of matter autobuyers has been decreased by {{ ui.matterAutobuyerCostScalingReductionByDeflation }}.</p>
@@ -47,16 +47,20 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
           </button>
           <Autobuyer :data="ui.autobuyers.matter[0]" />
           <Autobuyer :data="ui.autobuyers.matter[1]" />
+          <Autobuyer :data="ui.autobuyers.matter[2]" />
         </div>
         <DeflationButton :deflatorGainOnDeflation="ui.deflatorGainOnDeflation" :deflationCost="ui.deflationCost" :canBuy="ui.canDeflate" />
       </div>
-      <div v-show="ui.subtabs.autobuyer.currentSubtab==='deflation' && !ui.isOverflowing" style="display: block">
-        You have <span class="currency">{{ ui.deflationPower }}</span> deflation power, which when ^{{ ui.translatedDeflationPowerExponent }} and *{{ ui.translatedDeflationPowerMultiplier }}, translates to the reduction of the cost of matter autobuyers by {{ ui.translatedDeflationPower }}.<br>
+      <div v-show="ui.subtabs.autobuyer.currentSubtab==='deflation' && ui.subtabs.autobuyer.deflation.visible && !ui.isOverflowing" style="display: block">
+        You have <span class="currency">{{ ui.deflationPower }}</span> deflation power,<br>
+        which when ^{{ ui.translatedDeflationPowerExponent }} and *{{ ui.translatedDeflationPowerMultiplier }},<br>
+        translates to the reduction of the cost of matter autobuyers by {{ ui.translatedDeflationPower }}.<br>
         <button class="o-gain-currency-button" @click="inputFunctions.ClickDeflationPowerButton">Click to get deflation power</button><br></br>
         Deflator: {{ ui.deflator }}<br><br>
         Deflation Power on previous sacrifice: {{ ui.previousSacrificeDeflationPower }}<br>
         Current Translated Deflation Power Multiplier by Sacrifice: {{ ui.translatedDeflationPowerMultiplierBySacrificedDeflationPower }}<br>
-        <button :class="{'button--can-buy': ui.canDeflationSacrifice, 'button--cannot-buy': !ui.canDeflationSacrifice}" @click="inputFunctions.ClickDeflationSacrificeButton">Set multiplier to {{ ui.translatedDeflationPowerMultiplierWhenSacrifice }} with deflation sacrifice</button>
+        <button :class="{'button--can-buy': ui.canDeflationSacrifice, 'button--cannot-buy': !ui.canDeflationSacrifice}" @click="inputFunctions.ClickDeflationSacrificeButton">Set multiplier to {{ ui.translatedDeflationPowerMultiplierWhenSacrifice }} with deflation sacrifice</button><br>
+        Based on your deflation amount, your deflation power autobuyer interval is divided by {{ ui.deflationPowerAutobuyerIntervalDivideByDeflation }}
         <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
       </div>
       <div v-show="ui.isOverflowing && (ui.subtabs.autobuyer.currentSubtab==='matter' || ui.subtabs.autobuyer.currentSubtab==='deflation')">
@@ -75,6 +79,7 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
       <div class="o-subtab-bar">
         <SubtabButton tab="overflow" subtab="upgrades" :data="ui.subtabs.overflow.upgrades"></SubtabButton>
         <SubtabButton tab="overflow" subtab="fusion" :data="ui.subtabs.overflow.fusion"></SubtabButton>
+        <SubtabButton tab="overflow" subtab="extend" :data="ui.subtabs.overflow.extend"></SubtabButton>
       </div>
       You have <span class="currency">{{ ui.overflowPoint }}</span> Overflow points.
       <div v-show="ui.subtabs.overflow.currentSubtab==='upgrades'" style="display: block;">
@@ -92,14 +97,26 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
         <div v-show="ui.fusionUnlocked">
           <p>Fusion is Unlocked.</p>
           You have <span class="currency">{{ ui.star }}</span> stars.
-          <button @click="inputFunctions.BuyStar" :class="getBuyableClassBinding(ui.canBuyStar)">Buy a star. Cost: {{ ui.starCost }}</button>
+          <button @click="inputFunctions.BuyStar" :class="getBuyableClassBinding(ui.canBuyStar)">Buy a star. Cost: {{ ui.starCost }}</button><br>
           You allocated {{ ui.allocatedStar }} stars.<br>
           <input type="text" id="star-allocate-input" v-model="input.starAllocateAmount"><br>
           <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value)">Allocate {{ sanitizedInput.starAllocateAmount }} stars.</button>
-          <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value.neg())">Allocate {{ sanitizedInput.starAllocateAmount.value.neg() }} stars.</button>
+          <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value.neg())">Allocate {{ sanitizedInput.starAllocateAmount.value.neg() }} stars.</button><br>
           You have <span class="currency">{{ ui.helium }}</span> (helium)<br>
-          You have <span class="currency">{{ ui.energy }}</span> (energy), which multiplies the effect of deflation power by {{ ui.energyEffect }}<br>
+          You have <span class="currency">{{ ui.energy }}</span> (energy), which powers the multiplier to translated deflation power by sacrificed deflation power by ^{{ ui.energyEffect }}<br>
         </div>
+      </div>
+      <div v-show="ui.subtabs.overflow.currentSubtab=='extend'">
+        You can extend the overflow limit.<br>
+        You can extend up to a maximum of {{ ui.extendOverflowTotalAmount }}.<br>
+        Your current extension level is <span class="currency">{{ ui.extendOverflowLevel }}</span>.<br>
+        Your current overflow limit is <span class="currency">{{ ui.overflowLimit }}</span>.<br>
+        Your overflow point gain is multiplied by <span class="currency">{{ ui.overflowPointMultiplierByExtension }}</span>.<br>
+        <input type="range" id="overflow-extension-range" name="overflow-extension-range" min="0" :max="ui.htmlAttributes.overflowExtensionRange_max" :disabled="ui.isOverflowing" v-model="input.OverflowExtensionLevel">
+        <br>
+        <button @click="inputFunctions.BuyExtendOverflow('matter')" :class="getBuyableClassBinding(ui.extendOverflow.matter.canBuy)">Extend by spending {{ ui.extendOverflow.matter.cost }} matter</button>
+        <button @click="inputFunctions.BuyExtendOverflow('deflationPower')" :class="getBuyableClassBinding(ui.extendOverflow.deflationPower.canBuy)">Extend by spending {{ ui.extendOverflow.deflationPower.cost }} deflation power</button>
+        <button @click="inputFunctions.BuyExtendOverflow('overflowPoint')" :class="getBuyableClassBinding(ui.extendOverflow.overflowPoint.canBuy)">Extend by spending {{ ui.extendOverflow.overflowPoint.cost }} overflow points</button>
       </div>
     </div>
   <div v-show="ui.currentTab==='option'" style="display: block">
@@ -186,6 +203,10 @@ button,p,span{
 }
 .o-gain-currency-button:hover{
   background-color: tomato;
+}
+#overflow-extension-range{
+  min-width:200px;
+  width: 50%;
 }
 #notation-select-window{
   border: 2px solid black;

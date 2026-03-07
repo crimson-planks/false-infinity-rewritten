@@ -23,5 +23,5 @@ export function allocateStar(amount: Decimal){
   player.fusion.allocatedStar = player.fusion.allocatedStar.add(actualAmount);
 }
 export function getEnergyEffect(){
-  return player.fusion.energy.max(0).cbrt().add(1)
+  return player.fusion.energy.add(1).max(1).log10().add(1)
 }

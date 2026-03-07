@@ -25,7 +25,10 @@ interface CurrencyConstData{
   name: string
 };
 const currencyConstObj = {}
-
+export function canSetCurrency(currency: CurrencyKind){
+  if(currency==='matter' && player.isOverflowing) return false;
+  else return true;
+}
 export function setCurrency(currency: CurrencyKind, v: Decimal) {
   switch (currency) {
     case CurrencyKindObj.matter:

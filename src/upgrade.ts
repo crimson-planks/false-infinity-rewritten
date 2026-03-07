@@ -55,10 +55,10 @@ export const upgradeConstObj = {
       ord: 0,
       initialCostScaling: new ExponentialCostScaling({
         baseCost: new Decimal(1),
-        baseIncrease: new Decimal(10)
+        baseIncrease: new Decimal(100)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(4),
+      maxAmount: new Decimal(3),
       effectValueFunction: () => {
         return player.upgrades.overflow[0].amount.mul(0.125);
       }
@@ -73,7 +73,7 @@ export const upgradeConstObj = {
       currency: CurrencyKindObj.overflowPoint,
       maxAmount: new Decimal(3),
       effectValueFunction: () => {
-        return player.upgrades.overflow[1].amount.pow_base(3);
+        return player.upgrades.overflow[1].amount;
       }
     },
     {
@@ -81,12 +81,12 @@ export const upgradeConstObj = {
       ord: 2,
       initialCostScaling: new ExponentialCostScaling({
         baseCost: new Decimal(1),
-        baseIncrease: new Decimal(2)
+        baseIncrease: new Decimal(16)
       }),
       currency: CurrencyKindObj.overflowPoint,
       maxAmount: new Decimal(8),
       effectValueFunction: () => {
-        return player.upgrades.overflow[2].amount.mul(0.125);
+        return player.upgrades.overflow[2].amount.mul(0.0625);
       }
     },
     {
@@ -107,12 +107,12 @@ export const upgradeConstObj = {
       ord: 4,
       initialCostScaling: new ExponentialCostScaling({
         baseCost: new Decimal(1),
-        baseIncrease: new Decimal(2)
+        baseIncrease: new Decimal(10)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(3),
+      maxAmount: new Decimal(8),
       effectValueFunction: () => {
-        return player.upgrades.overflow[4].amount;
+        return player.upgrades.overflow[4].amount.mul(0.125);
       }
     },
     {
@@ -126,7 +126,7 @@ export const upgradeConstObj = {
       maxAmount: Decimal.dOne,
       effectValueFunction: () => {
         if (player.fastestOverflowTime == undefined) return Decimal.dZero;
-        return new Decimal(1000).div(new Decimal(player.fastestOverflowTime / 2000).max(1));
+        return new Decimal(1000).div(new Decimal(player.fastestOverflowTime / 2000).max(0.001));
       }
     },
     {

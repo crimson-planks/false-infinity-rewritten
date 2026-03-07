@@ -1,47 +1,50 @@
 /** @prettier */
-import { computed, ref, watch } from 'vue';
-import { player } from './player';
 import { formatValue, NotationIdEnum, type NotationId } from '@/notation';
-import { autobuyerConstObj } from './autobuyer_const';
+import { type Ref } from '@vue/reactivity';
+import Decimal from 'break_eternity.js';
+import { computed, ref, watch } from 'vue';
 import {
-  getAutobuyerCostScaling,
-  type AutobuyerKind,
-  AutobuyerKindObj,
-  getIntervalCostScaling,
-  getAutobuyerInterval,
   AutobuyerKindArr,
-  type AutobuyerSaveData,
+  AutobuyerKindObj,
   ClickMaxMatterAutobuyerInterval,
-  type AutobuyerLocation
+  getAutobuyerCostScaling,
+  getAutobuyerInterval,
+  getDeflationPowerAutobuyerIntervalDivideByDeflation,
+  getIntervalCostScaling,
+  isAutobuyerUnlocked,
+  type AutobuyerLocation,
+  type AutobuyerSaveData
 } from './autobuyer';
+import { autobuyerConstObj } from './autobuyer_const';
+import { gameCache } from './cache';
+import { addCurrency, CurrencyKindObj, CurrencyName, getCurrency } from './currency';
+import {
+  deflationSacrifice,
+  getTranslatedDeflationPowerExponent,
+  getTranslatedDeflationPowerMultiplier
+} from './deflation_power';
+import { allocateStar, convertMatter, getEnergyEffect, pourMatter } from './fusion';
+import { getMatterPerSecond, getPlayTime } from './game';
+import { player } from './player';
 import {
   BuyStar,
   canDeflate,
   deflationCostScaling,
-  deflationSacrifice,
   getDeflatorGainOnDeflation,
+  getOverflowLimit,
   getStarCost,
   overflow,
   starCostScaling
 } from './prestige';
-import { gameCache } from './cache';
-import { addCurrency, CurrencyKindObj, CurrencyName, getCurrency } from './currency';
-import { getMatterPerSecond, getPlayTime } from './game';
 import {
   getUpgradeCostScaling,
   upgradeConstObj,
   upgradeCurrency,
-  type UpgradeKind,
   UpgradeKindArr,
-  UpgradeKindObj
+  UpgradeKindObj,
+  type UpgradeKind
 } from './upgrade';
-import {
-  getTranslatedDeflationPowerExponent,
-  getTranslatedDeflationPowerMultiplier
-} from './deflation_power';
-import Decimal from 'break_eternity.js';
-import { allocateStar, convertMatter, getEnergyEffect, pourMatter } from './fusion';
-import { type Ref } from '@vue/reactivity';
+import { buyExtendOverflow, getExtendOverflowCost, getOverflowPointMultiplierByExtension, getTotalOverflowExtension, IsExtendOverflowUnlocked, type extendOverflowCurrency } from './extend_overflow';
 export interface AutobuyerVisualData {
   loc: AutobuyerLocation;
   visible: boolean;
@@ -54,11 +57,10 @@ export interface AutobuyerVisualData {
   intervalCost: string;
   canBuy: boolean;
   canBuyInterval: boolean;
-  hasOption: boolean;
 }
-export function getDefaultAutobuyerVisualData(ad: AutobuyerSaveData): AutobuyerVisualData {
+export function getDefaultAutobuyerVisualData(ad: AutobuyerLocation): AutobuyerVisualData {
   return {
-    loc: {kind: ad.kind, ord: ad.ord},
+    loc: { kind: ad.kind, ord: ad.ord },
     visible: true,
     name: autobuyerConstObj[ad.kind][ad.ord].name,
     amount: '',
@@ -69,7 +71,6 @@ export function getDefaultAutobuyerVisualData(ad: AutobuyerSaveData): AutobuyerV
     intervalCost: '',
     canBuy: false,
     canBuyInterval: false,
-    hasOption: false
   };
 }
 export interface UpgradeVisualData {
@@ -86,7 +87,7 @@ export const autobuyerOptions = {
   matterAutobuyer: [{ selectedOrd: [0, 1] }]
 } as const;
 export type TabName = 'autobuyer' | 'overflow' | 'option' | 'statistics';
-export type SubtabName = 'matter' | 'deflation' | 'overflow' | 'upgrades' | 'fusion' | 'general';
+export type SubtabName = 'matter' | 'deflation' | 'overflow' | 'upgrades' | 'fusion' | 'extend' | 'general';
 export const notationGroups = [
   [NotationIdEnum.default],
   [NotationIdEnum.scientific],
@@ -127,6 +128,9 @@ export const tabs: {
       },
       fusion: {
         name: 'Fusion'
+      },
+      extend: {
+        name: 'Extend'
       }
     }
   },
@@ -170,7 +174,7 @@ export const texts = {
           description: 'Increase the exponent of translated deflation power.'
         },
         {
-          description: 'Deflations give *3 as many deflators.'
+          description: 'Deflations give more deflators.'
         },
         {
           description: 'Increase the effectiveness of buying an interval'
@@ -180,7 +184,7 @@ export const texts = {
         },
         {
           description:
-            'Increase the effectiveness of deflations for deflation power autoclicker multiplier'
+            'Increase the exponent of deflations for deflation power autoclicker multiplier'
         },
         {
           description: 'Get more overflow points based on fastest overflow time'
@@ -235,6 +239,9 @@ export const ui = ref({
       },
       fusion: {
         visible: true
+      },
+      extend: {
+        visible: false
       }
     },
     option: {
@@ -261,119 +268,13 @@ export const ui = ref({
   autobuyers: {
     matter: Array(autobuyerConstObj.matter.length)
       .fill(0)
-      .map((v, i) => {
-        return {
-          loc: {kind: AutobuyerKindObj.Matter,
-          ord: i},
-          visible: false,
-          name: autobuyerConstObj.matter[i].name,
-          amount: '',
-          timer: '',
-          toggle: '',
-          interval: '',
-          cost: '',
-          intervalCost: '',
-          canBuy: false,
-          canBuyInterval: false,
-          hasOption: false
-        };
-      }),
+      .map((v, i) => getDefaultAutobuyerVisualData({kind: AutobuyerKindObj.Matter, ord: i})),
     deflationPower: Array(autobuyerConstObj.deflationPower.length)
       .fill(0)
-      .map((v, i) => {
-        return {
-          loc: {kind: AutobuyerKindObj.DeflationPower,
-          ord: i},
-          visible: true,
-          name: autobuyerConstObj.deflationPower[i].name,
-          amount: '',
-          timer: '',
-          toggle: '',
-          interval: '',
-          cost: '',
-          intervalCost: '',
-          canBuy: false,
-          canBuyInterval: false,
-          hasOption: false
-        };
-      }),
-    matterAutobuyer: [
-      {
-        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
-        ord: 0},
-        visible: true,
-        name: autobuyerConstObj.matterAutobuyer[0].name,
-        amount: '',
-        timer: '',
-        toggle: '',
-        interval: '',
-        cost: '',
-        intervalCost: '',
-        canBuy: false,
-        canBuyInterval: false,
-        hasOption: true
-      },
-      {
-        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
-        ord: 1},
-        visible: true,
-        name: autobuyerConstObj.matterAutobuyer[1].name,
-        amount: '',
-        timer: '',
-        toggle: '',
-        interval: '',
-        cost: '',
-        intervalCost: '',
-        canBuy: false,
-        canBuyInterval: false,
-        hasOption: false
-      },
-      {
-        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
-        ord: 2},
-        visible: true,
-        name: autobuyerConstObj.matterAutobuyer[2].name,
-        amount: '',
-        timer: '',
-        toggle: '',
-        interval: '',
-        cost: '',
-        intervalCost: '',
-        canBuy: false,
-        canBuyInterval: false,
-        hasOption: false
-      },
-      {
-        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
-        ord: 3},
-        visible: true,
-        name: autobuyerConstObj.matterAutobuyer[3].name,
-        amount: '',
-        timer: '',
-        toggle: '',
-        interval: '',
-        cost: '',
-        intervalCost: '',
-        canBuy: false,
-        canBuyInterval: false,
-        hasOption: false
-      },
-      {
-        loc: {kind: AutobuyerKindObj.MatterAutobuyer,
-        ord: 4},
-        visible: true,
-        name: autobuyerConstObj.matterAutobuyer[4].name,
-        amount: '',
-        timer: '',
-        toggle: '',
-        interval: '',
-        cost: '',
-        intervalCost: '',
-        canBuy: false,
-        canBuyInterval: false,
-        hasOption: false
-      },
-    ]
+      .map((v, i) => getDefaultAutobuyerVisualData({kind: AutobuyerKindObj.DeflationPower, ord: i})),
+    matterAutobuyer: Array(autobuyerConstObj.matterAutobuyer.length)
+      .fill(0)
+      .map((v, i) => getDefaultAutobuyerVisualData({kind: AutobuyerKindObj.MatterAutobuyer, ord: i}))
   },
   upgrades: {
     overflow: Array(upgradeConstObj.overflow.length)
@@ -391,6 +292,9 @@ export const ui = ref({
         };
       })
   },
+  htmlAttributes: {
+    overflowExtensionRange_max: 1,
+  },
   deflation: '',
   canDeflate: false,
   hasDeflated: false,
@@ -405,6 +309,7 @@ export const ui = ref({
   previousSacrificeDeflationPower: '',
   translatedDeflationPowerMultiplierBySacrificedDeflationPower: '',
   deflator: '',
+  deflationPowerAutobuyerIntervalDivideByDeflation: '',
   overflow: '',
   isOverflowing: false,
   overflowPoint: '',
@@ -418,6 +323,24 @@ export const ui = ref({
   helium: '',
   energy: '',
   energyEffect: '',
+  overflowLimit: '',
+  overflowPointMultiplierByExtension: '',
+  extendOverflowTotalAmount: '',
+  extendOverflowLevel: '',
+  extendOverflow: {
+    matter: {
+      cost: '',
+      canBuy: false
+    },
+    deflationPower: {
+      cost: '',
+      canBuy: false
+    },
+    overflowPoint: {
+      cost: '',
+      canBuy: false
+    }
+  },
   statistics: {
     timeOnDeflation: '',
     overflow: {
@@ -426,11 +349,13 @@ export const ui = ref({
     }
   }
 });
+export type uiType = typeof ui;
 export const input: Ref<{
   maxAutobuyerIntervalHeld: boolean;
   MPressed: boolean;
   fusionUnlockPourMatter: string;
   starAllocateAmount: string;
+  OverflowExtensionLevel: number;
   autobuyerOption: {
     matterAutobuyer: [{ selectedOrd: number }];
   };
@@ -438,17 +363,29 @@ export const input: Ref<{
   maxAutobuyerIntervalHeld: false,
   MPressed: false,
   fusionUnlockPourMatter: '',
+  OverflowExtensionLevel: 0,
   starAllocateAmount: '',
   autobuyerOption: {
     matterAutobuyer: [{ selectedOrd: 0 }]
   }
 });
-
+/**Get the max attribute of range input element 'overflow-extension-range' */
+function getOverflowExtensionRange_max(){
+  const toe = getTotalOverflowExtension();
+  if(toe.lt(Decimal.dNumberMax)) return toe.toNumber();
+  else return Number.MAX_VALUE
+}
+/**Get the number that must be multiplied to the value of range input element 'overflow-extension-range' to get the corresponding extension level.*/
+function getOverflowExtensionRange_scale(){
+  const toe = getTotalOverflowExtension();
+  if(toe.lt(Decimal.dNumberMax)) return new Decimal(Decimal.dOne);
+  else return Decimal.dNumberMax.div(toe);
+}
 export const sanitizedInput = {
   fusionUnlockPourMatter: computed(() => {
     return sanitizeStringDecimal(input.value.fusionUnlockPourMatter).max(0).floor();
   }),
-  starAllocateAmount: computed(()=>{
+  starAllocateAmount: computed(() => {
     return sanitizeStringDecimal(input.value.starAllocateAmount).max(0).floor();
   }),
 };
@@ -457,7 +394,17 @@ export function sanitizeStringDecimal(s: string) {
   if (d.isNan() || !d.isFinite()) return new Decimal(Decimal.dZero);
   else return d;
 }
-
+const updateCurrentOverflowExtensionLevel = () => {
+  player.extendOverflow.currentLevel = getOverflowExtensionRange_scale().mul(input.value.OverflowExtensionLevel);
+}
+//TODO: since <input type="range"> does not work on input >= Number.MAX_VALUE, if max extension level exceeds that, set max to Number.MAX_VALUE and adjust input value accordingly.
+//TODO 2: also update when the return value of getTotalOverflowExtension changes.
+watch(
+  () => input.value.OverflowExtensionLevel,
+  () => {
+    updateCurrentOverflowExtensionLevel();
+  }
+)
 watch(
   () => input.value.autobuyerOption.matterAutobuyer[0].selectedOrd,
   () => {
@@ -470,8 +417,8 @@ watch(
         input.value.autobuyerOption.matterAutobuyer[0].selectedOrd;
   }
 );
-export function getBuyableClassBinding(canBuy: boolean){
-  return { 'button--can-buy': canBuy, 'button--cannot-buy': !canBuy}
+export function getBuyableClassBinding(canBuy: boolean) {
+  return { 'button--can-buy': canBuy, 'button--cannot-buy': !canBuy };
 }
 
 export function updateScreen() {
@@ -488,10 +435,13 @@ export function updateScreen() {
     player.notationId
   );
   ui.value.canDeflate = canDeflate();
-  ui.value.hasDeflated = gameCache.hasDeflated.cachedValue
+  ui.value.hasDeflated = gameCache.hasDeflated.cachedValue;
   ui.value.deflatorGainOnDeflation = formatValue(getDeflatorGainOnDeflation(), player.notationId);
   ui.value.canDeflationSacrifice = gameCache.canDeflationSacrifice.cachedValue;
-  ui.value.matterAutobuyerCostScalingReductionByDeflation = formatValue(gameCache.matterAutobuyerCostScalingReductionByDeflation.cachedValue, player.notationId);
+  ui.value.matterAutobuyerCostScalingReductionByDeflation = formatValue(
+    gameCache.matterAutobuyerCostScalingReductionByDeflation.cachedValue,
+    player.notationId
+  );
   ui.value.deflation = formatValue(player.deflation, player.notationId);
 
   ui.value.deflationPower = formatValue(player.deflationPower, player.notationId);
@@ -520,6 +470,7 @@ export function updateScreen() {
     player.notationId
   );
   ui.value.deflator = formatValue(player.deflator, player.notationId);
+  ui.value.deflationPowerAutobuyerIntervalDivideByDeflation = formatValue(getDeflationPowerAutobuyerIntervalDivideByDeflation(), player.notationId);
   ui.value.isOverflowing = player.isOverflowing;
   ui.value.overflow = formatValue(player.overflow, player.notationId);
   ui.value.overflowPoint = formatValue(player.overflowPoint, player.notationId);
@@ -530,8 +481,12 @@ export function updateScreen() {
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
   ui.value.star = formatValue(player.fusion.star, player.notationId);
-  ui.value.starCost = formatValue(getStarCost(), player.notationId);
-  ui.value.canBuyStar = starCostScaling.canBuy(player.fusion.star, Decimal.dOne, getCurrency('matter'));
+  ui.value.starCost = formatValue(getStarCost(), player.notationId) + ' ' + CurrencyName['matter'];
+  ui.value.canBuyStar = starCostScaling.canBuy(
+    player.fusion.star,
+    Decimal.dOne,
+    getCurrency('matter')
+  );
   ui.value.allocatedStar = formatValue(player.fusion.allocatedStar, player.notationId);
   ui.value.helium =
     formatValue(player.fusion.helium, player.notationId) +
@@ -541,11 +496,24 @@ export function updateScreen() {
     formatValue(player.fusion.energy, player.notationId) +
     ' ' +
     CurrencyName[CurrencyKindObj.energy];
-  ui.value.energyEffect = formatValue(getEnergyEffect(),player.notationId);
+  ui.value.energyEffect = formatValue(getEnergyEffect(), player.notationId);
+  ui.value.htmlAttributes.overflowExtensionRange_max = getOverflowExtensionRange_max();
+  ui.value.overflowLimit = formatValue(getOverflowLimit(), player.notationId);
+  ui.value.overflowPointMultiplierByExtension = formatValue(getOverflowPointMultiplierByExtension(), player.notationId);
+  ui.value.extendOverflowTotalAmount = formatValue(getTotalOverflowExtension(),player.notationId);
+  ui.value.extendOverflowLevel = formatValue(player.extendOverflow.currentLevel, player.notationId);
+  ui.value.extendOverflow.matter.cost = formatValue(getExtendOverflowCost('matter'), player.notationId);
+  ui.value.extendOverflow.matter.canBuy = getExtendOverflowCost('matter').lte(player.matter);
+  ui.value.extendOverflow.deflationPower.cost = formatValue(getExtendOverflowCost('deflationPower'), player.notationId);
+  ui.value.extendOverflow.deflationPower.canBuy = getExtendOverflowCost('deflationPower').lte(player.deflationPower);
+  ui.value.extendOverflow.overflowPoint.cost = formatValue(getExtendOverflowCost('overflowPoint'), player.notationId);
+  ui.value.extendOverflow.overflowPoint.canBuy = getExtendOverflowCost('overflowPoint').lte(player.overflowPoint);
   ui.value.tabs.overflow.visible = gameCache.hasOverflowed.cachedValue;
   ui.value.subtabs.autobuyer.matter.visible = true;
   ui.value.subtabs.autobuyer.deflation.visible = gameCache.hasDeflated.cachedValue;
   ui.value.subtabs.autobuyer.overflow.visible = gameCache.hasOverflowed.cachedValue;
+
+  ui.value.subtabs.overflow.extend.visible = IsExtendOverflowUnlocked();
 
   ui.value.statistics.timeOnDeflation = String(player.currentTime - player.lastDeflationTime);
   ui.value.statistics.overflow.timeOn = String(player.currentTime - player.lastOverflowTime);
@@ -554,11 +522,13 @@ export function updateScreen() {
   //window.performance.mark("autobuyer loop start")
   ui.value.autobuyers.matter[0].visible = true;
   ui.value.autobuyers.matter[1].visible = true;
-  ui.value.autobuyers.matter[2].visible = gameCache.upgradeEffectValue.overflow?.[8]?.cachedValue?.gt(0) ?? false;
+  ui.value.autobuyers.matter[2].visible =
+    gameCache.upgradeEffectValue.overflow?.[8]?.cachedValue?.gt(0) ?? false;
   for (const ak of AutobuyerKindArr) {
     for (let i = 0; i < player.autobuyers[ak].length; i++) {
       ui.value.autobuyers[ak][i].loc.kind = player.autobuyers[ak][i].kind;
       ui.value.autobuyers[ak][i].loc.ord = player.autobuyers[ak][i].ord;
+      ui.value.autobuyers[ak][i].visible = isAutobuyerUnlocked(ui.value.autobuyers[ak][i].loc) ?? false;
       ui.value.autobuyers[ak][i].amount = formatValue(
         player.autobuyers[ak][i].amount,
         player.notationId
@@ -568,30 +538,37 @@ export function updateScreen() {
         player.notationId
       );
       ui.value.autobuyers[ak][i].interval = formatValue(
-        getAutobuyerInterval({kind: ak, ord: i}),
+        getAutobuyerInterval({ kind: ak, ord: i }),
         player.notationId
       );
       ui.value.autobuyers[ak][i].toggle = player.autobuyers[ak][i].toggle ? 'On' : 'Off';
       ui.value.autobuyers[ak][i].cost =
         formatValue(
-          getAutobuyerCostScaling({kind: ak, ord: i}).getCurrentCost(player.autobuyers[ak][i].amount),
+          getAutobuyerCostScaling({ kind: ak, ord: i }).getCurrentCost(
+            player.autobuyers[ak][i].amount
+          ),
           player.notationId
         ) +
         ' ' +
         CurrencyName[autobuyerConstObj[ak][i].currency];
       ui.value.autobuyers[ak][i].intervalCost =
         formatValue(
-          getIntervalCostScaling({kind: ak, ord: i}).getCurrentCost(player.autobuyers[ak][i].intervalAmount),
+          getIntervalCostScaling({ kind: ak, ord: i }).getCurrentCost(
+            player.autobuyers[ak][i].intervalAmount
+          ),
           player.notationId
         ) +
         ' ' +
         CurrencyName[autobuyerConstObj[ak][i].intervalCurrency];
-      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling({kind: ak, ord: i}).canBuy(
+      ui.value.autobuyers[ak][i].canBuy = getAutobuyerCostScaling({ kind: ak, ord: i }).canBuy(
         player.autobuyers[ak][i].amount,
         Decimal.dOne,
         getCurrency(autobuyerConstObj[ak][i].currency)
       );
-      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling({kind: ak, ord: i}).canBuy(
+      ui.value.autobuyers[ak][i].canBuyInterval = getIntervalCostScaling({
+        kind: ak,
+        ord: i
+      }).canBuy(
         player.autobuyers[ak][i].intervalAmount,
         Decimal.dOne,
         getCurrency(autobuyerConstObj[ak][i].intervalCurrency)
@@ -664,7 +641,12 @@ export const inputFunctions = {
   ClickConvertMatterButton() {
     convertMatter(Decimal.dOne);
   },
+  BuyExtendOverflow(currency: extendOverflowCurrency) {
+    buyExtendOverflow(currency);
+    updateCurrentOverflowExtensionLevel();
+  },
   ChangeTab(tab: TabName) {
+    ui.value.creditsVisible = false;
     ui.value.currentTab = tab;
   },
   ChangeSubtab(subtab: SubtabName) {
@@ -683,6 +665,7 @@ export function initInput() {
   input.value.autobuyerOption.matterAutobuyer[0].selectedOrd = Number(
     player.autobuyers.matterAutobuyer[0].option?.selectedOrd
   );
+  input.value.OverflowExtensionLevel = player.extendOverflow.currentLevel.div(getOverflowExtensionRange_scale()).floor().toNumber();
 }
 
 export function displayError(error: string) {
@@ -690,10 +673,10 @@ export function displayError(error: string) {
   if (errorElement == null) {
     return;
   }
-  errorElement.setAttribute('style','');
+  errorElement.setAttribute('style', '');
 
   let errorDescriptionElement = document.getElementById('error-description');
-  if(errorDescriptionElement == null) return;
+  if (errorDescriptionElement == null) return;
   const newElement = document.createTextNode(error);
   const lineBreakElement = document.createElement('br');
   errorDescriptionElement.appendChild(newElement);
