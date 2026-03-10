@@ -3,7 +3,7 @@ import { ExponentialCostScaling, LinearCostScaling } from "./cost";
 import Decimal from 'break_eternity.js';
 import { getDefaultPlayer, player } from "./player";
 import { getCurrency, setCurrency } from "./currency";
-import { getOverflowPointMultiplierByExtension, getTotalOverflowExtension } from "./extend_overflow";
+import { getOverflowPointMultiplierByExtension } from "./extend_overflow";
 
 export const OVERFLOW = new Decimal(2_147_483_647) //new Decimal(2).pow(31).sub(1)
 export function getOverflowLimit(){
@@ -64,6 +64,10 @@ export function deflate(bulk = new Decimal(1)){
   player.lastDeflationTime = Date.now();
   player.deflator = player.deflator.add(getDeflatorGainOnDeflation(bulk));
   player.deflation = player.deflation.add(bulk);
+
+  if(player.upgrades.helium[0].amount.gt(0)) {
+    return;
+  }
 
   resetAutobuyers();
   player.matter = getStartMatter();

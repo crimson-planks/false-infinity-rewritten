@@ -23,7 +23,7 @@ import {
   getTranslatedDeflationPowerExponent,
   getTranslatedDeflationPowerMultiplier
 } from './deflation_power';
-import { allocateStar, convertMatter, getEnergyEffect, pourMatter } from './fusion';
+import { allocateStar, convertMatter, get_matterDecay_dueTo_fusion, getEnergyEffect, pourMatter, ToggleFusion } from './fusion';
 import { getMatterPerSecond, getPlayTime } from './game';
 import { player } from './player';
 import {
@@ -80,6 +80,7 @@ export interface UpgradeVisualData {
   maxAmount: string;
   effectValue: string;
   boughtMax: boolean;
+  isInfinitelyBuyable: boolean;
   cost: string;
   canBuy: boolean;
 }
@@ -198,6 +199,11 @@ export const texts = {
         {
           description: 'Unlock the 2nd matter autobuyer'
         }
+      ],
+      helium: [
+        {
+          description: 'Deflation no longer resets anything'
+        }
       ]
     }
   }
@@ -287,10 +293,26 @@ export const ui = ref({
           maxAmount: '',
           effectValue: '',
           boughtMax: false,
+          isInfinitelyBuyable: false,
           cost: '',
           canBuy: false
         };
-      })
+      }),
+      helium: Array(upgradeConstObj.helium.length)
+      .fill(0)
+      .map((v, i) => {
+        return {
+          kind: UpgradeKindObj.helium,
+          ord: i,
+          amount: '',
+          maxAmount: '',
+          effectValue: '',
+          boughtMax: false,
+          isInfinitelyBuyable: false,
+          cost: '',
+          canBuy: false
+        };
+      }),
   },
   htmlAttributes: {
     overflowExtensionRange_max: 1,
@@ -316,6 +338,8 @@ export const ui = ref({
   fusionMatterPoured: '',
   fusionMatterPouredPercentage: '',
   fusionUnlocked: false,
+  isFusing: false,
+  matterDecay_dueTo_fusion: '',
   star: '',
   starCost: '',
   canBuyStar: false,
@@ -420,7 +444,13 @@ watch(
 export function getBuyableClassBinding(canBuy: boolean) {
   return { 'button--can-buy': canBuy, 'button--cannot-buy': !canBuy };
 }
-
+export function updateScreenInit() {
+  for (const uk of UpgradeKindArr) {
+    for (let i = 0; i < player.upgrades[uk].length; i++) {
+      ui.value.upgrades[uk][i].isInfinitelyBuyable = !upgradeConstObj[uk][i].maxAmount.isFinite();
+    }
+  }
+}
 export function updateScreen() {
   //window.performance.mark('updateScreen start')
 
@@ -480,6 +510,8 @@ export function updateScreen() {
     player.notationId
   );
   ui.value.fusionUnlocked = player.fusion.unlocked;
+  ui.value.isFusing = player.fusion.isFusing;
+  ui.value.matterDecay_dueTo_fusion = formatValue(get_matterDecay_dueTo_fusion(player.matter), player.notationId);
   ui.value.star = formatValue(player.fusion.star, player.notationId);
   ui.value.starCost = formatValue(getStarCost(), player.notationId) + ' ' + CurrencyName['matter'];
   ui.value.canBuyStar = starCostScaling.canBuy(
@@ -638,6 +670,9 @@ export const inputFunctions = {
   AllocateStar(d: Decimal) {
     allocateStar(d);
   },
+  ClickToggleFusionButton() {
+    ToggleFusion();
+  },
   ClickConvertMatterButton() {
     convertMatter(Decimal.dOne);
   },
@@ -646,6 +681,7 @@ export const inputFunctions = {
     updateCurrentOverflowExtensionLevel();
   },
   ChangeTab(tab: TabName) {
+    ui.value.notationSelectWindowVisible = false;
     ui.value.creditsVisible = false;
     ui.value.currentTab = tab;
   },

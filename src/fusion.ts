@@ -1,6 +1,7 @@
 import { CurrencyKindObj, setCurrency } from "./currency";
 import Decimal from 'break_eternity.js'
-import { player } from "./player";
+import { getDefaultPlayer, player } from "./player";
+import { getStartMatter, resetAutobuyers } from "./prestige";
 const HYDROGEN_FUSION_ENERGY_MULTIPLIER = new Decimal(26.73) // 26.73 eV per hydrogen fusion
 export const fusionUnlockRequiredMatter = new Decimal(1e10);
 function getFusionUnlockRequiredMatter(){ return fusionUnlockRequiredMatter;}
@@ -17,6 +18,21 @@ export function convertMatter(amount: Decimal){
   player.fusion.helium = player.fusion.helium.add(actualAmount.div(4))
   player.fusion.energy = player.fusion.energy.add(actualAmount.mul(HYDROGEN_FUSION_ENERGY_MULTIPLIER))
   setCurrency(CurrencyKindObj.matter,player.matter.sub(actualAmount))
+}
+export function ToggleFusion(){
+  player.fusion.isFusing = !player.fusion.isFusing;
+  console.log(`toggle fusion ${player.fusion.isFusing}`);
+
+  resetAutobuyers();
+  player.matter = getStartMatter();
+  player.deflationPower = Decimal.dZero;
+  player.deflation = Decimal.dZero;
+  player.deflator = Decimal.dZero;
+  player.previousSacrificeDeflationPower = Decimal.dZero;
+  player.autobuyers.deflationPower = getDefaultPlayer().autobuyers.deflationPower;
+}
+export function get_matterDecay_dueTo_fusion(matter: Decimal){
+  return matter.max(1).pow(player.fusion.allocatedStar.add(1).max(1)).pow(1/256).recip();
 }
 export function allocateStar(amount: Decimal){
   const actualAmount = amount.clamp(player.fusion.allocatedStar.neg(),player.fusion.star.sub(player.fusion.allocatedStar));

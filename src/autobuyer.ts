@@ -162,7 +162,7 @@ export function ClickMaxMatterAutobuyerInterval() {
 }
 export function getIntervalMultiplierByBying(loc: AutobuyerLocation) {
   const {kind, ord} = loc;
-  if (kind === AutobuyerKindObj.Matter)
+  if (kind === AutobuyerKindObj.Matter || kind === AutobuyerKindObj.DeflationPower)
     return new Decimal(2).add(gameCache.upgradeEffectValue.overflow[2].cachedValue).recip();
   return new Decimal(0.5);
 }

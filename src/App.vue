@@ -27,6 +27,7 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
     <div id="matter-info" class="middle description">
       <p id="matter-text">You have <span class="currency">{{ ui.matter }}</span> matter.</p>
       <p id="matter-per-second-text">You are getting {{ ui.matterPerSecond }} matter per second.</p>
+      <p v-show="ui.isFusing">Due to fusion, your matter is multiplied by {{ ui.matterDecay_dueTo_fusion }} every second.</p>
     </div>
     <div v-show="ui.currentTab==='autobuyer'" style="display: block">
       <div class="o-subtab-bar">
@@ -96,14 +97,16 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
         </div>
         <div v-show="ui.fusionUnlocked">
           <p>Fusion is Unlocked.</p>
+          <button @click="inputFunctions.ClickToggleFusionButton">{{ ui.isFusing ? 'End' : 'Start' }} Fusion</button><br>
           You have <span class="currency">{{ ui.star }}</span> stars.
           <button @click="inputFunctions.BuyStar" :class="getBuyableClassBinding(ui.canBuyStar)">Buy a star. Cost: {{ ui.starCost }}</button><br>
-          You allocated {{ ui.allocatedStar }} stars.<br>
+          You allocated {{ ui.allocatedStar }} stars, which increase the amount of helium generated during fusion, but make the fusion penalty worse.<br>
           <input type="text" id="star-allocate-input" v-model="input.starAllocateAmount"><br>
           <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value)">Allocate {{ sanitizedInput.starAllocateAmount }} stars.</button>
           <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value.neg())">Allocate {{ sanitizedInput.starAllocateAmount.value.neg() }} stars.</button><br>
           You have <span class="currency">{{ ui.helium }}</span> (helium)<br>
           You have <span class="currency">{{ ui.energy }}</span> (energy), which powers the multiplier to translated deflation power by sacrificed deflation power by ^{{ ui.energyEffect }}<br>
+          <Upgrade :data="ui.upgrades.helium[0]" />
         </div>
       </div>
       <div v-show="ui.subtabs.overflow.currentSubtab=='extend'">

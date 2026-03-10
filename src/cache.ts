@@ -26,7 +26,8 @@ export function getUpgradeEffectValueCachedValue(kind: UpgradeKind, ord: number)
   return gameCache_upgradeEffectValue[kind][ord].cachedValue;
 }
 export const gameCache_upgradeEffectValue = {
-   overflow: Array(upgradeConstObj.overflow.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, new Decimal(Decimal.dOne)))
+   overflow: Array(upgradeConstObj.overflow.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, new Decimal(Decimal.dOne))),
+   helium:  Array(upgradeConstObj.helium.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.helium[i].effectValueFunction, new Decimal(Decimal.dZero))),
 }
 export const gameCache: {
   deflatorGainOnDeflation: Lazy<Decimal>;
@@ -39,6 +40,7 @@ translatedDeflationPower: Lazy<Decimal>;
 canDeflationSacrifice: Lazy<boolean>;
 upgradeEffectValue: {
   overflow: Lazy<Decimal>[];
+  helium: Lazy<Decimal>[];
 }
 autobuyerInterval: {
   matter: Lazy<Decimal>[];

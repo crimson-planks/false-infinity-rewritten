@@ -13,7 +13,7 @@ function ClickBuyUpgradeButton(){
 <button class="c-upgrade" :class="{'upgrade--bought-max': data.boughtMax, 'button--can-buy': !data.boughtMax && data.canBuy, 'button--cannot-buy': !data.boughtMax && !data.canBuy}" @click="ClickBuyUpgradeButton()">
   <span class="c-upgrade-name">{{ data.kind }} Upgrade {{ data.ord }}</span><br>
   <span class="c-upgrade-text">{{ texts['en-US'].upgrades[data.kind][data.ord].description }}</span><br>
-  <span class="c-upgrade-text">Amount: {{ data.amount }} / {{ data.maxAmount }}</span><br>
+  <span class="c-upgrade-text">Amount: {{ data.amount }}<template v-if="!data.isInfinitelyBuyable"> / {{ data.maxAmount }}</template></span><br>
   <span v-show="!data.boughtMax" class="c-upgrade-text">Cost: {{ data.cost }}</span><br>
   <span class="c-upgrade-text">Effect Value: {{ data.effectValue }}</span>
 </button>

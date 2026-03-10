@@ -26,6 +26,7 @@ export interface Player {
     matterPoured: Decimal;
     unlocked: boolean;
     matterConverted: Decimal;
+    isFusing: boolean;
     star: Decimal;
     allocatedStar: Decimal;
     energy: Decimal;
@@ -44,6 +45,7 @@ export interface Player {
   };
   upgrades: {
     overflow: UpgradeSaveData[];
+    helium: UpgradeSaveData[];
   };
 }
 
@@ -70,6 +72,7 @@ export function getDefaultPlayer(): Player {
       matterPoured: new Decimal(),
       unlocked: false,
       matterConverted: new Decimal(),
+      isFusing: false,
       star: new Decimal(),
       allocatedStar: new Decimal(),
       energy: new Decimal(),
@@ -206,6 +209,13 @@ export function getDefaultPlayer(): Player {
         {
           kind: UpgradeKindObj.Overflow,
           ord: 8,
+          amount: new Decimal(0)
+        }
+      ],
+      helium: [
+        {
+          kind: UpgradeKindObj.helium,
+          ord: 0,
           amount: new Decimal(0)
         }
       ]

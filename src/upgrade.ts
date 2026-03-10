@@ -9,26 +9,13 @@ export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
   return upgradeConstObj[kind][ord].initialCostScaling;
 }
 
-/*
-export const upgradeMaxAmount = {
-  overflow: [
-    new Decimal(4),
-    new Decimal(3),
-    new Decimal(8),
-    Decimal.dOne,
-    new Decimal(3),
-    Decimal.dOne,
-    Decimal.dOne,
-    new Decimal(8)
-  ]
-} as const;
-*/
 export const UpgradeKindObj = {
-  Overflow: 'overflow'
+  Overflow: 'overflow',
+  helium: 'helium'
 } as const;
 Object.freeze(UpgradeKindObj)
 export type UpgradeKind = (typeof UpgradeKindObj)[keyof typeof UpgradeKindObj];
-export const UpgradeKindArr = ['overflow'] as const satisfies UpgradeKind[];
+export const UpgradeKindArr = ['overflow', 'helium'] as const satisfies UpgradeKind[];
 Object.freeze(UpgradeKindArr)
 export interface UpgradeSaveData {
   kind: UpgradeKind;
@@ -58,7 +45,7 @@ export const upgradeConstObj = {
         baseIncrease: new Decimal(100)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(3),
+      maxAmount: new Decimal(4),
       effectValueFunction: () => {
         return player.upgrades.overflow[0].amount.mul(0.125);
       }
@@ -71,7 +58,7 @@ export const upgradeConstObj = {
         baseIncrease: new Decimal(8)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(3),
+      maxAmount: new Decimal(8),
       effectValueFunction: () => {
         return player.upgrades.overflow[1].amount;
       }
@@ -84,20 +71,20 @@ export const upgradeConstObj = {
         baseIncrease: new Decimal(16)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(8),
+      maxAmount: new Decimal(4),
       effectValueFunction: () => {
-        return player.upgrades.overflow[2].amount.mul(0.0625);
+        return player.upgrades.overflow[2].amount.mul(0.125);
       }
     },
     {
       kind: UpgradeKindObj.Overflow,
       ord: 3,
-      initialCostScaling: new LinearCostScaling({
+      initialCostScaling: new ExponentialCostScaling({
         baseCost: new Decimal(3),
-        baseIncrease: Decimal.dZero
+        baseIncrease: new Decimal(10000)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(Decimal.dOne),
+      maxAmount: new Decimal(1),
       effectValueFunction: () => {
         return getTranslatedDeflationPower().max(1).sqrt();
       }
@@ -110,9 +97,9 @@ export const upgradeConstObj = {
         baseIncrease: new Decimal(10)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(8),
+      maxAmount: new Decimal(4),
       effectValueFunction: () => {
-        return player.upgrades.overflow[4].amount.mul(0.125);
+        return player.upgrades.overflow[4].amount.mul(0.25);
       }
     },
     {
@@ -159,21 +146,35 @@ export const upgradeConstObj = {
     {
       kind: UpgradeKindObj.Overflow,
       ord: 8,
-      initialCostScaling: new ConstantCostScaling(1000),
+      initialCostScaling: new ConstantCostScaling(1000000),
       currency: CurrencyKindObj.overflowPoint,
       maxAmount: new Decimal(Decimal.dOne),
       effectValueFunction: () => {
         return player.upgrades.overflow?.[8]?.amount
       }
     }
+  ],
+  helium: [
+    {
+      kind: UpgradeKindObj.helium,
+      ord: 0,
+      initialCostScaling: new ConstantCostScaling(100000),
+      currency: CurrencyKindObj.helium,
+      maxAmount: new Decimal(Decimal.dOne),
+      effectValueFunction: () => {
+        return player.upgrades.helium[0].amount
+      }
+    }
   ]
 } as const satisfies {
   overflow: UpgradeConstData[];
+  helium: UpgradeConstData[];
 };
 Object.freeze(upgradeConstObj)
 
-export const upgradeCurrency: { overflow: 'overflowPoint'[] } = {
-  overflow: Array(upgradeConstObj.overflow.length).fill(CurrencyKindObj.overflowPoint)
+export const upgradeCurrency: { overflow: 'overflowPoint'[], helium: 'helium'[] } = {
+  overflow: Array(upgradeConstObj.overflow.length).fill(CurrencyKindObj.overflowPoint),
+  helium: Array(upgradeConstObj.helium.length).fill(CurrencyKindObj.helium),
 } as const;
 Object.freeze(upgradeCurrency)
 

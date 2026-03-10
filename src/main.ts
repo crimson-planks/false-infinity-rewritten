@@ -11,7 +11,7 @@ import {
   AutobuyerTick, ClickMaxMatterAutobuyerInterval
 } from './autobuyer';
 import { player } from './player';
-import { updateScreen, initInput, input } from './ui';
+import { updateScreen, initInput, input, updateScreenInit } from './ui';
 import { gameCache } from './cache';
 import {
   load,
@@ -19,7 +19,7 @@ import {
   fixSave
 } from './saveload';
 import { getOverflowLimit, OVERFLOW } from './prestige';
-import { convertMatter, fusionUnlockRequiredMatter } from './fusion';
+import { convertMatter, fusionUnlockRequiredMatter, get_matterDecay_dueTo_fusion } from './fusion';
 import { loadToWindow } from './shims';
 
 const app = createApp(App);
@@ -53,7 +53,10 @@ function main(){
       AutobuyerTick({kind: ak, ord: i}, diffDecimal);
     })
   }
-  if(player.fusion.allocatedStar.gt(0)) convertMatter(player.fusion.allocatedStar.mul(diffDecimal));
+  if(player.fusion.isFusing){
+    player.matter = player.matter.mul(get_matterDecay_dueTo_fusion(player.matter).pow(diffDecimal));
+    player.fusion.helium = player.fusion.helium.add(player.matter.div(2_147_483_648).pow(1/16).mul(player.fusion.allocatedStar.pow_base(1.2)).mul(diffDecimal));
+  }
 
   //the order is very important.
   gameCache.hasDeflated.invalidate();
@@ -81,6 +84,7 @@ function main(){
   }
   updateScreen();
 }
+updateScreenInit();
 setInterval(main, 50);
 
 app.mount('#app');

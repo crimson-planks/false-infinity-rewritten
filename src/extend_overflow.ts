@@ -38,5 +38,5 @@ export function getTotalOverflowExtension(){
   return player.extendOverflow.matter.add(player.extendOverflow.deflationPower).add(player.extendOverflow.overflowPoint);
 }
 export function getOverflowPointMultiplierByExtension(){
-  return player.extendOverflow.currentLevel.add(1).mul(new Decimal(2).pow(player.extendOverflow.currentLevel.div(31)));
+  return player.extendOverflow.currentLevel.add(1).mul(new Decimal(2).pow(player.extendOverflow.currentLevel.div(32)));
 }
