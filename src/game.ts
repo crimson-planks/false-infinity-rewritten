@@ -3,6 +3,7 @@ import { player } from "./player";
 import { gameCache } from "./cache";
 import { AutobuyerKindObj, getAutobuyerCostScaling } from "./autobuyer";
 import { autobuyerConstObj } from "./autobuyer_const";
+import { getOverflowLimit } from "./prestige";
 
 export function getPlayTime() {
   return player.currentTime - player.createdTime;
@@ -36,4 +37,8 @@ export function getMatterPerSecond() {
   if(player.fusion.allocatedStar.gt(0)) matterLost = matterLost.add(player.fusion.allocatedStar);
   result = matterGained.sub(matterLost);
   return result;
+}
+export function getEstimatedOverflowTime(mps: Decimal) {
+  if(mps.eq(0)) return Decimal.dInf;
+  return getOverflowLimit().div(mps);
 }

@@ -99,7 +99,7 @@ export const upgradeConstObj = {
       currency: CurrencyKindObj.overflowPoint,
       maxAmount: new Decimal(4),
       effectValueFunction: () => {
-        return player.upgrades.overflow[4].amount.mul(0.25);
+        return player.upgrades.overflow[4].amount;
       }
     },
     {
@@ -163,6 +163,19 @@ export const upgradeConstObj = {
       maxAmount: new Decimal(Decimal.dOne),
       effectValueFunction: () => {
         return player.upgrades.helium[0].amount
+      }
+    },
+    {
+      kind: UpgradeKindObj.helium,
+      ord: 1,
+      initialCostScaling: new ExponentialCostScaling({
+        baseCost: 1,
+        baseIncrease: 10
+      }),
+      currency: CurrencyKindObj.helium,
+      maxAmount: new Decimal(Decimal.dInf),
+      effectValueFunction: () => {
+        return player.upgrades.helium[1].amount.pow_base(2)
       }
     }
   ]

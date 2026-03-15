@@ -21,6 +21,7 @@ import {
 import { getOverflowLimit, OVERFLOW } from './prestige';
 import { convertMatter, fusionUnlockRequiredMatter, get_matterDecay_dueTo_fusion } from './fusion';
 import { loadToWindow } from './shims';
+import { UpgradeKindArr } from './upgrade';
 
 const app = createApp(App);
 load();
@@ -53,7 +54,7 @@ function main(){
       AutobuyerTick({kind: ak, ord: i}, diffDecimal);
     })
   }
-  if(player.fusion.isFusing){
+  if(player.fusion.isFusing && !player.isOverflowing){
     player.matter = player.matter.mul(get_matterDecay_dueTo_fusion(player.matter).pow(diffDecimal));
     player.fusion.helium = player.fusion.helium.add(player.matter.div(2_147_483_648).pow(1/16).mul(player.fusion.allocatedStar.pow_base(1.2)).mul(diffDecimal));
   }
@@ -62,9 +63,11 @@ function main(){
   gameCache.hasDeflated.invalidate();
   gameCache.hasOverflowed.invalidate();
   gameCache.matterAutobuyerCostScalingReductionByDeflation.invalidate();
-  gameCache.upgradeEffectValue.overflow.forEach((v, i) => {
-    v.invalidate();
-  });
+  for(const uk of UpgradeKindArr){
+      gameCache.upgradeEffectValue[uk].forEach((v, i) => {
+        v.invalidate();
+    });
+  }
   gameCache.deflatorGainOnDeflation.invalidate();
   gameCache.translatedDeflationPowerMultiplierBySacrificedDeflationPower.invalidate();
   gameCache.translatedDeflationPowerMultiplierWhenSacrifice.invalidate();

@@ -38,6 +38,9 @@ export function allocateStar(amount: Decimal){
   const actualAmount = amount.clamp(player.fusion.allocatedStar.neg(),player.fusion.star.sub(player.fusion.allocatedStar));
   player.fusion.allocatedStar = player.fusion.allocatedStar.add(actualAmount);
 }
+export function getEnergyGainWhenFusing(){
+  return new Decimal(1).add(player.extendOverflow.currentLevel);
+}
 export function getEnergyEffect(){
   return player.fusion.energy.add(1).max(1).log10().add(1)
 }

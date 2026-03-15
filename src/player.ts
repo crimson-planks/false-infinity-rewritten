@@ -217,7 +217,12 @@ export function getDefaultPlayer(): Player {
           kind: UpgradeKindObj.helium,
           ord: 0,
           amount: new Decimal(0)
-        }
+        },
+        {
+          kind: UpgradeKindObj.helium,
+          ord: 1,
+          amount: new Decimal(0)
+        },
       ]
     }
   };

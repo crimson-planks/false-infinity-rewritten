@@ -1,7 +1,7 @@
 /** @prettier */
 import { formatValue, NotationIdEnum, type NotationId } from '@/notation';
 import { type Ref } from '@vue/reactivity';
-import Decimal from 'break_eternity.js';
+import Decimal, { type DecimalSource } from 'break_eternity.js';
 import { computed, ref, watch } from 'vue';
 import {
   AutobuyerKindArr,
@@ -23,7 +23,7 @@ import {
   getTranslatedDeflationPowerExponent,
   getTranslatedDeflationPowerMultiplier
 } from './deflation_power';
-import { allocateStar, convertMatter, get_matterDecay_dueTo_fusion, getEnergyEffect, pourMatter, ToggleFusion } from './fusion';
+import { allocateStar, convertMatter, get_matterDecay_dueTo_fusion, getEnergyEffect, getEnergyGainWhenFusing, pourMatter, ToggleFusion } from './fusion';
 import { getMatterPerSecond, getPlayTime } from './game';
 import { player } from './player';
 import {
@@ -203,6 +203,9 @@ export const texts = {
       helium: [
         {
           description: 'Deflation no longer resets anything'
+        },
+        {
+          description: 'Divide the interval of matter autobuyers'
         }
       ]
     }
@@ -347,6 +350,7 @@ export const ui = ref({
   helium: '',
   energy: '',
   energyEffect: '',
+  energyGainWhenFusing: '',
   overflowLimit: '',
   overflowPointMultiplierByExtension: '',
   extendOverflowTotalAmount: '',
@@ -444,6 +448,9 @@ watch(
 export function getBuyableClassBinding(canBuy: boolean) {
   return { 'button--can-buy': canBuy, 'button--cannot-buy': !canBuy };
 }
+export function FormatTime(timeSeconds: DecimalSource){
+
+}
 export function updateScreenInit() {
   for (const uk of UpgradeKindArr) {
     for (let i = 0; i < player.upgrades[uk].length; i++) {
@@ -529,6 +536,7 @@ export function updateScreen() {
     ' ' +
     CurrencyName[CurrencyKindObj.energy];
   ui.value.energyEffect = formatValue(getEnergyEffect(), player.notationId);
+  ui.value.energyGainWhenFusing = formatValue(getEnergyGainWhenFusing(), player.notationId);
   ui.value.htmlAttributes.overflowExtensionRange_max = getOverflowExtensionRange_max();
   ui.value.overflowLimit = formatValue(getOverflowLimit(), player.notationId);
   ui.value.overflowPointMultiplierByExtension = formatValue(getOverflowPointMultiplierByExtension(), player.notationId);

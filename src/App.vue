@@ -54,13 +54,13 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
       </div>
       <div v-show="ui.subtabs.autobuyer.currentSubtab==='deflation' && ui.subtabs.autobuyer.deflation.visible && !ui.isOverflowing" style="display: block">
         You have <span class="currency">{{ ui.deflationPower }}</span> deflation power,<br>
-        which when ^{{ ui.translatedDeflationPowerExponent }} and *{{ ui.translatedDeflationPowerMultiplier }},<br>
+        which when ^{{ ui.translatedDeflationPowerExponent }} and &times;{{ ui.translatedDeflationPowerMultiplier }},<br>
         translates to the reduction of the cost of matter autobuyers by {{ ui.translatedDeflationPower }}.<br>
         <button class="o-gain-currency-button" @click="inputFunctions.ClickDeflationPowerButton">Click to get deflation power</button><br></br>
         Deflator: {{ ui.deflator }}<br><br>
         Deflation Power on previous sacrifice: {{ ui.previousSacrificeDeflationPower }}<br>
         Current Translated Deflation Power Multiplier by Sacrifice: {{ ui.translatedDeflationPowerMultiplierBySacrificedDeflationPower }}<br>
-        <button :class="{'button--can-buy': ui.canDeflationSacrifice, 'button--cannot-buy': !ui.canDeflationSacrifice}" @click="inputFunctions.ClickDeflationSacrificeButton">Set multiplier to {{ ui.translatedDeflationPowerMultiplierWhenSacrifice }} with deflation sacrifice</button><br>
+        <button :class="getBuyableClassBinding(ui.canDeflationSacrifice)" @click="inputFunctions.ClickDeflationSacrificeButton">Set multiplier to {{ ui.translatedDeflationPowerMultiplierWhenSacrifice }} with deflation sacrifice</button><br>
         Based on your deflation amount, your deflation power autobuyer interval is divided by {{ ui.deflationPowerAutobuyerIntervalDivideByDeflation }}
         <Autobuyer :data="ui.autobuyers.deflationPower[0]" />
       </div>
@@ -106,7 +106,7 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
           <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value.neg())">Allocate {{ sanitizedInput.starAllocateAmount.value.neg() }} stars.</button><br>
           You have <span class="currency">{{ ui.helium }}</span> (helium)<br>
           You have <span class="currency">{{ ui.energy }}</span> (energy), which powers the multiplier to translated deflation power by sacrificed deflation power by ^{{ ui.energyEffect }}<br>
-          <Upgrade :data="ui.upgrades.helium[0]" />
+          <Upgrade v-for="i in Array(ui.upgrades.helium.length).fill(0).map((v,i)=>i)" :data="ui.upgrades.helium[i]" />
         </div>
       </div>
       <div v-show="ui.subtabs.overflow.currentSubtab=='extend'">
@@ -115,6 +115,7 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
         Your current extension level is <span class="currency">{{ ui.extendOverflowLevel }}</span>.<br>
         Your current overflow limit is <span class="currency">{{ ui.overflowLimit }}</span>.<br>
         Your overflow point gain is multiplied by <span class="currency">{{ ui.overflowPointMultiplierByExtension }}</span>.<br>
+        When overflowing during fusion, you will get <span class="currency">{{ ui.energyGainWhenFusing }}</span> eV (energy).
         <input type="range" id="overflow-extension-range" name="overflow-extension-range" min="0" :max="ui.htmlAttributes.overflowExtensionRange_max" :disabled="ui.isOverflowing" v-model="input.OverflowExtensionLevel">
         <br>
         <button @click="inputFunctions.BuyExtendOverflow('matter')" :class="getBuyableClassBinding(ui.extendOverflow.matter.canBuy)">Extend by spending {{ ui.extendOverflow.matter.cost }} matter</button>
@@ -137,6 +138,8 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
       </div>
       <button id="close-toggle-notation-select" @click="inputFunctions.ToggleNotationSelectWindow" class="o-option-button">Close</button>
     </div>
+    <br>
+    <a href="/changelog.html">Changelog</a>
   </div>
   <Credits :visible="ui.creditsVisible" />
   <div v-show="ui.currentTab==='statistics'" style="display:block">

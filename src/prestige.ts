@@ -2,8 +2,9 @@ import { gameCache } from "./cache";
 import { ExponentialCostScaling, LinearCostScaling } from "./cost";
 import Decimal from 'break_eternity.js';
 import { getDefaultPlayer, player } from "./player";
-import { getCurrency, setCurrency } from "./currency";
+import { addCurrency, CurrencyKindObj, getCurrency, setCurrency } from "./currency";
 import { getOverflowPointMultiplierByExtension } from "./extend_overflow";
+import { getEnergyGainWhenFusing } from "./fusion";
 
 export const OVERFLOW = new Decimal(2_147_483_647) //new Decimal(2).pow(31).sub(1)
 export function getOverflowLimit(){
@@ -79,7 +80,8 @@ export function hasDeflated(){
 
 export function getOverflowPointGain(){
   let finalGain = new Decimal(1)
-  if(player.upgrades.overflow[5].amount.gt(0)) finalGain = finalGain.add(gameCache.upgradeEffectValue.overflow[5].cachedValue.floor()).mul(gameCache.upgradeEffectValue.overflow[6].cachedValue);
+  if(player.upgrades.overflow[5].amount.gt(0)) finalGain = finalGain.add(gameCache.upgradeEffectValue.overflow[5].cachedValue.floor())
+  if(player.upgrades.overflow[6].amount.gt(0)) finalGain = finalGain.mul(gameCache.upgradeEffectValue.overflow[6].cachedValue);
   if(player.extendOverflow.currentLevel.gt(0)){ finalGain = finalGain.mul(getOverflowPointMultiplierByExtension())}
   return finalGain
 }
@@ -98,6 +100,9 @@ export function overflow(){
   player.overflow = player.overflow.add(1);
   player.isOverflowing = false;
   player.overflowPoint = player.overflowPoint.add(getOverflowPointGain());
+  if(player.fusion.isFusing){
+    addCurrency(CurrencyKindObj.energy,getEnergyGainWhenFusing());
+  }
 
   resetAutobuyers();
   player.matter = getStartMatter();

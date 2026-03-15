@@ -10,6 +10,7 @@ import {
 import { autobuyerConstObj } from './autobuyer_const';
 import { gameCache } from './cache';
 import { deflate, getMatterAutobuyerCostScalingReductionByDeflation, getPossibleDeflateAmount, overflow } from './prestige';
+import { upgradeConstObj } from './upgrade';
 
 export function getAutobuyerCostScaling({ kind, ord }: AutobuyerLocation): CostScaling {
   const ics = autobuyerConstObj[kind][ord].initialCostScaling;
@@ -176,6 +177,9 @@ export function getAutobuyerInterval(loc: AutobuyerLocation) {
   let interval = autobuyerConstObj[kind][ord].initialInterval.mul(
     getIntervalMultiplierByBying(loc).pow(player.autobuyers[kind][ord].intervalAmount)
   );
+  if (kind === AutobuyerKindObj.Matter){
+    interval = interval.div(upgradeConstObj.helium[1].effectValueFunction());
+  }
   if (kind === AutobuyerKindObj.DeflationPower) {
     interval = interval.div(
       getDeflationPowerAutobuyerIntervalDivideByDeflation()
