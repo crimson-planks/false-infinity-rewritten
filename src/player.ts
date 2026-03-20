@@ -1,7 +1,7 @@
 /** @prettier */
 import Decimal from 'break_eternity.js';
-import { AutobuyerKindObj, type AutobuyerSaveData } from '@/autobuyer';
-import { UpgradeKindObj, type UpgradeSaveData } from './upgrade';
+import { AutobuyerKindObj, getDefaultAutobuyerSaveData, type AutobuyerSaveData } from '@/autobuyer';
+import { getDefaultUpgradeSaveData, UpgradeKindObj, type UpgradeSaveData } from './upgrade';
 import { NotationIdEnum, type NotationId } from './notation';
 import { VERSION_STR } from './constants';
 export interface Player {
@@ -86,143 +86,37 @@ export function getDefaultPlayer(): Player {
     },
     autobuyers: {
       matter: [
-        {
-          kind: AutobuyerKindObj.Matter,
-          ord: 0,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: Decimal.dZero,
-          toggle: true
-        },
-        {
-          kind: AutobuyerKindObj.Matter,
-          ord: 1,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: Decimal.dZero,
-          toggle: true
-        },
-        {
-          kind: AutobuyerKindObj.Matter,
-          ord: 2,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: Decimal.dZero,
-          toggle: true
-        }
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.Matter, ord: 0}),
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.Matter, ord: 1}),
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.Matter, ord: 2}),
       ],
       deflationPower: [
-        {
-          kind: AutobuyerKindObj.DeflationPower,
-          ord: 0,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: Decimal.dZero,
-          toggle: true
-        }
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.DeflationPower, ord: 0}),
       ],
       matterAutobuyer: [
-        {
-          kind: AutobuyerKindObj.MatterAutobuyer,
-          ord: 0,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: new Decimal(0),
-          toggle: true
-        },
-        {
-          kind: AutobuyerKindObj.MatterAutobuyer,
-          ord: 1,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: new Decimal(0),
-          toggle: true
-        },
-        {
-          kind: AutobuyerKindObj.MatterAutobuyer,
-          ord: 2,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: new Decimal(0),
-          toggle: true
-        },
-        {
-          kind: AutobuyerKindObj.MatterAutobuyer,
-          ord: 3,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: new Decimal(0),
-          toggle: true
-        },
-        {
-          kind: AutobuyerKindObj.MatterAutobuyer,
-          ord: 4,
-          amount: new Decimal(0),
-          timer: new Decimal(0),
-          intervalAmount: new Decimal(0),
-          toggle: true
-        }
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 0}),
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 1}),
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 2}),
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 3}),
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 4}),
       ]
     },
     upgrades: {
       overflow: [
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 0,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 1,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 2,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 3,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 4,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 5,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 6,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 7,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.Overflow,
-          ord: 8,
-          amount: new Decimal(0)
-        }
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 0}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 1}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 2}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 3}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 4}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 5}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 6}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 7}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 8}),
       ],
       helium: [
-        {
-          kind: UpgradeKindObj.helium,
-          ord: 0,
-          amount: new Decimal(0)
-        },
-        {
-          kind: UpgradeKindObj.helium,
-          ord: 1,
-          amount: new Decimal(0)
-        },
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 0}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 1}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 2})
       ]
     }
   };

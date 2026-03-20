@@ -7,11 +7,12 @@ import {
   Notation,
   scientifify
 } from 'eternal_notations';
-import { getOverflowLimit, OVERFLOW } from './prestige.js';
+import { getOverflowLimit } from './prestige.js';
 import { floorSlog10 } from './decimal.js';
 
 const NaNString = 'NaN';
 const OverflowString = 'Error: Overflow';
+const NegativeOverflowString = '-Error: Overflow'
 
 export const NotationIdEnum = {
   default: 'default',
@@ -19,6 +20,8 @@ export const NotationIdEnum = {
   logarithm: 'logarithm',
   standard: 'standard',
   mixedScientific: 'mixedScientific',
+  SI: 'SI',
+  mixedSI: 'mixedSI',
   inequality: 'inequality',
   binaryInequality: 'binaryInequality'
 } as const;
@@ -31,6 +34,8 @@ export const notationArray = [
   'logarithm',
   'standard',
   'mixedScientific',
+  'SI',
+  'mixedSI',
   'inequality',
   'binaryInequality'
 ] as const satisfies NotationId[];
@@ -430,6 +435,9 @@ export function FormatMufano(value: DecimalSource): string {
   const valueN = valueD.toNumber();
   const bc = (v: number) =>
     BaseConvert(v, 10, 3, -4, 0, -1, -1, undefined, undefined, undefined, '_');
+  if(valueD.isNan()) throw RangeError("Attempt to format NaN");
+  if(valueD.eq(Decimal.dNegInf)) return '%';
+  if(valueD.eq(Decimal.dInf)) return '~'
   if (valueD.lt(0)) return '-'; //doesn't support negative numbers
   if (valueD.lt(1e-7) && valueD.neq(0)) return '0/'; //doesn't support negative exponents
   if (valueD.lt(99999.9995)) {
@@ -459,17 +467,23 @@ export function FormatMufano(value: DecimalSource): string {
       ''
     );
     return `e${exp.toFixed(0).padStart(3, '0')}_${manStr}`;
-  } else if (valueD.lt(Decimal.fromComponents(1, 1e5, mufano_pStartLog))) {
-    //TODO: apply the correct rounding (pStartValue < mag < 10^pStartValue)
+  } else {
     const hyperExp = floorSlog10(valueD, mufano_pStartLog);
-    const man = new Decimal(valueD);
-    man.layer -= hyperExp;
-    console.log(man, hyperExp);
+    const mag = new Decimal(valueD);
+    mag.layer -= hyperExp;
+    console.log(mag, hyperExp);
+    if (valueD.lt(Decimal.fromComponents(1, 1e5, mufano_pStartLog))) {
+      //TODO: apply the correct rounding (pStartValue < mag < 10^pStartValue)
 
-    return `p${FormatMufano(hyperExp)}_${FormatMufano(man)}`;
-  } else if (valueD.lt(Decimal.fromComponents(1, 1e300, 300))) {
-    return 'pe';
-  } else return 'pp';
+      return `p${FormatMufano(hyperExp)}_${FormatMufano(mag)}`;
+    } else if (valueD.lt(Decimal.fromComponents(1, 1e12, mufano_pStartLog))) {
+      const layerExp =  Math.floor(Math.log10(hyperExp))
+      //here, the layer count must be displayed in full precision, down to the ones digit.
+      return `pe${layerExp.toFixed(0).padStart(3, '0')}_${hyperExp.toFixed(0)}_${FormatMufano(mag)}`;
+    } else
+      //from here, the mag must not be shown, such that the layer can be abbreviated.
+      return `p${FormatMufano(hyperExp)}`;
+  }
 }
 function isInfinite(d: Decimal) {
   return Decimal.gt(Decimal.abs(d), getOverflowLimit());
@@ -477,7 +491,7 @@ function isInfinite(d: Decimal) {
 const defaultNotationGlobals = [
   undefined,
   OverflowString,
-  OverflowString,
+  NegativeOverflowString,
   NaNString,
   isInfinite
 ] as const;
@@ -487,6 +501,8 @@ export const notations = {
   logarithm: Presets.Logarithm.setNotationGlobals(...defaultNotationGlobals),
   standard: Presets.Standard.setNotationGlobals(...defaultNotationGlobals),
   mixedScientific: Presets.MixedScientific.setNotationGlobals(...defaultNotationGlobals),
+  SI: Presets.SI.setNotationGlobals(...defaultNotationGlobals),
+  mixedSI: Presets.MixedSI.setNotationGlobals(...defaultNotationGlobals),
   inequality: new InequalityNotation(
     3,
     4,
@@ -513,9 +529,7 @@ export const notations = {
   ).setName('Binary Inequality')
 };
 export const HTMLnotations = {
-  default: notations.default,
-  scientific: notations.scientific,
-  logarithm: notations.logarithm,
+  ...notations,
   inequality: new InequalityNotation(
     3,
     4,

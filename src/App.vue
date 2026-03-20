@@ -50,7 +50,7 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
           <Autobuyer :data="ui.autobuyers.matter[1]" />
           <Autobuyer :data="ui.autobuyers.matter[2]" />
         </div>
-        <DeflationButton :deflatorGainOnDeflation="ui.deflatorGainOnDeflation" :deflationCost="ui.deflationCost" :canBuy="ui.canDeflate" />
+        <DeflationButton :deflation="ui.deflation" :deflatorGainOnDeflation="ui.deflatorGainOnDeflation" :deflationCost="ui.deflationCost" :canBuy="ui.canDeflate" />
       </div>
       <div v-show="ui.subtabs.autobuyer.currentSubtab==='deflation' && ui.subtabs.autobuyer.deflation.visible && !ui.isOverflowing" style="display: block">
         You have <span class="currency">{{ ui.deflationPower }}</span> deflation power,<br>

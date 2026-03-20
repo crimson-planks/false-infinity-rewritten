@@ -32,15 +32,15 @@ export function ToggleFusion(){
   player.autobuyers.deflationPower = getDefaultPlayer().autobuyers.deflationPower;
 }
 export function get_matterDecay_dueTo_fusion(matter: Decimal){
-  return matter.max(1).pow(player.fusion.allocatedStar.add(1).max(1)).pow(1/256).recip();
+  return matter.max(1).pow(player.fusion.allocatedStar.add(1).max(1)).pow(1/64).recip();
 }
 export function allocateStar(amount: Decimal){
   const actualAmount = amount.clamp(player.fusion.allocatedStar.neg(),player.fusion.star.sub(player.fusion.allocatedStar));
   player.fusion.allocatedStar = player.fusion.allocatedStar.add(actualAmount);
 }
 export function getEnergyGainWhenFusing(){
-  return new Decimal(1).add(player.extendOverflow.currentLevel);
+  return new Decimal(1).add(player.extendOverflow.currentLevel).pow(player.fusion.allocatedStar.sqrt().div(2).add(1));
 }
 export function getEnergyEffect(){
-  return player.fusion.energy.add(1).max(1).log10().add(1)
+  return player.fusion.energy.add(1).max(1).log10().pow(0.75).add(1)
 }

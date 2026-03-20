@@ -94,6 +94,7 @@ export const notationGroups = [
   [NotationIdEnum.scientific],
   [NotationIdEnum.logarithm],
   [NotationIdEnum.standard, NotationIdEnum.mixedScientific],
+  [NotationIdEnum.SI, NotationIdEnum.mixedSI],
   [NotationIdEnum.inequality, NotationIdEnum.binaryInequality]
 ] as const;
 Object.freeze(notationGroups);
@@ -206,6 +207,9 @@ export const texts = {
         },
         {
           description: 'Divide the interval of matter autobuyers'
+        },
+        {
+          description: 'Power Overflow upgrade 6'
         }
       ]
     }

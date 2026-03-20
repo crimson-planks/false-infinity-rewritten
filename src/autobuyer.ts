@@ -81,6 +81,16 @@ export interface AutobuyerLocation {
   kind: AutobuyerKind;
   ord: number;
 }
+export function getDefaultAutobuyerSaveData(loc: AutobuyerLocation): AutobuyerSaveData{
+  return {
+    kind: loc.kind,
+    ord: loc.ord,
+    amount: new Decimal(Decimal.dZero),
+    timer: new Decimal(Decimal.dZero),
+    intervalAmount: new Decimal(Decimal.dZero),
+    toggle: true
+  }
+}
 export function isAutobuyerUnlocked(loc: AutobuyerLocation){
   const {kind, ord} = loc;
   if(kind=='matter'){

@@ -73,7 +73,7 @@ export const upgradeConstObj = {
       currency: CurrencyKindObj.overflowPoint,
       maxAmount: new Decimal(4),
       effectValueFunction: () => {
-        return player.upgrades.overflow[2].amount.mul(0.125);
+        return player.upgrades.overflow[2].amount.min(4).mul(0.125);
       }
     },
     {
@@ -126,7 +126,7 @@ export const upgradeConstObj = {
       currency: CurrencyKindObj.overflowPoint,
       maxAmount: Decimal.dOne,
       effectValueFunction: () => {
-        return player.deflation.add(1);
+        return player.deflation.add(1).pow(player.upgrades.helium[2].amount.add(1));
       }
     },
     {
@@ -170,14 +170,27 @@ export const upgradeConstObj = {
       ord: 1,
       initialCostScaling: new ExponentialCostScaling({
         baseCost: 1,
-        baseIncrease: 10
+        baseIncrease: 32
       }),
       currency: CurrencyKindObj.helium,
       maxAmount: new Decimal(Decimal.dInf),
       effectValueFunction: () => {
         return player.upgrades.helium[1].amount.pow_base(2)
       }
-    }
+    },
+    {
+      kind: UpgradeKindObj.helium,
+      ord: 2,
+      initialCostScaling: new ExponentialCostScaling({
+        baseCost: 100,
+        baseIncrease: 100
+      }),
+      currency: CurrencyKindObj.helium,
+      maxAmount: new Decimal(Decimal.dInf),
+      effectValueFunction: () => {
+        return player.upgrades.helium[2].amount.add(1)
+      }
+    },
   ]
 } as const satisfies {
   overflow: UpgradeConstData[];
@@ -191,6 +204,13 @@ export const upgradeCurrency: { overflow: 'overflowPoint'[], helium: 'helium'[] 
 } as const;
 Object.freeze(upgradeCurrency)
 
+export function getDefaultUpgradeSaveData(loc: UpgradeLocation): UpgradeSaveData{
+  return {
+    kind: loc.kind,
+    ord: loc.ord,
+    amount: new Decimal(Decimal.dZero)
+  }
+}
 /*
 export const upgradeEffectValueFuncArray = {
   overflow: [

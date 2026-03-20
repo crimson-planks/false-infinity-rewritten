@@ -1,4 +1,5 @@
 import Decimal, { type DecimalSource } from 'break_eternity.js';
+
 /**
  * The naive implementation of floorSlog10, for unit tests.
  */
