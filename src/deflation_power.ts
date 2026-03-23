@@ -3,7 +3,7 @@ import Decimal from 'break_eternity.js';
 import { player } from "./player";
 import { getEnergyEffect } from "./fusion";
 export function convert_SacrificedDeflationPower_To_DeflationPowerBoost(deflationPower: Decimal){
-  return deflationPower.sqr().add(1).log10().div(6).max(1).pow(getEnergyEffect())
+  return deflationPower.sqr().add(1).log10().div(6).max(1).pow(getEnergyEffect(player.fusion.energy))
 }
 export function getDeflationPowerBoostWhenSacrifice(){
   return convert_SacrificedDeflationPower_To_DeflationPowerBoost(player.deflationPower)

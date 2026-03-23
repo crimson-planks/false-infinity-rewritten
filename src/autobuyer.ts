@@ -180,7 +180,7 @@ export function getIntervalMultiplierByBying(loc: AutobuyerLocation) {
 export function getDeflationPowerAutobuyerIntervalDivideByDeflation(){
   return player.deflation
         .add(1)
-        .pow(new Decimal(1).add(gameCache.upgradeEffectValue.overflow[4].cachedValue));
+        .pow(new Decimal(1));
 }
 export function getAutobuyerInterval(loc: AutobuyerLocation) {
   const { kind, ord } = loc;
@@ -189,6 +189,7 @@ export function getAutobuyerInterval(loc: AutobuyerLocation) {
   );
   if (kind === AutobuyerKindObj.Matter){
     interval = interval.div(upgradeConstObj.helium[1].effectValueFunction());
+    if(ord===0 && player.upgrades.overflow[4].amount.gt(0)) interval = interval.div(upgradeConstObj.overflow[4].effectValueFunction());
   }
   if (kind === AutobuyerKindObj.DeflationPower) {
     interval = interval.div(

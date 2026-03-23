@@ -23,7 +23,7 @@ import {
   getTranslatedDeflationPowerExponent,
   getTranslatedDeflationPowerMultiplier
 } from './deflation_power';
-import { allocateStar, convertMatter, get_matterDecay_dueTo_fusion, getEnergyEffect, getEnergyGainWhenFusing, pourMatter, ToggleFusion } from './fusion';
+import { allocateStar, convertMatter, get_matterDecay_dueTo_fusion, getEnergyEffect, getEnergyGainWhenFusing, getHeliumPerSecond, pourMatter, ToggleFusion } from './fusion';
 import { getMatterPerSecond, getPlayTime } from './game';
 import { player } from './player';
 import {
@@ -95,6 +95,7 @@ export const notationGroups = [
   [NotationIdEnum.logarithm],
   [NotationIdEnum.standard, NotationIdEnum.mixedScientific],
   [NotationIdEnum.SI, NotationIdEnum.mixedSI],
+  [NotationIdEnum.lexicographic],
   [NotationIdEnum.inequality, NotationIdEnum.binaryInequality]
 ] as const;
 Object.freeze(notationGroups);
@@ -186,7 +187,7 @@ export const texts = {
         },
         {
           description:
-            'Increase the exponent of deflations for deflation power autoclicker multiplier'
+            'Overflow points divides autoclicker interval'
         },
         {
           description: 'Get more overflow points based on fastest overflow time'
@@ -352,6 +353,7 @@ export const ui = ref({
   canBuyStar: false,
   allocatedStar: '',
   helium: '',
+  heliumPerSecond: '',
   energy: '',
   energyEffect: '',
   energyGainWhenFusing: '',
@@ -535,11 +537,12 @@ export function updateScreen() {
     formatValue(player.fusion.helium, player.notationId) +
     ' ' +
     CurrencyName[CurrencyKindObj.helium];
+  ui.value.heliumPerSecond = formatValue(getHeliumPerSecond(),player.notationId);
   ui.value.energy =
     formatValue(player.fusion.energy, player.notationId) +
     ' ' +
     CurrencyName[CurrencyKindObj.energy];
-  ui.value.energyEffect = formatValue(getEnergyEffect(), player.notationId);
+  ui.value.energyEffect = formatValue(getEnergyEffect(player.fusion.energy), player.notationId);
   ui.value.energyGainWhenFusing = formatValue(getEnergyGainWhenFusing(), player.notationId);
   ui.value.htmlAttributes.overflowExtensionRange_max = getOverflowExtensionRange_max();
   ui.value.overflowLimit = formatValue(getOverflowLimit(), player.notationId);

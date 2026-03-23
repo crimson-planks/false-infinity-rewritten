@@ -1,6 +1,6 @@
 import Decimal from "break_eternity.js";
 import type { AutobuyerKind } from "./autobuyer";
-import { CostScaling, ExponentialCostScaling, LinearCostScaling } from "./cost";
+import { ConstantCostScaling, CostScaling, ExponentialCostScaling, LinearCostScaling } from "./cost";
 import { CurrencyKindObj, type CurrencyKind } from "./currency";
 export interface AutobuyerConstData {
   name: string;
@@ -71,10 +71,7 @@ export const autobuyerConstObj = {
       name: 'Deflation Power Autoclicker',
 
       currency: CurrencyKindObj.deflator,
-      initialCostScaling: new LinearCostScaling({
-        baseCost: 1,
-        baseIncrease: 0
-      }),
+      initialCostScaling: new ConstantCostScaling(1),
 
       initialInterval: new Decimal(0.5),
       intervalCurrency: CurrencyKindObj.deflator,

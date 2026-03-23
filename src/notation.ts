@@ -5,7 +5,8 @@ import {
   BaseConvert,
   toDecimal,
   Notation,
-  scientifify
+  scientifify,
+  CustomNotation
 } from 'eternal_notations';
 import { getOverflowLimit } from './prestige.js';
 import { floorSlog10 } from './decimal.js';
@@ -22,6 +23,7 @@ export const NotationIdEnum = {
   mixedScientific: 'mixedScientific',
   SI: 'SI',
   mixedSI: 'mixedSI',
+  lexicographic: 'lexicographic',
   inequality: 'inequality',
   binaryInequality: 'binaryInequality'
 } as const;
@@ -36,6 +38,7 @@ export const notationArray = [
   'mixedScientific',
   'SI',
   'mixedSI',
+  'lexicographic',
   'inequality',
   'binaryInequality'
 ] as const satisfies NotationId[];
@@ -427,64 +430,84 @@ export class InequalityNotation extends Notation {
     return this.formatDecimal(decimal);
   }
 }
-export const mufano_pStartLog = 299.999978284733 + 128 * Number.EPSILON;
-export const mufano_pStartValue = Decimal.fromComponents(1, 1, mufano_pStartLog);
 
-export function FormatMufano(value: DecimalSource): string {
-  const valueD = new Decimal(value);
-  const valueN = valueD.toNumber();
+export const FormatLex = (function(){
+  const mufano_pStartLog = 299.99997828473306; //Math.log10(9.9995e299)+128*Number.EPSILON
+  const mufano_pStartValue = Decimal.fromComponents(1, 1, mufano_pStartLog);
   const bc = (v: number) =>
-    BaseConvert(v, 10, 3, -4, 0, -1, -1, undefined, undefined, undefined, '_');
-  if(valueD.isNan()) throw RangeError("Attempt to format NaN");
-  if(valueD.eq(Decimal.dNegInf)) return '%';
-  if(valueD.eq(Decimal.dInf)) return '~'
-  if (valueD.lt(0)) return '-'; //doesn't support negative numbers
-  if (valueD.lt(1e-7) && valueD.neq(0)) return '0/'; //doesn't support negative exponents
-  if (valueD.lt(99999.9995)) {
-    //1e5 - maxErrorFromRounding
-    const maxErrorFromRounding = 1e-3 / 2; //0.0005
-    const roundedN = Math.round(valueN * 1e3) / 1e3;
-    const bcRoundedN = bc(roundedN);
-    if (valueD.lt(9.9995)) return bcRoundedN; //10 - maxErrorFromRounding
-    if (valueD.lt(99.9995)) return `a${bcRoundedN}`; //100 - maxErrorFromRounding
-    if (valueD.lt(999.9995)) return `b${bcRoundedN}`; //1000 - maxErrorFromRounding
-    if (valueD.lt(9999.9995)) return `c${bcRoundedN}`; //10000 - maxErrorFromRounding
-    return `d${bcRoundedN}`;
-  } else if (valueD.lt(mufano_pStartValue)) {
-    const [mantissa, exp] = scientifify(valueD, 10, 1e-3);
-    console.log(`${mantissa}, ${exp}`);
-    const manStr = BaseConvert(
-      mantissa.toNumber(),
-      10,
-      3,
-      undefined,
-      undefined,
-      -1,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ''
-    );
-    return `e${exp.toFixed(0).padStart(3, '0')}_${manStr}`;
-  } else {
-    const hyperExp = floorSlog10(valueD, mufano_pStartLog);
-    const mag = new Decimal(valueD);
-    mag.layer -= hyperExp;
-    console.log(mag, hyperExp);
-    if (valueD.lt(Decimal.fromComponents(1, 1e5, mufano_pStartLog))) {
-      //TODO: apply the correct rounding (pStartValue < mag < 10^pStartValue)
+      BaseConvert(v, 10, 3, -4, 0, -1, -1, undefined, undefined, undefined, '_');
 
-      return `p${FormatMufano(hyperExp)}_${FormatMufano(mag)}`;
-    } else if (valueD.lt(Decimal.fromComponents(1, 1e12, mufano_pStartLog))) {
-      const layerExp =  Math.floor(Math.log10(hyperExp))
-      //here, the layer count must be displayed in full precision, down to the ones digit.
-      return `pe${layerExp.toFixed(0).padStart(3, '0')}_${hyperExp.toFixed(0)}_${FormatMufano(mag)}`;
-    } else
-      //from here, the mag must not be shown, such that the layer can be abbreviated.
-      return `p${FormatMufano(hyperExp)}`;
+  return function FormatLex(value: DecimalSource): string {
+    const valueD = new Decimal(value);
+    const valueN = valueD.toNumber();
+    if(valueD.isNan()) throw RangeError("Attempt to format NaN");
+    if(valueD.eq(Decimal.dNegInf)) return '%';
+    if(valueD.eq(Decimal.dInf)) return '~'
+    if (valueD.lt(0)) return '-'; //doesn't support negative numbers
+    if (valueD.lt(9.9995e-8) && valueD.neq(0)) return '0/'; //doesn't support negative exponents
+    '0P';
+    '0X';
+    if (valueD.lt(9.9995e-1)) {
+      let r = 1e4;
+      if(valueD.lt(9.9995e-7)) r=1e10;
+      else if(valueD.lt(9.9995e-6)) r=1e9;
+      else if(valueD.lt(9.9995e-5)) r=1e8;
+      else if(valueD.lt(9.9995e-4)) r=1e7;
+      else if(valueD.lt(9.9995e-3)) r=1e6;
+      else if(valueD.lt(9.9995e-2)) r=1e5;
+      const roundedN = Math.round(valueN * r) / r;
+      const bcRoundedN = bc(roundedN);
+      return bcRoundedN;
+    }
+    if (valueD.lt(99999.9995)) {
+      //1e5 - maxErrorFromRounding
+      //const maxErrorFromRounding = 1e-3 / 2; //0.0005
+      const roundedN = Math.round(valueN * 1e3) / 1e3;
+      const bcRoundedN = bc(roundedN);
+      if (valueD.lt(9.9995)) return bcRoundedN; //10 - maxErrorFromRounding
+      if (valueD.lt(99.9995)) return `a${bcRoundedN}`; //100 - maxErrorFromRounding
+      if (valueD.lt(999.9995)) return `b${bcRoundedN}`; //1000 - maxErrorFromRounding
+      if (valueD.lt(9999.9995)) return `c${bcRoundedN}`; //10000 - maxErrorFromRounding
+      return `d${bcRoundedN}`;
+    } else if (valueD.lt(mufano_pStartValue)) {
+      const [mantissa, exp] = scientifify(valueD, 10, 1e-3);
+      //console.log(`${mantissa}, ${exp}`);
+      const manStr = BaseConvert(
+        mantissa.toNumber(),
+        10,
+        3,
+        undefined,
+        undefined,
+        -1,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        ''
+      );
+      return `e${exp.toFixed(0).padStart(3, '0')}_${manStr}`;
+    } else {
+      const hyperExp = floorSlog10(valueD, mufano_pStartLog);
+      const mag = new Decimal(valueD);
+      mag.layer -= hyperExp;
+      console.log(mag, hyperExp);
+      if (valueD.lt(Decimal.fromComponents(1, 1e5, mufano_pStartLog))) {
+        //TODO: apply the correct rounding (pStartValue < mag < 10^pStartValue)
+
+        return `p${FormatLex(hyperExp)}_${FormatLex(mag)}`;
+      } else if (valueD.lt(Decimal.fromComponents(1, 1e12, mufano_pStartLog))) {
+        const layerExp =  Math.floor(Math.log10(hyperExp))
+        //here, the layer count must be displayed in full precision, down to the ones digit.
+        return `pe${layerExp.toFixed(0).padStart(3, '0')}_${hyperExp.toFixed(0)}_${FormatLex(mag)}`;
+      } else
+        //from here, the mag must not be shown, such that the layer can be abbreviated.
+        return `p${FormatLex(hyperExp)}`;
+    }
   }
-}
+})();
+
+const lexigographicNotation = new CustomNotation(FormatLex, false, false)
+
 function isInfinite(d: Decimal) {
   return Decimal.gt(Decimal.abs(d), getOverflowLimit());
 }
@@ -503,6 +526,7 @@ export const notations = {
   mixedScientific: Presets.MixedScientific.setNotationGlobals(...defaultNotationGlobals),
   SI: Presets.SI.setNotationGlobals(...defaultNotationGlobals),
   mixedSI: Presets.MixedSI.setNotationGlobals(...defaultNotationGlobals),
+  lexicographic: new CustomNotation(FormatLex, false, false).setNotationGlobals(...defaultNotationGlobals).setName('Lexicographic'),
   inequality: new InequalityNotation(
     3,
     4,

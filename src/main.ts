@@ -19,7 +19,7 @@ import {
   fixSave
 } from './saveload';
 import { getOverflowLimit, OVERFLOW } from './prestige';
-import { convertMatter, fusionUnlockRequiredMatter, get_matterDecay_dueTo_fusion } from './fusion';
+import { convertMatter, fusionUnlockRequiredMatter, get_matterDecay_dueTo_fusion, getHeliumPerSecond } from './fusion';
 import { loadToWindow } from './shims';
 import { UpgradeKindArr } from './upgrade';
 
@@ -56,7 +56,7 @@ function main(){
   }
   if(player.fusion.isFusing && !player.isOverflowing){
     player.matter = player.matter.mul(get_matterDecay_dueTo_fusion(player.matter).pow(diffDecimal));
-    player.fusion.helium = player.fusion.helium.add(player.matter.div(2_147_483_648).pow(1/16).mul(player.fusion.allocatedStar.pow_base(1.2)).mul(diffDecimal));
+    player.fusion.helium = player.fusion.helium.add(getHeliumPerSecond().mul(diffDecimal));
   }
 
   //the order is very important.

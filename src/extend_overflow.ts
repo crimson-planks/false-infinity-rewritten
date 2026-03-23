@@ -10,10 +10,10 @@ const extendOverflowCostScaling = {
   }),
   deflationPower: new ExponentialCostScaling({
     baseCost: 1e6,
-    baseIncrease: 2
+    baseIncrease: 5
   }),
   overflowPoint: new ExponentialCostScaling({
-    baseCost: 10,
+    baseCost: 1000,
     baseIncrease: 2
   })
 }

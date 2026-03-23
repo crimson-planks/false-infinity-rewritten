@@ -105,7 +105,9 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
           <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value)">Allocate {{ sanitizedInput.starAllocateAmount }} stars.</button>
           <button @click="inputFunctions.AllocateStar(sanitizedInput.starAllocateAmount.value.neg())">Allocate {{ sanitizedInput.starAllocateAmount.value.neg() }} stars.</button><br>
           You have <span class="currency">{{ ui.helium }}</span> (helium)<br>
+          You are getting {{ ui.heliumPerSecond }} helium per second.<br>
           You have <span class="currency">{{ ui.energy }}</span> (energy), which powers the multiplier to translated deflation power by sacrificed deflation power by ^{{ ui.energyEffect }}<br>
+          When overflowing during fusion, you will get <span class="currency">{{ ui.energyGainWhenFusing }}</span> eV (energy).<br>
           <Upgrade v-for="i in Array(ui.upgrades.helium.length).fill(0).map((v,i)=>i)" :data="ui.upgrades.helium[i]" />
         </div>
       </div>
@@ -115,7 +117,7 @@ import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFuncti
         Your current extension level is <span class="currency">{{ ui.extendOverflowLevel }}</span>.<br>
         Your current overflow limit is <span class="currency">{{ ui.overflowLimit }}</span>.<br>
         Your overflow point gain is multiplied by <span class="currency">{{ ui.overflowPointMultiplierByExtension }}</span>.<br>
-        When overflowing during fusion, you will get <span class="currency">{{ ui.energyGainWhenFusing }}</span> eV (energy).
+        When overflowing during fusion, you will get <span class="currency">{{ ui.energyGainWhenFusing }}</span> eV (energy).<br>
         <input type="range" id="overflow-extension-range" name="overflow-extension-range" min="0" :max="ui.htmlAttributes.overflowExtensionRange_max" :disabled="ui.isOverflowing" v-model="input.OverflowExtensionLevel">
         <br>
         <button @click="inputFunctions.BuyExtendOverflow('matter')" :class="getBuyableClassBinding(ui.extendOverflow.matter.canBuy)">Extend by spending {{ ui.extendOverflow.matter.cost }} matter</button>
