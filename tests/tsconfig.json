@@ -1,0 +1,6 @@
+{
+    "include": ["*.test.ts", "vitest.d.ts", "../src/*.ts"],
+    "compilerOptions": {
+        "composite": true,
+    }
+}

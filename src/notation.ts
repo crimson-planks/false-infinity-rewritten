@@ -25,7 +25,8 @@ export const NotationIdEnum = {
   mixedSI: 'mixedSI',
   lexicographic: 'lexicographic',
   inequality: 'inequality',
-  binaryInequality: 'binaryInequality'
+  binaryInequality: 'binaryInequality',
+  defaultString: 'defaultString'
 } as const;
 Object.freeze(NotationIdEnum);
 export type NotationId = (typeof NotationIdEnum)[keyof typeof NotationIdEnum];
@@ -40,7 +41,8 @@ export const notationArray = [
   'mixedSI',
   'lexicographic',
   'inequality',
-  'binaryInequality'
+  'binaryInequality',
+  'defaultString'
 ] as const satisfies NotationId[];
 Object.freeze(notationArray);
 
@@ -506,18 +508,21 @@ export const FormatLex = (function(){
   }
 })();
 
-const lexigographicNotation = new CustomNotation(FormatLex, false, false)
-
-function isInfinite(d: Decimal) {
-  return Decimal.gt(Decimal.abs(d), getOverflowLimit());
+function isDisplayInfinite(d: Decimal, overflowLimit: Decimal) {
+  return Decimal.cmpabs(d, overflowLimit)==1;
 }
-const defaultNotationGlobals = [
+
+function format_isInfinite(d: Decimal) {
+  return isDisplayInfinite(d, getOverflowLimit());
+}
+const defaultNotationGlobals = Object.freeze([
   undefined,
   OverflowString,
   NegativeOverflowString,
   NaNString,
-  isInfinite
-] as const;
+  format_isInfinite
+] as const);
+
 export const notations = {
   default: Presets.Default.setNotationGlobals(...defaultNotationGlobals),
   scientific: Presets.Scientific.setNotationGlobals(...defaultNotationGlobals),
@@ -550,7 +555,8 @@ export const notations = {
       ['(', ')'],
       [')', '(']
     ]
-  ).setName('Binary Inequality')
+  ).setName('Binary Inequality'),
+  defaultString: new CustomNotation((v)=>v.toString(),false,false).setName('Default String')
 };
 export const HTMLnotations = {
   ...notations,

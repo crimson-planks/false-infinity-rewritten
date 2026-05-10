@@ -4,6 +4,7 @@ import { AutobuyerKindObj, getDefaultAutobuyerSaveData, type AutobuyerSaveData }
 import { getDefaultUpgradeSaveData, UpgradeKindObj, type UpgradeSaveData } from './upgrade';
 import { NotationIdEnum, type NotationId } from './notation';
 import { VERSION_STR } from './constants';
+import type { OverflowChallenge } from './challenge';
 export interface Player {
   version: string;
   createdTime: number;
@@ -22,6 +23,8 @@ export interface Player {
   fastestOverflowTime: number | undefined;
   overflow: Decimal;
   overflowPoint: Decimal;
+  currentOverflowChallenge: OverflowChallenge | undefined;
+  mole: Decimal;
   fusion: {
     matterPoured: Decimal;
     unlocked: boolean;
@@ -37,6 +40,7 @@ export interface Player {
     matter: Decimal;
     deflationPower: Decimal;
     overflowPoint: Decimal;
+    helium: Decimal;
   }
   autobuyers: {
     matter: AutobuyerSaveData[];
@@ -47,6 +51,18 @@ export interface Player {
     overflow: UpgradeSaveData[];
     helium: UpgradeSaveData[];
   };
+  challenges: {
+    overflow: {
+      [oc in OverflowChallenge]: {
+        unlocked: boolean;
+        completed: boolean;
+      };
+    }
+  };
+  challengeStuff: {
+    extraCostBump: [Decimal, Decimal, Decimal];
+    inflationPower: Decimal;
+  }
 }
 
 export function getDefaultPlayer(): Player {
@@ -68,6 +84,8 @@ export function getDefaultPlayer(): Player {
     fastestOverflowTime: undefined,
     overflow: new Decimal(),
     overflowPoint: new Decimal(),
+    currentOverflowChallenge: undefined,
+    mole: new Decimal(),
     fusion: {
       matterPoured: new Decimal(),
       unlocked: false,
@@ -82,7 +100,8 @@ export function getDefaultPlayer(): Player {
       currentLevel: new Decimal(),
       matter: new Decimal(),
       deflationPower: new Decimal(),
-      overflowPoint: new Decimal()
+      overflowPoint: new Decimal(),
+      helium: new Decimal(),
     },
     autobuyers: {
       matter: [
@@ -99,6 +118,7 @@ export function getDefaultPlayer(): Player {
         getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 2}),
         getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 3}),
         getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 4}),
+        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 5}),
       ]
     },
     upgrades: {
@@ -112,12 +132,37 @@ export function getDefaultPlayer(): Player {
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 6}),
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 7}),
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 8}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.Overflow, ord: 9}),
       ],
       helium: [
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 0}),
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 1}),
-        getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 2})
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 2}),
       ]
+    },
+    challenges: {
+      overflow: {
+        oc1: {
+          unlocked: false,
+          completed: false,
+        },
+        oc2: {
+          unlocked: false,
+          completed: false,
+        },
+        oc3: {
+          unlocked: false,
+          completed: false,
+        },
+        oc4: {
+          unlocked: false,
+          completed: false
+        }
+      }
+    },
+    challengeStuff: {
+      extraCostBump: [new Decimal(), new Decimal(), new Decimal()],
+      inflationPower: new Decimal(Decimal.dOne)
     }
   };
 }

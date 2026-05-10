@@ -18,10 +18,12 @@ import {
   save,
   fixSave
 } from './saveload';
-import { getOverflowLimit, OVERFLOW } from './prestige';
-import { convertMatter, fusionUnlockRequiredMatter, get_matterDecay_dueTo_fusion, getHeliumPerSecond } from './fusion';
+import { getOverflowLimit } from './prestige';
+import { fusionUnlockRequiredMatter, get_matterDecay_dueTo_fusion, getHeliumPerSecond } from './fusion';
 import { loadToWindow } from './shims';
 import { UpgradeKindArr } from './upgrade';
+import { getOc2InflationPowerMulPerSecond, updateUnlockedChallenge } from './challenge';
+import { variables } from './constants';
 
 const app = createApp(App);
 load();
@@ -38,6 +40,7 @@ function main(){
   player.currentTime = Date.now();
   const diff = (player.currentTime - previousTime) / 1000;
   const diffDecimal = new Decimal(diff);
+  variables.diffDecimal = Decimal.fromDecimal(diffDecimal);
   autosaveTimer = autosaveTimer + diff;
   if (autosaveTimer >= 10) {
     save();
@@ -55,8 +58,15 @@ function main(){
     })
   }
   if(player.fusion.isFusing && !player.isOverflowing){
+    //console.log(`diffDecimal: ${diffDecimal.toFixed(4)}, matter change due to fusion: ${player.matter.mul(get_matterDecay_dueTo_fusion(player.matter).pow(diffDecimal).sub(1)).mul(20).toExponential(4)}`)
     player.matter = player.matter.mul(get_matterDecay_dueTo_fusion(player.matter).pow(diffDecimal));
     player.fusion.helium = player.fusion.helium.add(getHeliumPerSecond().mul(diffDecimal));
+  }
+  updateUnlockedChallenge();
+  if(player.currentOverflowChallenge=='oc3'){
+    if(player.challengeStuff.inflationPower.lt(getOverflowLimit())){
+      player.challengeStuff.inflationPower = player.challengeStuff.inflationPower.mul(getOc2InflationPowerMulPerSecond().pow(diffDecimal))
+    }
   }
 
   //the order is very important.
@@ -73,11 +83,14 @@ function main(){
   gameCache.translatedDeflationPowerMultiplierWhenSacrifice.invalidate();
   gameCache.translatedDeflationPower.invalidate();
   gameCache.canDeflationSacrifice.invalidate();
+
   for(let ak of AutobuyerKindArr){
     gameCache.autobuyerInterval[ak].forEach((v)=>{
       v.invalidate();
     })
   }
+
+  gameCache.matterPerSecond.invalidate();
   if (player.matter.gt(getOverflowLimit()) && !player.isOverflowing) {
     player.isOverflowing = true;
     //player.matter = getOverflowLimit();

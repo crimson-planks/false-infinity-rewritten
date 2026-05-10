@@ -41,7 +41,7 @@ export const upgradeConstObj = {
       kind: UpgradeKindObj.Overflow,
       ord: 0,
       initialCostScaling: new ExponentialCostScaling({
-        baseCost: new Decimal(1),
+        baseCost: Decimal.dOne,
         baseIncrease: new Decimal(100)
       }),
       currency: CurrencyKindObj.overflowPoint,
@@ -54,26 +54,24 @@ export const upgradeConstObj = {
       kind: UpgradeKindObj.Overflow,
       ord: 1,
       initialCostScaling: new ExponentialCostScaling({
-        baseCost: new Decimal(1),
-        baseIncrease: new Decimal(3)
+        baseCost: Decimal.dOne,
+        baseIncrease: new Decimal(100)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(3),
+      maxAmount: new Decimal(4),
       effectValueFunction: () => {
-        return player.upgrades.overflow[1].amount.min(3);
+        return player.upgrades.overflow[1].amount.clampMax(4);
       }
     },
     {
       kind: UpgradeKindObj.Overflow,
       ord: 2,
-      initialCostScaling: new ExponentialCostScaling({
-        baseCost: new Decimal(1),
-        baseIncrease: new Decimal(16)
-      }),
+      initialCostScaling: new ConstantCostScaling(1),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(2),
+      maxAmount: Decimal.dOne,
       effectValueFunction: () => {
-        return player.upgrades.overflow[2].amount.min(2).mul(0.125);
+        //return player.deflation.clampMin(0).add(1).log2().add(1);
+        return player.deflation.clampMin(0).add(1).add(1);
       }
     },
     {
@@ -84,7 +82,7 @@ export const upgradeConstObj = {
         baseIncrease: new Decimal(10000)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(1),
+      maxAmount: Decimal.dOne,
       effectValueFunction: () => {
         return getTranslatedDeflationPower().max(1).sqrt();
       }
@@ -93,13 +91,14 @@ export const upgradeConstObj = {
       kind: UpgradeKindObj.Overflow,
       ord: 4,
       initialCostScaling: new ExponentialCostScaling({
-        baseCost: new Decimal(1),
+        baseCost: Decimal.dOne,
         baseIncrease: new Decimal(10)
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: new Decimal(1),
+      maxAmount: Decimal.dOne,
       effectValueFunction: () => {
-        return player.overflowPoint.max(0).add(1).log2().add(1).mul(2);
+        return Decimal.dTen.tetrate(-1.75,player.overflowPoint.clampMin(0).add(10)).pow(0.9).mul(10);
+        //return player.overflowPoint.max(0).add(1).log2().add(1).mul(2);
       }
     },
     {
@@ -119,14 +118,14 @@ export const upgradeConstObj = {
     {
       kind: UpgradeKindObj.Overflow,
       ord: 6,
-      initialCostScaling: new LinearCostScaling({
-        baseCost: new Decimal(2),
-        baseIncrease: Decimal.dZero
+      initialCostScaling: new ExponentialCostScaling({
+        baseCost: 1000,
+        baseIncrease: 10,
       }),
       currency: CurrencyKindObj.overflowPoint,
-      maxAmount: Decimal.dOne,
+      maxAmount: new Decimal(Decimal.dInf),
       effectValueFunction: () => {
-        return player.deflation.add(1).pow(player.upgrades.helium[2].amount.add(1));
+        return player.upgrades.overflow?.[6]?.amount.pow_base(2) ?? new Decimal(Decimal.dOne)
       }
     },
     {
@@ -162,20 +161,21 @@ export const upgradeConstObj = {
       currency: CurrencyKindObj.helium,
       maxAmount: new Decimal(Decimal.dOne),
       effectValueFunction: () => {
-        return player.upgrades.helium[0].amount
+        return player.deflationPower.clampMin(0).add(1).iteratedlog(Decimal.dTen,0.5);
+        //return Decimal.dTen.tetrate(-0.5,player.deflationPower.clampMin(0).add(1));
       }
     },
     {
       kind: UpgradeKindObj.helium,
       ord: 1,
       initialCostScaling: new ExponentialCostScaling({
-        baseCost: 1,
-        baseIncrease: 32
+        baseCost: 1e6,
+        baseIncrease: 1e6
       }),
       currency: CurrencyKindObj.helium,
-      maxAmount: new Decimal(3),
+      maxAmount: new Decimal(8),
       effectValueFunction: () => {
-        return player.upgrades.helium[1].amount.min(3).add(1);
+        return player.upgrades.helium[1].amount;
       }
     },
     {
@@ -183,12 +183,13 @@ export const upgradeConstObj = {
       ord: 2,
       initialCostScaling: new ExponentialCostScaling({
         baseCost: 100,
-        baseIncrease: 100
+        baseIncrease: 10000
       }),
       currency: CurrencyKindObj.helium,
-      maxAmount: new Decimal(Decimal.dInf),
+      maxAmount: Decimal.dOne,
       effectValueFunction: () => {
-        return player.upgrades.helium[2].amount.add(1)
+        return player.fusion.helium.clampMin(0).iteratedlog(Decimal.dTen,0.5);
+        //return Decimal.dTen.tetrate(-0.5,player.fusion.helium.clampMin(0))
       }
     },
   ]

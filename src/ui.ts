@@ -10,7 +10,9 @@ import {
   getAutobuyerCostScaling,
   getAutobuyerInterval,
   getDeflationPowerAutobuyerIntervalDivideByDeflation,
+  getDeflationPowerAutobuyerIntervalDivideExponentByDeflation,
   getIntervalCostScaling,
+  getIntervalMultiplierByBying,
   isAutobuyerUnlocked,
   type AutobuyerLocation,
   type AutobuyerSaveData
@@ -24,16 +26,22 @@ import {
   getTranslatedDeflationPowerMultiplier
 } from './deflation_power';
 import { allocateStar, convertMatter, get_matterDecay_dueTo_fusion, getEnergyEffect, getEnergyGainWhenFusing, getHeliumPerSecond, pourMatter, ToggleFusion } from './fusion';
-import { getMatterPerSecond, getPlayTime } from './game';
+import { getEstimatedOverflowTime, getMatterPerSecond, getPlayTime } from './game';
 import { player } from './player';
 import {
   BuyStar,
   canDeflate,
-  deflationCostScaling,
+  canMoleReset,
+  getDeflationCostScaling,
   getDeflatorGainOnDeflation,
+  getMoleCost,
   getOverflowLimit,
+  getOverflowPointGain,
   getStarCost,
-  overflow,
+  hasOverflowed,
+  isMoleUnlocked,
+  moleReset,
+  overflowReset,
   starCostScaling
 } from './prestige';
 import {
@@ -45,6 +53,7 @@ import {
   type UpgradeKind
 } from './upgrade';
 import { buyExtendOverflow, getExtendOverflowCost, getOverflowPointMultiplierByExtension, getTotalOverflowExtension, IsExtendOverflowUnlocked, type extendOverflowCurrency } from './extend_overflow';
+import { challengeConstObj, enterOverflowChallenge, exitOverflowChallenge, isInChallenge, type ChallengeType, type OverflowChallenge } from './challenge';
 export interface AutobuyerVisualData {
   loc: AutobuyerLocation;
   visible: boolean;
@@ -84,13 +93,17 @@ export interface UpgradeVisualData {
   cost: string;
   canBuy: boolean;
 }
+export interface ChallengeVisualData {
+  kind: ChallengeType;
+  id: OverflowChallenge;
+}
 export const autobuyerOptions = {
   matterAutobuyer: [{ selectedOrd: [0, 1] }]
 } as const;
-export type TabName = 'autobuyer' | 'overflow' | 'option' | 'statistics';
-export type SubtabName = 'matter' | 'deflation' | 'overflow' | 'upgrades' | 'fusion' | 'extend' | 'general';
+export type TabName = 'autobuyer' | 'overflow' | 'challenge' | 'option' | 'statistics';
+export type SubtabName = 'matter' | 'deflation' | 'overflow' | 'upgrades' | 'fusion' | 'extend'| 'general';
 export const notationGroups = [
-  [NotationIdEnum.default],
+  [NotationIdEnum.default, NotationIdEnum.defaultString],
   [NotationIdEnum.scientific],
   [NotationIdEnum.logarithm],
   [NotationIdEnum.standard, NotationIdEnum.mixedScientific],
@@ -137,6 +150,14 @@ export const tabs: {
       }
     }
   },
+  challenge: {
+    name: 'Challenge',
+    subtab: {
+      overflow: {
+        name: 'Overflow'
+      }
+    }
+  },
   option: {
     name: 'Option',
     subtab: {
@@ -180,7 +201,7 @@ export const texts = {
           description: 'Deflations give more deflators.'
         },
         {
-          description: 'Increase the effectiveness of buying an interval'
+          description: 'Divide the interval of the matter autoclicker based on deflation count.'
         },
         {
           description: 'Deflation power affects interval cost at a reduced rate'
@@ -193,7 +214,7 @@ export const texts = {
           description: 'Get more overflow points based on fastest overflow time'
         },
         {
-          description: 'Deflation count multiplies overflow point gain'
+          description: 'Multiply overflow point gain from all sources'
         },
         {
           description: 'Start with matter'
@@ -204,19 +225,38 @@ export const texts = {
       ],
       helium: [
         {
-          description: 'Deflation no longer resets anything'
+          description: 'Deflation power boosts helium gain at a reduced rate'
         },
         {
-          description: 'Divide the interval of matter autobuyers'
+          description: 'Reduce deflation cost scaling'
         },
         {
-          description: 'Power Overflow upgrade 6'
-        }
+          description: 'Helium boosts energy gain at a reduced rate'
+        },
       ]
+    },
+    challenges: {
+      overflow: {
+        oc1: {
+          modifier: 'Multiplier for Translated Deflation Power is set to 0, unaffected by all modifiers.',
+          reward: 'Increase the exponent of deflations for deflation power autoclicker multiplier by 1 per overflow challenge completion.'
+        },
+        oc2: {
+          modifier: 'When buying an interval of matter autobuyers or autoclicker, the interval cost of other matter autobuyers or autoclicker bumps up to the next cost.',
+          reward: 'Deflation resets nothing.'
+        },
+        oc3: {
+          modifier: 'Exponentially increasing inflation power increases the cost of matter autobuyers based on the amount of autoclickers and amount of deflations, which resets on deflations. Disable overflow challenge 2 reward.',
+          reward: 'Unlock Moles.'
+        },
+        oc4: {
+          modifier: 'Deflation and Mole Reset costs are swapped.',
+          reward: 'Unlock the mole reset autobuyer.'
+        }
+      }
     }
   }
 };
-
 export const ui = ref({
   currentTab: 'autobuyer' as TabName,
   tabs: {
@@ -228,6 +268,9 @@ export const ui = ref({
     },
     option: {
       visible: true
+    },
+    challenge: {
+      visible: false
     },
     statistics: {
       visible: true
@@ -257,6 +300,9 @@ export const ui = ref({
       extend: {
         visible: false
       }
+    },
+    challenge: {
+      currentSubtab: 'overflow' as SubtabName,
     },
     option: {
       currentSubtab: 'option' as SubtabName,
@@ -325,6 +371,7 @@ export const ui = ref({
   htmlAttributes: {
     overflowExtensionRange_max: 1,
   },
+  matterAutobuyerIntervalMultiplierByBying: '',
   deflation: '',
   canDeflate: false,
   hasDeflated: false,
@@ -339,10 +386,15 @@ export const ui = ref({
   previousSacrificeDeflationPower: '',
   translatedDeflationPowerMultiplierBySacrificedDeflationPower: '',
   deflator: '',
+  deflationCosteflationPowerAutobuyerIntervalDivideExponentByDeflation: '',
   deflationPowerAutobuyerIntervalDivideByDeflation: '',
+  hasOverflowed: false,
   overflow: '',
   isOverflowing: false,
+  changeExtensionLevelDisabled: false,
   overflowPoint: '',
+  overflowPointWhenOverflow: '',
+  estimatedOverflowTime: '',
   fusionMatterPoured: '',
   fusionMatterPouredPercentage: '',
   fusionUnlocked: false,
@@ -373,6 +425,42 @@ export const ui = ref({
     overflowPoint: {
       cost: '',
       canBuy: false
+    },
+    helium: {
+      cost: '',
+      canBuy: false
+    },
+  },
+  isMoleUnlocked: false,
+  mole: '',
+  moleCost: '',
+  canMoleReset: false,
+
+  isInChallenge: false,
+  currentChallenge: {
+    overflow: undefined as OverflowChallenge | undefined,
+  },
+  challengeStuff: {
+    inflationPower: ''
+  },
+  challenge: {
+    overflow: {
+      oc1: {
+        goal: '',
+        visible: false
+      },
+      oc2: {
+        goal: '',
+        visible: false
+      },
+      oc3: {
+        goal: '',
+        visible: false
+      },
+      oc4: {
+        goal: '',
+        visible: false
+      }
     }
   },
   statistics: {
@@ -455,11 +543,22 @@ export function getBuyableClassBinding(canBuy: boolean) {
   return { 'button--can-buy': canBuy, 'button--cannot-buy': !canBuy };
 }
 export function FormatTime(timeSeconds: DecimalSource){
-
+  timeSeconds = new Decimal(timeSeconds);
+  if(!timeSeconds.isFinite()) return 'forever';
+  if(timeSeconds.lt(60)) return `${timeSeconds.toPrecision(4)} seconds`;
+  const timeMinutes = timeSeconds.div(60).trunc();
+  const timeSecondsRemainder = timeSeconds.sub(timeMinutes.mul(60));
+  if(timeSeconds.lt(3600)) return `${timeMinutes.toString()} minutes and ${timeSecondsRemainder.toFixed(3)} seconds`;
+  const timeHours = timeSeconds.div(3600).trunc();
+  const timeMinutesRemainder = timeMinutes.sub(timeHours.mul(60));
+  if(timeSeconds.lt(86400)) return `${timeHours.toString()} hours, ${timeMinutesRemainder.toString()} minutes, and ${timeSecondsRemainder.toFixed(2)} seconds`;
+  const timeDays = timeSeconds.div(86400).trunc();
+  const timeHoursRemainder = timeHours.sub(timeDays.mul(24));
+  return `${timeDays.toString()} days, ${timeHoursRemainder.toString()} hours, ${timeMinutesRemainder.toString()} minutes, and ${timeSecondsRemainder.toFixed(1)} seconds`
 }
 export function updateScreenInit() {
   for (const uk of UpgradeKindArr) {
-    for (let i = 0; i < player.upgrades[uk].length; i++) {
+    for (let i = 0; i < upgradeConstObj[uk].length; i++) {
       ui.value.upgrades[uk][i].isInfinitelyBuyable = !upgradeConstObj[uk][i].maxAmount.isFinite();
     }
   }
@@ -468,13 +567,13 @@ export function updateScreen() {
   //window.performance.mark('updateScreen start')
 
   ui.value.totalMatter = formatValue(player.totalMatter, player.notationId);
-  ui.value.playTime = getPlayTime().toString();
+  ui.value.playTime = FormatTime(getPlayTime()/1000);
   ui.value.notationId = player.notationId;
 
   ui.value.matter = formatValue(player.matter, player.notationId);
   ui.value.matterPerSecond = formatValue(getMatterPerSecond(), player.notationId);
   ui.value.deflationCost = formatValue(
-    deflationCostScaling.getCurrentCost(player.deflation),
+    getDeflationCostScaling().getCurrentCost(player.deflation),
     player.notationId
   );
   ui.value.canDeflate = canDeflate();
@@ -485,6 +584,8 @@ export function updateScreen() {
     gameCache.matterAutobuyerCostScalingReductionByDeflation.cachedValue,
     player.notationId
   );
+
+  ui.value.matterAutobuyerIntervalMultiplierByBying = formatValue(getIntervalMultiplierByBying({kind: 'matter', ord: 0}),player.notationId);
   ui.value.deflation = formatValue(player.deflation, player.notationId);
 
   ui.value.deflationPower = formatValue(player.deflationPower, player.notationId);
@@ -513,10 +614,15 @@ export function updateScreen() {
     player.notationId
   );
   ui.value.deflator = formatValue(player.deflator, player.notationId);
+  ui.value.deflationCosteflationPowerAutobuyerIntervalDivideExponentByDeflation = formatValue(getDeflationPowerAutobuyerIntervalDivideExponentByDeflation(),player.notationId);
   ui.value.deflationPowerAutobuyerIntervalDivideByDeflation = formatValue(getDeflationPowerAutobuyerIntervalDivideByDeflation(), player.notationId);
   ui.value.isOverflowing = player.isOverflowing;
+  ui.value.changeExtensionLevelDisabled = player.isOverflowing || player.currentOverflowChallenge!=undefined;
+  ui.value.hasOverflowed = hasOverflowed();
   ui.value.overflow = formatValue(player.overflow, player.notationId);
   ui.value.overflowPoint = formatValue(player.overflowPoint, player.notationId);
+  ui.value.overflowPointWhenOverflow = formatValue(getOverflowPointGain(),player.notationId);
+  ui.value.estimatedOverflowTime =FormatTime(getEstimatedOverflowTime(getMatterPerSecond()));
   ui.value.fusionMatterPoured = formatValue(player.fusion.matterPoured, player.notationId);
   ui.value.fusionMatterPouredPercentage = formatValue(
     player.fusion.matterPoured.div(1e10).mul(100),
@@ -555,22 +661,37 @@ export function updateScreen() {
   ui.value.extendOverflow.deflationPower.canBuy = getExtendOverflowCost('deflationPower').lte(player.deflationPower);
   ui.value.extendOverflow.overflowPoint.cost = formatValue(getExtendOverflowCost('overflowPoint'), player.notationId);
   ui.value.extendOverflow.overflowPoint.canBuy = getExtendOverflowCost('overflowPoint').lte(player.overflowPoint);
+  ui.value.extendOverflow.helium.cost = formatValue(getExtendOverflowCost('helium'), player.notationId);
+  ui.value.extendOverflow.helium.canBuy = getExtendOverflowCost('helium').lte(player.fusion.helium);
+
+  ui.value.isMoleUnlocked = isMoleUnlocked();
+  ui.value.mole = formatValue(player.mole, player.notationId);
+  ui.value.moleCost = formatValue(getMoleCost(), player.notationId);
+  ui.value.canMoleReset = canMoleReset()
+
+  ui.value.isInChallenge = isInChallenge();
+  ui.value.currentChallenge.overflow = player.currentOverflowChallenge;
+  ui.value.challenge.overflow.oc1.visible = player.challenges.overflow.oc1.unlocked;
+  ui.value.challenge.overflow.oc2.visible = player.challenges.overflow.oc2.unlocked;
+  ui.value.challenge.overflow.oc3.visible = player.challenges.overflow.oc3.unlocked;
+  ui.value.challenge.overflow.oc4.visible = player.challenges.overflow.oc4.unlocked;
+
+  ui.value.challengeStuff.inflationPower = formatValue(player.challengeStuff.inflationPower, player.notationId);
+
   ui.value.tabs.overflow.visible = gameCache.hasOverflowed.cachedValue;
+  ui.value.tabs.challenge.visible = IsExtendOverflowUnlocked();
   ui.value.subtabs.autobuyer.matter.visible = true;
   ui.value.subtabs.autobuyer.deflation.visible = gameCache.hasDeflated.cachedValue;
   ui.value.subtabs.autobuyer.overflow.visible = gameCache.hasOverflowed.cachedValue;
 
   ui.value.subtabs.overflow.extend.visible = IsExtendOverflowUnlocked();
 
-  ui.value.statistics.timeOnDeflation = String(player.currentTime - player.lastDeflationTime);
-  ui.value.statistics.overflow.timeOn = String(player.currentTime - player.lastOverflowTime);
+  ui.value.statistics.timeOnDeflation = FormatTime((player.currentTime - player.lastDeflationTime)/1000);
+  ui.value.statistics.overflow.timeOn = FormatTime((player.currentTime - player.lastOverflowTime)/1000);
 
   ui.value.statistics.overflow.visible = player.overflow.gt(0);
   //window.performance.mark("autobuyer loop start")
-  ui.value.autobuyers.matter[0].visible = true;
-  ui.value.autobuyers.matter[1].visible = true;
-  ui.value.autobuyers.matter[2].visible =
-    gameCache.upgradeEffectValue.overflow?.[8]?.cachedValue?.gt(0) ?? false;
+
   for (const ak of AutobuyerKindArr) {
     for (let i = 0; i < player.autobuyers[ak].length; i++) {
       ui.value.autobuyers[ak][i].loc.kind = player.autobuyers[ak][i].kind;
@@ -625,7 +746,7 @@ export function updateScreen() {
   //window.performance.mark("autobuyer loop end")
   //window.performance.mark("upgrade loop start")
   for (const uk of UpgradeKindArr) {
-    for (let i = 0; i < player.upgrades[uk].length; i++) {
+    for (let i = 0; i < upgradeConstObj[uk].length; i++) {
       ui.value.upgrades[uk][i].kind = player.upgrades[uk][i].kind;
       ui.value.upgrades[uk][i].ord = player.upgrades[uk][i].ord;
       ui.value.upgrades[uk][i].amount = formatValue(
@@ -677,7 +798,7 @@ export const inputFunctions = {
     deflationSacrifice();
   },
   ClickOverflowButton() {
-    overflow();
+    overflowReset();
   },
   BuyStar() {
     BuyStar();
@@ -694,6 +815,15 @@ export const inputFunctions = {
   BuyExtendOverflow(currency: extendOverflowCurrency) {
     buyExtendOverflow(currency);
     updateCurrentOverflowExtensionLevel();
+  },
+  ClickEnterChallenge(oc: OverflowChallenge){
+    enterOverflowChallenge(oc);
+  },
+  ClickExitOverflowChallenge(){
+    exitOverflowChallenge();
+  },
+  ClickMoleResetButton(){
+    moleReset();
   },
   ChangeTab(tab: TabName) {
     ui.value.notationSelectWindowVisible = false;
@@ -727,7 +857,10 @@ export function displayError(error: string) {
   errorElement.setAttribute('style', '');
 
   let errorDescriptionElement = document.getElementById('error-description');
-  if (errorDescriptionElement == null) return;
+  if (errorDescriptionElement == null) {
+    errorDescriptionElement = document.createElement('p');
+    errorDescriptionElement.setAttribute('id','error-description');
+  }
   const newElement = document.createTextNode(error);
   const lineBreakElement = document.createElement('br');
   errorDescriptionElement.appendChild(newElement);

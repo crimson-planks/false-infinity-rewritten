@@ -10,18 +10,22 @@ const extendOverflowCostScaling = {
   }),
   deflationPower: new ExponentialCostScaling({
     baseCost: 1e6,
-    baseIncrease: 5
+    baseIncrease: 4
   }),
   overflowPoint: new ExponentialCostScaling({
     baseCost: 1000,
     baseIncrease: 2
+  }),
+  helium: new ExponentialCostScaling({
+    baseCost: 1e3,
+    baseIncrease: 4
   })
 }
 
 export type extendOverflowCurrency = keyof typeof extendOverflowCostScaling;
 
 export function IsExtendOverflowUnlocked(){
-  return player.autobuyers.matterAutobuyer[0].amount.gt(0)
+  return player.autobuyers.matterAutobuyer[4].amount.gt(0)
 }
 
 export function buyExtendOverflow(currency: extendOverflowCurrency){
@@ -35,8 +39,8 @@ export function getExtendOverflowCost(currency: extendOverflowCurrency){
   return extendOverflowCostScaling[currency].getCurrentCost(player.extendOverflow[currency]);
 }
 export function getTotalOverflowExtension(){
-  return player.extendOverflow.matter.add(player.extendOverflow.deflationPower).add(player.extendOverflow.overflowPoint);
+  return player.extendOverflow.matter.add(player.extendOverflow.deflationPower).add(player.extendOverflow.overflowPoint).add(player.extendOverflow.helium);
 }
 export function getOverflowPointMultiplierByExtension(){
-  return player.extendOverflow.currentLevel.add(1).mul(new Decimal(2).pow(player.extendOverflow.currentLevel.div(32)));
+  return player.extendOverflow.currentLevel.add(1).mul(player.extendOverflow.currentLevel.div(32).pow10());
 }

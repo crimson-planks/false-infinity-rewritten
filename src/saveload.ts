@@ -3,6 +3,7 @@ import Decimal from 'break_eternity.js';
 import { getDefaultPlayer, player, setPlayer, type Player } from './player';
 import { displayError } from './ui';
 const LEGACY_DECIMAL_CONVERSION = false;
+
 export type stringifiableObject =
   | string
   | number
@@ -38,7 +39,7 @@ export function toStringifiableObject(obj: unknown): stringifiableObject {
     throw new TypeError('Symbols are not supported');
   }
   if (typeof obj === 'number') {
-    if (isNaN(obj)) return { _type: 'NaN' };
+    if (Number.isNaN(obj)) return { _type: 'NaN' };
     if (!isFinite(obj)) {
       if (obj > 0) return { _type: 'Infinity' };
       else return { _type: '-Infinity' };
@@ -65,17 +66,19 @@ export function toStringifiableObject(obj: unknown): stringifiableObject {
     return { _type: 'undefined' };
   }
   if (obj === null) return null;
-  if (typeof obj === 'object') {
+  //if (typeof obj === 'object') {
     const rslt: { [key: string]: stringifiableObject } = {};
-    for (let key in obj) {
-      //@ts-ignore: for some reason, unknown - undefined - null = {} according to TS, and not object.
-      rslt[key] = toStringifiableObject(obj[key]);
+    const objcopy: {[key: string]: unknown} = {};
+    const pn = Object.getOwnPropertyNames(obj);
+    Object.assign(objcopy,obj);
+    for(let key in objcopy){
+      rslt[key] = toStringifiableObject(objcopy[key]);
     }
     return rslt;
-  }
+  //}
   return { _type: 'undefined' };
 }
-export function toUsableObject(obj: stringifiableObject): unknown {
+export function toUsableObject(obj: stringifiableObject): {} | null | undefined {
   if (obj === null) return null;
   if (typeof obj === 'boolean') return obj;
   if (typeof obj === 'string') return obj;
@@ -99,10 +102,11 @@ export function toUsableObject(obj: stringifiableObject): unknown {
   }
   if (obj._type) throw new TypeError(`Invalid _type ${obj._type}`);
   if (typeof obj === 'object') {
+    const objcopy: {[key: string]: stringifiableObject} = {}
     const rslt: { [key: string]: unknown } = {};
-    for (let key in obj) {
-      //@ts-ignore: why doesn't TS discard those values when I put obj._type==="NaN"
-      rslt[key] = toUsableObject(obj[key]);
+    Object.assign(objcopy, obj);
+    for (let key in objcopy) {
+      rslt[key] = toUsableObject(objcopy[key]);
     }
     return rslt;
   }

@@ -19,13 +19,13 @@ const autobuyerSelectId = computed(()=>`autobuyer-${props.data.loc.kind}-${props
 </script>
 <template>
   <div class="c-autobuyer" v-show="data.visible">
-    <span class="c-autobuyer-name">{{ props.data.name }}</span>
-    <span class="c-autobuyer-text">Amount: {{ props.data.amount }}</span>
-    <button class="c-autobuyer-text" :class="getBuyableClassBinding(props.data.canBuy)" @click="ClickBuyAutobuyerButton">Cost: {{ props.data.cost }}</button>
-    <span class="c-autobuyer-text">Interval: {{ props.data.interval }}</span>
-    <button class="c-autobuyer-text" :class="getBuyableClassBinding(props.data.canBuyInterval)" @click="ClickBuyIntervalButton">Interval Cost: {{ props.data.intervalCost }}</button>
-    <span class="c-autobuyer-text">Timer: {{ props.data.timer }}</span>
-    <button class="c-autobuyer-text" @click="ClickToggleButton()">Toggle: {{ props.data.toggle }}</button>
+    <span class="c-autobuyer-name main-text">{{ props.data.name }}</span>
+    <span class="c-autobuyer-text main-text">Amount: {{ props.data.amount }}</span>
+    <button class="c-autobuyer-text main-text" :class="getBuyableClassBinding(props.data.canBuy)" @click="ClickBuyAutobuyerButton">Cost: {{ props.data.cost }}</button>
+    <span class="c-autobuyer-text main-text">Interval: {{ props.data.interval }}</span>
+    <button class="c-autobuyer-text main-text" :class="getBuyableClassBinding(props.data.canBuyInterval)" @click="ClickBuyIntervalButton">Interval Cost: {{ props.data.intervalCost }}</button>
+    <span class="c-autobuyer-text main-text">Timer: {{ props.data.timer }}</span>
+    <button class="c-autobuyer-text main-text" @click="ClickToggleButton()">Toggle: {{ props.data.toggle }}</button>
   </div>
 </template>
 <style>

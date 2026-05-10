@@ -1,7 +1,8 @@
 import { CurrencyKindObj, setCurrency } from "./currency";
 import Decimal from 'break_eternity.js'
 import { getDefaultPlayer, player } from "./player";
-import { getStartMatter, resetAutobuyers } from "./prestige";
+import { getStartMatter, resetMatterAutobuyers } from "./prestige";
+import { gameCache_upgradeEffectValue } from "./cache";
 const HYDROGEN_FUSION_ENERGY_MULTIPLIER = new Decimal(26.73) // 26.73 eV per hydrogen fusion
 export const fusionUnlockRequiredMatter = new Decimal(1e10);
 function getFusionUnlockRequiredMatter(){ return fusionUnlockRequiredMatter;}
@@ -21,9 +22,9 @@ export function convertMatter(amount: Decimal){
 }
 export function ToggleFusion(){
   player.fusion.isFusing = !player.fusion.isFusing;
-  console.log(`toggle fusion ${player.fusion.isFusing}`);
+  //console.log(`toggle fusion ${player.fusion.isFusing}`);
 
-  resetAutobuyers();
+  resetMatterAutobuyers();
   player.matter = getStartMatter();
   player.deflationPower = Decimal.dZero;
   player.deflation = Decimal.dZero;
@@ -32,18 +33,24 @@ export function ToggleFusion(){
   player.autobuyers.deflationPower = getDefaultPlayer().autobuyers.deflationPower;
 }
 export function get_matterDecay_dueTo_fusion(matter: Decimal){
-  return matter.max(1).pow(player.fusion.allocatedStar.add(1).max(1)).pow(1/300).recip();
+  return matter.clampMin(1).pow(player.fusion.allocatedStar.add(1).max(1)).pow(1/300).recip();
 }
 export function allocateStar(amount: Decimal){
   const actualAmount = amount.clamp(player.fusion.allocatedStar.neg(),player.fusion.star.sub(player.fusion.allocatedStar));
   player.fusion.allocatedStar = player.fusion.allocatedStar.add(actualAmount);
 }
 export function getEnergyGainWhenFusing(){
-  return new Decimal(1).add(player.extendOverflow.currentLevel).pow(player.fusion.allocatedStar.sqrt().div(2).add(1));
+  let final = new Decimal(2).pow(player.extendOverflow.currentLevel.add(1).mul(player.fusion.allocatedStar.add(1)).pow(0.75).div(4).add(1));
+  if(player.upgrades.helium[2].amount.gt(0)) final = final.mul(gameCache_upgradeEffectValue.helium[2].cachedValue);
+  return final;
 }
 export function getEnergyEffect(energy: Decimal){
-  return energy.add(1).max(1).log10().pow(0.75).add(1)
+  return energy.add(1).clampMin(1).log10().sqrt().add(1)
 }
 export function getHeliumPerSecond(){
-  return player.matter.div(2_147_483_648).pow(1/16).mul(player.fusion.allocatedStar.pow_base(1.2));
+  let final = player.matter.clampMin(1).div(2_147_483_648).pow(1/16).mul(player.fusion.allocatedStar.pow_base(1.2));
+  if(player.upgrades.helium[0].amount.gt(0)){
+    final = final.mul(gameCache_upgradeEffectValue.helium[0].cachedValue);
+  }
+  return final;
 }

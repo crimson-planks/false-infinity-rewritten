@@ -3,3 +3,7 @@ Camel case is 1st tier
 one underscore(_) is 2nd tier
 two underscores(__) is 3rd tier
 ...
+
+variable and function names are camelCase, class names are PascalCase.
+
+function name start with a verb. If a word is ambiguous it it's a verb or not, prefix the function with 'do'

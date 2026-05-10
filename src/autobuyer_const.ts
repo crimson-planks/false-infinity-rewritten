@@ -2,6 +2,7 @@ import Decimal from "break_eternity.js";
 import type { AutobuyerKind } from "./autobuyer";
 import { ConstantCostScaling, CostScaling, ExponentialCostScaling, LinearCostScaling } from "./cost";
 import { CurrencyKindObj, type CurrencyKind } from "./currency";
+import { d0_05, d0_5, d4 } from "./constants";
 export interface AutobuyerConstData {
   name: string;
 
@@ -24,7 +25,7 @@ export const autobuyerConstObj = {
         baseIncrease: 5
       }),
 
-      initialInterval: new Decimal(1),
+      initialInterval: Decimal.dOne,
       intervalCurrency: CurrencyKindObj.matter,
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 100,
@@ -41,7 +42,7 @@ export const autobuyerConstObj = {
         baseIncrease: 100
       }),
 
-      initialInterval: new Decimal(2),
+      initialInterval: Decimal.dTwo,
       intervalCurrency: CurrencyKindObj.matter,
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1000,
@@ -55,10 +56,10 @@ export const autobuyerConstObj = {
       currency: CurrencyKindObj.matter,
       initialCostScaling: new LinearCostScaling({
         baseCost: 1e7,
-        baseIncrease: 1e6
+        baseIncrease: 2000
       }),
 
-      initialInterval: new Decimal(4),
+      initialInterval: d4,
       intervalCurrency: CurrencyKindObj.matter,
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e8,
@@ -73,10 +74,10 @@ export const autobuyerConstObj = {
       currency: CurrencyKindObj.deflator,
       initialCostScaling: new ConstantCostScaling(1),
 
-      initialInterval: new Decimal(0.5),
+      initialInterval: d0_5,
       intervalCurrency: CurrencyKindObj.deflator,
       initialIntervalCostScaling: new ExponentialCostScaling({
-        baseCost: 1,
+        baseCost: 2,
         baseIncrease: 2
       })
     }
@@ -91,7 +92,7 @@ export const autobuyerConstObj = {
         baseIncrease: 20
       }),
 
-      initialInterval: new Decimal(1),
+      initialInterval: Decimal.dOne,
       intervalCurrency: CurrencyKindObj.energy,
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e10,
@@ -107,7 +108,7 @@ export const autobuyerConstObj = {
         baseIncrease: 10
       }),
 
-      initialInterval: new Decimal(1),
+      initialInterval: Decimal.dOne,
       intervalCurrency: CurrencyKindObj.energy,
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e11,
@@ -120,11 +121,11 @@ export const autobuyerConstObj = {
 
       currency: CurrencyKindObj.overflowPoint,
       initialCostScaling: new LinearCostScaling({
-        baseCost: 10,
-        baseIncrease: 10
+        baseCost: Decimal.dTen,
+        baseIncrease: Decimal.dTen
       }),
 
-      initialInterval: new Decimal(1),
+      initialInterval: Decimal.dOne,
       intervalCurrency: CurrencyKindObj.energy,
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e9,
@@ -141,7 +142,7 @@ export const autobuyerConstObj = {
         baseIncrease: 20
       }),
 
-      initialInterval: new Decimal(1),
+      initialInterval: Decimal.dOne,
       intervalCurrency: CurrencyKindObj.energy,
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 2e10,
@@ -158,13 +159,23 @@ export const autobuyerConstObj = {
         baseIncrease: 100
       }),
 
-      initialInterval: new Decimal(1),
+      initialInterval: Decimal.dOne,
       intervalCurrency: CurrencyKindObj.energy,
       initialIntervalCostScaling: new ExponentialCostScaling({
         baseCost: 1e12,
         baseIncrease: 5
       }),
 
+    },
+    {
+      name: 'Auto Mole Reset',
+
+      currency: CurrencyKindObj.overflowPoint,
+      initialCostScaling: new ConstantCostScaling(1),
+
+      initialInterval: d0_05,
+      intervalCurrency: CurrencyKindObj.energy,
+      initialIntervalCostScaling: new ConstantCostScaling(Decimal.dInf),
     }
   ]
 } as const satisfies {

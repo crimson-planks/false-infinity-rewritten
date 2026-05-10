@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type Decimal from 'break_eternity.js';
-import { deflate } from '@/prestige';
+import { deflationReset } from '@/prestige';
 import { getBuyableClassBinding } from '@/ui';
 const props = defineProps<{deflation: string;deflatorGainOnDeflation: string; deflationCost: string, canBuy: boolean}>();
 function ClickDeflationButton(){
-  deflate();
+  deflationReset();
 }
 </script>
 <template>

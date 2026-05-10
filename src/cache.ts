@@ -4,6 +4,7 @@ import { getDeflatorGainOnDeflation, getMatterAutobuyerCostScalingReductionByDef
 import { upgradeConstObj, type UpgradeKind } from "./upgrade";
 import { autobuyerConstObj } from "./autobuyer_const";
 import { type AutobuyerKind, getAutobuyerInterval } from "./autobuyer";
+import { getMatterPerSecond } from "./game";
 
 export class Lazy<Type>{
   getValue: () => Type;
@@ -29,25 +30,8 @@ export const gameCache_upgradeEffectValue = {
    overflow: Array(upgradeConstObj.overflow.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.overflow[i].effectValueFunction, new Decimal(Decimal.dOne))),
    helium:  Array(upgradeConstObj.helium.length).fill(0).map((v, i)=>new Lazy(upgradeConstObj.helium[i].effectValueFunction, new Decimal(Decimal.dZero))),
 }
-export const gameCache: {
-  deflatorGainOnDeflation: Lazy<Decimal>;
-hasDeflated: Lazy<boolean>;
-hasOverflowed: Lazy<boolean>;
-matterAutobuyerCostScalingReductionByDeflation: Lazy<Decimal>;
-translatedDeflationPowerMultiplierBySacrificedDeflationPower: Lazy<Decimal>;
-translatedDeflationPowerMultiplierWhenSacrifice: Lazy<Decimal>;
-translatedDeflationPower: Lazy<Decimal>;
-canDeflationSacrifice: Lazy<boolean>;
-upgradeEffectValue: {
-  overflow: Lazy<Decimal>[];
-  helium: Lazy<Decimal>[];
-}
-autobuyerInterval: {
-  matter: Lazy<Decimal>[];
-  deflationPower: Lazy<Decimal>[];
-  matterAutobuyer: Lazy<Decimal>[];
-}
-} = {
+export const gameCache = {
+  matterPerSecond: new Lazy(getMatterPerSecond, new Decimal(Decimal.dZero)),
   deflatorGainOnDeflation: new Lazy(getDeflatorGainOnDeflation, new Decimal(Decimal.dOne)),
   hasDeflated: new Lazy(hasDeflated, false),
   hasOverflowed: new Lazy(hasOverflowed, false),
@@ -66,3 +50,23 @@ autobuyerInterval: {
 gameCache.autobuyerInterval satisfies {
   [key in AutobuyerKind]: Lazy<Decimal>[];
 }
+/* gameCache: {
+  matterPerSecond: Lazy<Decimal>;
+  deflatorGainOnDeflation: Lazy<Decimal>;
+  hasDeflated: Lazy<boolean>;
+  hasOverflowed: Lazy<boolean>;
+  matterAutobuyerCostScalingReductionByDeflation: Lazy<Decimal>;
+  translatedDeflationPowerMultiplierBySacrificedDeflationPower: Lazy<Decimal>;
+  translatedDeflationPowerMultiplierWhenSacrifice: Lazy<Decimal>;
+  translatedDeflationPower: Lazy<Decimal>;
+  canDeflationSacrifice: Lazy<boolean>;
+  upgradeEffectValue: {
+    overflow: Lazy<Decimal>[];
+    helium: Lazy<Decimal>[];
+}
+autobuyerInterval: {
+  matter: Lazy<Decimal>[];
+  deflationPower: Lazy<Decimal>[];
+  matterAutobuyer: Lazy<Decimal>[];
+}
+} */

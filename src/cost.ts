@@ -1,11 +1,14 @@
 import Decimal, { type DecimalSource }  from 'break_eternity.js';
+/**
+ * Represents a sequence of numbers. (0-index) It provides functions for a value of an index, the sum of elements, and the inverse function of the sum.
+ */
 export abstract class CostScaling {
   abstract getCurrentCost(currentAmount: DecimalSource): Decimal
   /** How much does it cost when I buy buyAmount? */
   abstract getTotalCostAfterPurchase(currentAmount: DecimalSource, buyAmount: DecimalSource): Decimal
   /** How many can I buy with money? */
   abstract getAvailablePurchases(currentAmount: DecimalSource, money: DecimalSource): Decimal
-  /** Can I buy? */
+  /** Can I buy buyAmount with money when currentAmount is bought? */
   canBuy(currentAmount: DecimalSource, buyAmount: DecimalSource, money: DecimalSource): boolean{
     return this.getTotalCostAfterPurchase(currentAmount, buyAmount).lte(money)
   }
@@ -42,13 +45,13 @@ export class LinearCostScaling extends CostScaling{
       )
       .div(2);
   }
-  /** How many can I buy with money? (not rounded) */
+  /** How many can I buy with money? (floored) */
   getAvailablePurchases(currentAmount: DecimalSource, money: DecimalSource): Decimal {
     currentAmount = new Decimal(currentAmount);
     money = new Decimal(money);
     if(this.baseIncrease.eq(0)) return money.div(this.baseCost);
     const currentCost = this.getCurrentCost(currentAmount);
-    if(this.baseIncrease.lt(0)&&currentCost.lt(0)) return Decimal.dInf;
+    if(this.baseIncrease.lt(0)&&currentCost.lt(0)) return new Decimal(Decimal.dInf);
     const a = this.baseIncrease.div(2);
     const b = currentCost.mul(2).sub(this.baseIncrease).div(2);
     const c = money.neg();
@@ -57,7 +60,7 @@ export class LinearCostScaling extends CostScaling{
     return b
       .neg()
       .add(det.sqrt())
-      .div(a.mul(2));
+      .div(a.mul(2)).floor();
   }
 }
 export class ExponentialCostScaling extends CostScaling{
@@ -78,7 +81,7 @@ export class ExponentialCostScaling extends CostScaling{
   }
   getAvailablePurchases(currentAmount: DecimalSource, money: DecimalSource): Decimal {
     money = new Decimal(money);
-    return money.mul(this.baseIncrease.sub(1)).div(this.getCurrentCost(currentAmount)).add(1).log(this.baseIncrease);
+    return money.mul(this.baseIncrease.sub(1)).div(this.getCurrentCost(currentAmount)).add(1).log(this.baseIncrease).floor();
   }
 }
 /** Costs that stay constant after any purchase. */
@@ -96,5 +99,31 @@ export class ConstantCostScaling extends CostScaling{
   }
   getAvailablePurchases(currentAmount: DecimalSource, money: DecimalSource): Decimal {
     return Decimal.div(money, this.baseCost);
+  }
+}
+/**
+ * @param sumFunction the sum of all elements between(inclusive) 0th and (n-1)th. Alternatively, the cost when buying n items when 0 is bought. It must be a strictly increasing function, and sumFunction(0) must equal 0. (x < y => f(x) < f(y))
+ * @param inverseSumFunction If provided, this function will be used instead for the inverse function of sumFunction. If not provided, it will use {@link Decimal.increasingInverse}.
+ */
+export class SumFunctionCostScaling extends CostScaling{
+  sumFunction: (currentAmount: Decimal) => Decimal;
+  inverseSumFunction: (money: DecimalSource) => Decimal;
+  constructor(sumFunction: (currentAmount: Decimal) => Decimal, inverseSumFunction?: (money: DecimalSource) => Decimal){
+    super();
+    this.sumFunction = sumFunction;
+    this.inverseSumFunction = inverseSumFunction ?? Decimal.increasingInverse(this.sumFunction);
+  }
+  getCurrentCost(currentAmount: DecimalSource): Decimal {
+    currentAmount = new Decimal(currentAmount);
+    return this.sumFunction(currentAmount.add(1)).sub(this.sumFunction(currentAmount));
+  }
+  getTotalCostAfterPurchase(currentAmount: DecimalSource, buyAmount: DecimalSource): Decimal {
+    currentAmount = new Decimal(currentAmount);
+    return this.sumFunction(currentAmount.add(buyAmount)).sub(this.sumFunction(currentAmount));
+  }
+  getAvailablePurchases(currentAmount: DecimalSource, money: DecimalSource): Decimal {
+    currentAmount = new Decimal(currentAmount);
+    const c = this.sumFunction(currentAmount);
+    return this.inverseSumFunction(c.add(money)).sub(currentAmount).floor();
   }
 }
