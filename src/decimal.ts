@@ -3,15 +3,15 @@ import Decimal, { type DecimalSource } from 'break_eternity.js';
 export const d1 = new Decimal(Decimal.dOne);*/
 
 export function isDecimalSource(value: unknown): value is DecimalSource{
-  return typeof value=='string' || typeof value=='number' || value instanceof Decimal;
+  return typeof value==='string' || typeof value==='number' || value instanceof Decimal;
 }
 //pow10, but with more accuracy.
 export function pow10_accurate(value: DecimalSource){
-  value = new Decimal(value);
-  if(value.layer == 0 && value.mag<15.954242509439325){ //log10(9e15)
+  value = Decimal.fromValue_noAlloc(value);
+  if(value.layer === 0 && value.mag<15.954242509439325){ //log10(9e15)
     return Decimal.fromComponents(1, 0, Math.pow(10,value.sign * value.mag));
   }
-  else if(value.layer == 0){
+  else if(value.layer === 0){
     return Decimal.fromComponents(1, 1, value.sign * value.mag);
   }
   return value.pow10();

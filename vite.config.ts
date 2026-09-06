@@ -34,5 +34,10 @@ export default defineConfig({
   base: './',
   test: {
     setupFiles: ['./tests/setup.ts']
+  },
+  server: {
+    hmr: {
+      overlay: false
+    }
   }
 })

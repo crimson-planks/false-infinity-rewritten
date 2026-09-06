@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { BuyMaxInterval } from './autobuyer';
 import Autobuyer from './components/Autobuyer.vue';
 import Credits from './components/Credits.vue';
 import DeflationButton from './components/DeflationButton.vue';
@@ -10,9 +8,10 @@ import Upgrade from './components/Upgrade.vue';
 import { VERSION_STR } from './constants';
 import { notations } from './notation';
 import { load, save } from './saveload';
-import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFunctions, notationGroups, sanitizedInput, ui } from './ui';
+import { ClickFusionPourMatterButton, getBuyableClassBinding, input, inputFunctions, notationGroups, sanitizedInput, texts, ui } from './ui';
 import HeaderChallengeDisplay from './components/HeaderChallengeDisplay.vue';
 import ChallengeBox from './components/ChallengeBox.vue';
+import { player } from './player.ts';
 
 </script>
 <template>
@@ -83,12 +82,13 @@ import ChallengeBox from './components/ChallengeBox.vue';
         <button class="o-prestige-button" @click="inputFunctions.ClickOverflowButton">Overflow</button>
       </div>
       <div v-show="ui.subtabs.autobuyer.currentSubtab==='overflow'" style="display: block">
-        <Autobuyer :data="ui.autobuyers.matterAutobuyer[0]"></Autobuyer>
-        <Autobuyer :data="ui.autobuyers.matterAutobuyer[1]"></Autobuyer>
-        <Autobuyer :data="ui.autobuyers.matterAutobuyer[2]"></Autobuyer>
-        <Autobuyer :data="ui.autobuyers.matterAutobuyer[3]"></Autobuyer>
-        <Autobuyer :data="ui.autobuyers.matterAutobuyer[4]"></Autobuyer>
-        <Autobuyer :data="ui.autobuyers.matterAutobuyer[5]"></Autobuyer>
+        <button class="o-prestige-button" v-if="ui.overflowAutobuyer.bought<5" @click="inputFunctions.ClickBuyOverflowAutobuyerButton">Unlock next overflow autobuyer ({{ texts['en-US'].overflowAutobuyer.names[ui.overflowAutobuyer.bought] }})<br>Cost: {{ ui.overflowAutobuyer.cost }} </button>
+        <div v-if="ui.overflowAutobuyer.bought>=1">{{ texts['en-US'].overflowAutobuyer.names[0] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(0)">Toggle: {{ ui.overflowAutobuyer.option[0].toggle }}</button><label>Interval: </label><input type="text" v-model="input.overflowAutobuyerOption[0].interval"></div>
+        <div v-if="ui.overflowAutobuyer.bought>=2">{{ texts['en-US'].overflowAutobuyer.names[1] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(1)">Toggle: {{ ui.overflowAutobuyer.option[1].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.bought>=3">{{ texts['en-US'].overflowAutobuyer.names[2] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(2)">Toggle: {{ ui.overflowAutobuyer.option[2].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.bought>=4">{{ texts['en-US'].overflowAutobuyer.names[3] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(3)">Toggle: {{ ui.overflowAutobuyer.option[3].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.bought>=5">{{ texts['en-US'].overflowAutobuyer.names[4] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(4)">Toggle: {{ ui.overflowAutobuyer.option[4].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.bought>=6">{{ texts['en-US'].overflowAutobuyer.names[5] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(5)">Toggle: {{ ui.overflowAutobuyer.option[5].toggle }}</button></div>
       </div>
     </div>
     <div v-show="ui.currentTab==='overflow'" style="display: block">
@@ -168,7 +168,7 @@ import ChallengeBox from './components/ChallengeBox.vue';
       <button id="close-toggle-notation-select" @click="inputFunctions.ToggleNotationSelectWindow" class="o-option-button">Close</button>
     </div>
     <br>
-    <a href="/changelog/index.html">Changelog</a>
+    <a href="./changelog/index.html">Changelog</a>
   </div>
   <Credits :visible="ui.creditsVisible" />
   <div v-show="ui.currentTab==='statistics'" style="display:block">
@@ -196,6 +196,9 @@ import ChallengeBox from './components/ChallengeBox.vue';
 *{
   font-family: 'Courier New', Courier, monospace;
   touch-action: manipulation;
+}
+button{
+  color: black;
 }
 .main-text{
   font-size: 18px;

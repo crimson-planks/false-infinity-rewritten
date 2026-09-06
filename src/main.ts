@@ -8,7 +8,8 @@ import App from './App.vue';
 import {
   AutobuyerKindArr,
   AutobuyerKindObj,
-  AutobuyerTick, ClickMaxMatterAutobuyerInterval
+  AutobuyerTick, ClickMaxMatterAutobuyerInterval,
+  overflowAutobuyerTick
 } from './autobuyer';
 import { player } from './player';
 import { updateScreen, initInput, input, updateScreenInit } from './ui';
@@ -22,7 +23,7 @@ import { getOverflowLimit } from './prestige';
 import { fusionUnlockRequiredMatter, get_matterDecay_dueTo_fusion, getHeliumPerSecond } from './fusion';
 import { loadToWindow } from './shims';
 import { UpgradeKindArr } from './upgrade';
-import { getOc2InflationPowerMulPerSecond, updateUnlockedChallenge } from './challenge';
+import { getOc3InflationPowerMulPerSecond, updateUnlockedChallenge } from './challenge';
 import { variables } from './constants';
 
 const app = createApp(App);
@@ -35,40 +36,25 @@ function offlineProgressCheck(){
   const diff = Date.now() - player.currentTime;
   if(diff>10000) console.log(diff+" milliseconds");
 }
-function main(){
-  const previousTime = player.currentTime;
-  player.currentTime = Date.now();
-  const diff = (player.currentTime - previousTime) / 1000;
-  const diffDecimal = new Decimal(diff);
-  variables.diffDecimal = Decimal.fromDecimal(diffDecimal);
-  autosaveTimer = autosaveTimer + diff;
-  if (autosaveTimer >= 10) {
-    save();
-    autosaveTimer = 0;
-    console.log('game saved!');
-  }
-  if(input.value.maxAutobuyerIntervalHeld){
-    ClickMaxMatterAutobuyerInterval();
-  }
+function updateGame(diffDecimal: Decimal){
   for(let ak of AutobuyerKindArr){
     if (player.isOverflowing && (ak == AutobuyerKindObj.Matter || ak === AutobuyerKindObj.DeflationPower)) continue;
     player.autobuyers[ak].forEach((v, i)=>{
-      if(player.isOverflowing && (ak == AutobuyerKindObj.MatterAutobuyer && (i==0 || i==1 || i==2 || i==3))) return;
       AutobuyerTick({kind: ak, ord: i}, diffDecimal);
     })
   }
+  overflowAutobuyerTick(diffDecimal.toNumber());
   if(player.fusion.isFusing && !player.isOverflowing){
     //console.log(`diffDecimal: ${diffDecimal.toFixed(4)}, matter change due to fusion: ${player.matter.mul(get_matterDecay_dueTo_fusion(player.matter).pow(diffDecimal).sub(1)).mul(20).toExponential(4)}`)
     player.matter = player.matter.mul(get_matterDecay_dueTo_fusion(player.matter).pow(diffDecimal));
     player.fusion.helium = player.fusion.helium.add(getHeliumPerSecond().mul(diffDecimal));
   }
-  updateUnlockedChallenge();
   if(player.currentOverflowChallenge=='oc3'){
     if(player.challengeStuff.inflationPower.lt(getOverflowLimit())){
-      player.challengeStuff.inflationPower = player.challengeStuff.inflationPower.mul(getOc2InflationPowerMulPerSecond().pow(diffDecimal))
+      player.challengeStuff.inflationPower = player.challengeStuff.inflationPower.mul(getOc3InflationPowerMulPerSecond().pow(diffDecimal))
     }
   }
-
+  updateUnlockedChallenge();
   //the order is very important.
   gameCache.hasDeflated.invalidate();
   gameCache.hasOverflowed.invalidate();
@@ -98,6 +84,24 @@ function main(){
   if (player.fusion.matterPoured.gte(fusionUnlockRequiredMatter) && !player.fusion.unlocked) {
     player.fusion.unlocked = true;
   }
+}
+function main(){
+  const previousTime = player.currentTime;
+  player.currentTime = Date.now();
+  const diff = (player.currentTime - previousTime) / 1000;
+  const diffDecimal = new Decimal(diff);
+  variables.diffDecimal = Decimal.fromDecimal(diffDecimal);
+  autosaveTimer = autosaveTimer + diff;
+  if (autosaveTimer >= 10) {
+    save();
+    autosaveTimer = 0;
+    console.log('game saved!');
+  }
+  if(input.value.maxAutobuyerIntervalHeld){
+    ClickMaxMatterAutobuyerInterval();
+  }
+
+  updateGame(diffDecimal);
   updateScreen();
 }
 updateScreenInit();

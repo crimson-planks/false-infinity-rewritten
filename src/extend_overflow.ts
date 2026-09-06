@@ -25,7 +25,7 @@ const extendOverflowCostScaling = {
 export type extendOverflowCurrency = keyof typeof extendOverflowCostScaling;
 
 export function IsExtendOverflowUnlocked(){
-  return player.autobuyers.matterAutobuyer[4].amount.gt(0)
+  return player.overflowAutobuyer.bought>=5
 }
 
 export function buyExtendOverflow(currency: extendOverflowCurrency){

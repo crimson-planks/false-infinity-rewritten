@@ -26,16 +26,16 @@ export function getMatterPerSecond() {
         )
       );
   }
-  if (player.autobuyers.matterAutobuyer[0].toggle){
+  if (player.overflowAutobuyer.option[0].toggle){
     for(let i=0;i<autobuyerConstObj.matter.length;i++){
       if(isAutobuyerUnlocked({kind: AutobuyerKindObj.Matter, ord: i}))
         matterLost = matterLost.add(
           getAutobuyerCostScaling({kind: AutobuyerKindObj.Matter, ord: i})
             .getTotalCostAfterPurchase(
               player.autobuyers.matter[i].amount,
-              player.autobuyers.matterAutobuyer[0].amount
+              1
             )
-            .mul(gameCache.autobuyerInterval.matterAutobuyer[0].cachedValue.recip())
+            .div(player.overflowAutobuyer.option[0].interval)
         );
     }
   }

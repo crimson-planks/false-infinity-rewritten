@@ -17,7 +17,7 @@ test('floorSlog10', () => {
   expect(floorSlog10(0.1,-1.01)).D_toBeEqualTolerance(1);
   expect(floorSlog10(-1,0.1)).D_toBeEqualTolerance(-1);
   expect(floorSlog10(1e-5,-5)).D_toBeEqualTolerance(1);
-  //new Decimal(-50).pow10() is slightly inaccurate, failing this test.
+
   expect(floorSlog10(1e-50,-50)).D_toBeEqualTolerance(1);
   expect(floorSlog10("1e-500","-500")).D_toBeEqualTolerance(1);
 

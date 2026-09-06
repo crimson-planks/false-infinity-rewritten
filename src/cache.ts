@@ -44,7 +44,6 @@ export const gameCache = {
   autobuyerInterval: {
     matter: Array(autobuyerConstObj.matter.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval({kind: 'matter',ord: i}), new Decimal(Decimal.dOne))),
     deflationPower: Array(autobuyerConstObj.deflationPower.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval({kind: 'deflationPower',ord: i}), new Decimal(Decimal.dOne))),
-    matterAutobuyer: Array(autobuyerConstObj.matterAutobuyer.length).fill(0).map((v, i)=> new Lazy(()=>getAutobuyerInterval({kind: 'matterAutobuyer',ord: i}), new Decimal(Decimal.dOne))),
   }
 };
 gameCache.autobuyerInterval satisfies {

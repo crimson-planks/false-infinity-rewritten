@@ -45,7 +45,31 @@ export interface Player {
   autobuyers: {
     matter: AutobuyerSaveData[];
     deflationPower: AutobuyerSaveData[];
-    matterAutobuyer: AutobuyerSaveData[];
+  };
+  overflowAutobuyer: {
+    bought: number;
+    option: [
+      {
+        toggle: boolean;
+        interval: number;
+        timer: number;
+      },
+      {
+        toggle: boolean;
+      },
+      {
+        toggle: boolean;
+      },
+      {
+        toggle: boolean;
+      },
+      {
+        toggle: boolean;
+      },
+      {
+        toggle: boolean;
+      },
+    ]
   };
   upgrades: {
     overflow: UpgradeSaveData[];
@@ -111,14 +135,6 @@ export function getDefaultPlayer(): Player {
       ],
       deflationPower: [
         getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.DeflationPower, ord: 0}),
-      ],
-      matterAutobuyer: [
-        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 0}),
-        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 1}),
-        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 2}),
-        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 3}),
-        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 4}),
-        getDefaultAutobuyerSaveData({kind: AutobuyerKindObj.MatterAutobuyer, ord: 5}),
       ]
     },
     upgrades: {
@@ -138,6 +154,31 @@ export function getDefaultPlayer(): Player {
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 0}),
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 1}),
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 2}),
+      ]
+    },
+    overflowAutobuyer: {
+      bought: 0,
+      option: [
+        {
+          toggle: false,
+          interval: 0.05,
+          timer: 0,
+        },
+        {
+          toggle: false
+        },
+        {
+          toggle: false
+        },
+        {
+          toggle: false
+        },
+        {
+          toggle: false
+        },
+        {
+          toggle: false
+        }
       ]
     },
     challenges: {
@@ -169,7 +210,7 @@ export function getDefaultPlayer(): Player {
 export const player = getDefaultPlayer();
 export function setPlayer(obj: Partial<Player>) {
   Object.keys(obj).forEach((key) => {
-    //@ts-ignore I'll put this until I can come up with a better algorithm
+    //@ts-expect-error I'll put this until I can come up with a better algorithm
     player[key] = obj[key];
   });
 }

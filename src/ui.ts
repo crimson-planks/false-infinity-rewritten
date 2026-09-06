@@ -6,6 +6,7 @@ import { computed, ref, watch } from 'vue';
 import {
   AutobuyerKindArr,
   AutobuyerKindObj,
+  buyOverflowAutobuyer,
   ClickMaxMatterAutobuyerInterval,
   getAutobuyerCostScaling,
   getAutobuyerInterval,
@@ -14,6 +15,7 @@ import {
   getIntervalCostScaling,
   getIntervalMultiplierByBying,
   isAutobuyerUnlocked,
+  overflowAutobuyerCostScaling,
   type AutobuyerLocation,
   type AutobuyerSaveData
 } from './autobuyer';
@@ -53,7 +55,7 @@ import {
   type UpgradeKind
 } from './upgrade';
 import { buyExtendOverflow, getExtendOverflowCost, getOverflowPointMultiplierByExtension, getTotalOverflowExtension, IsExtendOverflowUnlocked, type extendOverflowCurrency } from './extend_overflow';
-import { challengeConstObj, enterOverflowChallenge, exitOverflowChallenge, isInChallenge, type ChallengeType, type OverflowChallenge } from './challenge';
+import { challengeArr, challengeConstObj, enterOverflowChallenge, exitOverflowChallenge, isInChallenge, type ChallengeType, type OverflowChallenge } from './challenge';
 export interface AutobuyerVisualData {
   loc: AutobuyerLocation;
   visible: boolean;
@@ -191,6 +193,9 @@ export const texts = {
       optionName: {
         matterAutobuyer: ['Selected Matter Autobuyer Number']
       }
+    },
+    overflowAutobuyer: {
+      names: ['Matter Autobuyer^2','Auto Deflator','Auto Maxer','Deflation Power Autobuyer^2','Auto Overflower','Auto Mole Reset']
     },
     upgrades: {
       overflow: [
@@ -332,9 +337,32 @@ export const ui = ref({
     deflationPower: Array(autobuyerConstObj.deflationPower.length)
       .fill(0)
       .map((v, i) => getDefaultAutobuyerVisualData({kind: AutobuyerKindObj.DeflationPower, ord: i})),
-    matterAutobuyer: Array(autobuyerConstObj.matterAutobuyer.length)
-      .fill(0)
-      .map((v, i) => getDefaultAutobuyerVisualData({kind: AutobuyerKindObj.MatterAutobuyer, ord: i}))
+  },
+  overflowAutobuyer: {
+    bought: 0,
+    cost: '',
+    option: [
+      {
+        toggle: '',
+        interval: 0.05,
+        timer: 0,
+      },
+      {
+        toggle: '',
+      },
+      {
+        toggle: '',
+      },
+      {
+        toggle: '',
+      },
+      {
+        toggle: '',
+      },
+      {
+        toggle: '',
+      }
+    ]
   },
   upgrades: {
     overflow: Array(upgradeConstObj.overflow.length)
@@ -447,19 +475,23 @@ export const ui = ref({
     overflow: {
       oc1: {
         goal: '',
-        visible: false
+        visible: false,
+        completed: false,
       },
       oc2: {
         goal: '',
-        visible: false
+        visible: false,
+        completed: false,
       },
       oc3: {
         goal: '',
-        visible: false
+        visible: false,
+        completed: false,
       },
       oc4: {
         goal: '',
-        visible: false
+        visible: false,
+        completed: false,
       }
     }
   },
@@ -481,6 +513,11 @@ export const input: Ref<{
   autobuyerOption: {
     matterAutobuyer: [{ selectedOrd: number }];
   };
+  overflowAutobuyerOption: [
+    {
+      interval: string;
+    }
+  ]
 }> = ref({
   maxAutobuyerIntervalHeld: false,
   MPressed: false,
@@ -489,7 +526,12 @@ export const input: Ref<{
   starAllocateAmount: '',
   autobuyerOption: {
     matterAutobuyer: [{ selectedOrd: 0 }]
-  }
+  },
+  overflowAutobuyerOption: [
+    {
+      interval: '0.05'
+    }
+  ]
 });
 /**Get the max attribute of range input element 'overflow-extension-range' */
 function getOverflowExtensionRange_max(){
@@ -510,7 +552,15 @@ export const sanitizedInput = {
   starAllocateAmount: computed(() => {
     return sanitizeStringDecimal(input.value.starAllocateAmount).max(0).floor();
   }),
+  overflowAutobuyer1interval: computed(() => {
+    return sanitizeStringDecimal(input.value.overflowAutobuyerOption[0].interval).clampMin(0.05)
+  })
 };
+export function sanitizeStringNumber(s: string) {
+  let n = Number(s);
+  if(Number.isNaN(n) || !Number.isFinite(n)) return 0;
+  else return n;
+}
 export function sanitizeStringDecimal(s: string) {
   let d = new Decimal(s);
   if (d.isNan() || !d.isFinite()) return new Decimal(Decimal.dZero);
@@ -527,23 +577,19 @@ watch(
     updateCurrentOverflowExtensionLevel();
   }
 )
+
 watch(
-  () => input.value.autobuyerOption.matterAutobuyer[0].selectedOrd,
+  () => input.value.overflowAutobuyerOption[0].interval,
   () => {
-    if (player.autobuyers.matterAutobuyer[0].option === undefined)
-      player.autobuyers.matterAutobuyer[0].option = {
-        selectedOrd: input.value.autobuyerOption.matterAutobuyer[0].selectedOrd
-      };
-    else
-      player.autobuyers.matterAutobuyer[0].option.selectedOrd =
-        input.value.autobuyerOption.matterAutobuyer[0].selectedOrd;
+   player.overflowAutobuyer.option[0].interval = Math.max(sanitizeStringNumber(input.value.overflowAutobuyerOption[0].interval),0.05)
   }
-);
+)
+
 export function getBuyableClassBinding(canBuy: boolean) {
   return { 'button--can-buy': canBuy, 'button--cannot-buy': !canBuy };
 }
 export function FormatTime(timeSeconds: DecimalSource){
-  timeSeconds = new Decimal(timeSeconds);
+  timeSeconds = Decimal.fromValue_noAlloc(timeSeconds);
   if(!timeSeconds.isFinite()) return 'forever';
   if(timeSeconds.lt(60)) return `${timeSeconds.toPrecision(4)} seconds`;
   const timeMinutes = timeSeconds.div(60).trunc();
@@ -564,7 +610,7 @@ export function updateScreenInit() {
   }
 }
 export function updateScreen() {
-  //window.performance.mark('updateScreen start')
+  //const startMark = performance.mark('updateScreen start');
 
   ui.value.totalMatter = formatValue(player.totalMatter, player.notationId);
   ui.value.playTime = FormatTime(getPlayTime()/1000);
@@ -671,10 +717,11 @@ export function updateScreen() {
 
   ui.value.isInChallenge = isInChallenge();
   ui.value.currentChallenge.overflow = player.currentOverflowChallenge;
-  ui.value.challenge.overflow.oc1.visible = player.challenges.overflow.oc1.unlocked;
-  ui.value.challenge.overflow.oc2.visible = player.challenges.overflow.oc2.unlocked;
-  ui.value.challenge.overflow.oc3.visible = player.challenges.overflow.oc3.unlocked;
-  ui.value.challenge.overflow.oc4.visible = player.challenges.overflow.oc4.unlocked;
+
+  for(let i = 0; i < challengeArr.length; i++){
+    ui.value.challenge.overflow[challengeArr[i]].visible = player.challenges.overflow[challengeArr[i]].unlocked;
+    ui.value.challenge.overflow[challengeArr[i]].completed = player.challenges.overflow[challengeArr[i]].completed;
+  }
 
   ui.value.challengeStuff.inflationPower = formatValue(player.challengeStuff.inflationPower, player.notationId);
 
@@ -743,6 +790,15 @@ export function updateScreen() {
       );
     }
   }
+
+  ui.value.overflowAutobuyer.bought = player.overflowAutobuyer.bought;
+  ui.value.overflowAutobuyer.cost = `${overflowAutobuyerCostScaling.getCurrentCost(player.overflowAutobuyer.bought)} OP`
+
+  for(let i=0;i<6;i++){
+    ui.value.overflowAutobuyer.option[i].toggle = player.overflowAutobuyer.option[i].toggle ? 'On' : 'Off'
+  }
+
+
   //window.performance.mark("autobuyer loop end")
   //window.performance.mark("upgrade loop start")
   for (const uk of UpgradeKindArr) {
@@ -781,6 +837,9 @@ export function updateScreen() {
     }
   }
   //window.performance.mark("upgrade loop end");
+  //window.performance.mark('updateScreen end');
+  //window.performance.measure("updateScreen measure",{start:'updateScreen start',end:'updateScreen end'});
+
 }
 export function ClickFusionPourMatterButton() {
   if (player.isOverflowing) return;
@@ -812,6 +871,9 @@ export const inputFunctions = {
   ClickConvertMatterButton() {
     convertMatter(Decimal.dOne);
   },
+  ToggleOverflowAutobuyer(n: number) {
+    player.overflowAutobuyer.option[n].toggle=!player.overflowAutobuyer.option[n].toggle;
+  },
   BuyExtendOverflow(currency: extendOverflowCurrency) {
     buyExtendOverflow(currency);
     updateCurrentOverflowExtensionLevel();
@@ -821,6 +883,9 @@ export const inputFunctions = {
   },
   ClickExitOverflowChallenge(){
     exitOverflowChallenge();
+  },
+  ClickBuyOverflowAutobuyerButton(){
+    buyOverflowAutobuyer();
   },
   ClickMoleResetButton(){
     moleReset();
@@ -843,10 +908,8 @@ export const inputFunctions = {
 };
 
 export function initInput() {
-  input.value.autobuyerOption.matterAutobuyer[0].selectedOrd = Number(
-    player.autobuyers.matterAutobuyer[0].option?.selectedOrd
-  );
   input.value.OverflowExtensionLevel = player.extendOverflow.currentLevel.div(getOverflowExtensionRange_scale()).floor().toNumber();
+  input.value.overflowAutobuyerOption[0].interval = player.overflowAutobuyer.option[0].interval.toString();
 }
 
 export function displayError(error: string) {

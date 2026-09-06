@@ -40,7 +40,7 @@ export function allocateStar(amount: Decimal){
   player.fusion.allocatedStar = player.fusion.allocatedStar.add(actualAmount);
 }
 export function getEnergyGainWhenFusing(){
-  let final = new Decimal(2).pow(player.extendOverflow.currentLevel.add(1).mul(player.fusion.allocatedStar.add(1)).pow(0.75).div(4).add(1));
+  let final = Decimal.dTwo.pow(player.extendOverflow.currentLevel.add(1).mul(player.fusion.allocatedStar.add(1)).pow(0.5).add(1));
   if(player.upgrades.helium[2].amount.gt(0)) final = final.mul(gameCache_upgradeEffectValue.helium[2].cachedValue);
   return final;
 }
@@ -48,7 +48,7 @@ export function getEnergyEffect(energy: Decimal){
   return energy.add(1).clampMin(1).log10().sqrt().add(1)
 }
 export function getHeliumPerSecond(){
-  let final = player.matter.clampMin(1).div(2_147_483_648).pow(1/16).mul(player.fusion.allocatedStar.pow_base(1.2));
+  let final = player.matter.clampMin(1).div(2_147_483_648).pow(1/16).mul(player.fusion.allocatedStar.pow_base(1.5));
   if(player.upgrades.helium[0].amount.gt(0)){
     final = final.mul(gameCache_upgradeEffectValue.helium[0].cachedValue);
   }

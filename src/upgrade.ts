@@ -4,6 +4,7 @@ import { CurrencyKindObj, getCurrency, setCurrency, type CurrencyKind } from './
 import { getTranslatedDeflationPower } from './deflation_power';
 import Decimal from 'break_eternity.js';
 import { player } from './player';
+import { d2 } from './constants';
 
 export function getUpgradeCostScaling(kind: UpgradeKind, ord: number) {
   return upgradeConstObj[kind][ord].initialCostScaling;
@@ -132,8 +133,8 @@ export const upgradeConstObj = {
       kind: UpgradeKindObj.Overflow,
       ord: 7,
       initialCostScaling: new ExponentialCostScaling({
-        baseCost: new Decimal(2),
-        baseIncrease: new Decimal(2)
+        baseCost: d2,
+        baseIncrease: d2
       }),
       currency: CurrencyKindObj.overflowPoint,
       maxAmount: new Decimal(8),
@@ -161,7 +162,7 @@ export const upgradeConstObj = {
       currency: CurrencyKindObj.helium,
       maxAmount: new Decimal(Decimal.dOne),
       effectValueFunction: () => {
-        return player.deflationPower.clampMin(0).add(1).iteratedlog(Decimal.dTen,0.5);
+        return player.deflationPower.clampMin(0).add(1).layeradd10(-0.5);
         //return Decimal.dTen.tetrate(-0.5,player.deflationPower.clampMin(0).add(1));
       }
     },
@@ -170,7 +171,7 @@ export const upgradeConstObj = {
       ord: 1,
       initialCostScaling: new ExponentialCostScaling({
         baseCost: 1e6,
-        baseIncrease: 1e6
+        baseIncrease: 10
       }),
       currency: CurrencyKindObj.helium,
       maxAmount: new Decimal(8),
@@ -188,10 +189,10 @@ export const upgradeConstObj = {
       currency: CurrencyKindObj.helium,
       maxAmount: Decimal.dOne,
       effectValueFunction: () => {
-        return player.fusion.helium.clampMin(0).iteratedlog(Decimal.dTen,0.5);
+        return player.fusion.helium.clampMin(0).layeradd10(-0.5).clampMin(0);
         //return Decimal.dTen.tetrate(-0.5,player.fusion.helium.clampMin(0))
       }
-    },
+    }
   ]
 } as const satisfies {
   overflow: UpgradeConstData[];

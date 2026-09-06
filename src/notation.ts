@@ -442,7 +442,7 @@ export const FormatLex = (function(){
   return function FormatLex(value: DecimalSource): string {
     const valueD = new Decimal(value);
     const valueN = valueD.toNumber();
-    if(valueD.isNan()) throw RangeError("Attempt to format NaN");
+    if(valueD.isNan()) throw RangeError("Attempt to format NaN"); //since NaN is uncomparable, it is invalid
     if(valueD.eq(Decimal.dNegInf)) return '%';
     if(valueD.eq(Decimal.dInf)) return '~'
     if (valueD.lt(0)) return '-'; //doesn't support negative numbers
