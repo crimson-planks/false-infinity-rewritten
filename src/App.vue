@@ -83,12 +83,12 @@ import { player } from './player.ts';
       </div>
       <div v-show="ui.subtabs.autobuyer.currentSubtab==='overflow'" style="display: block">
         <button class="o-prestige-button" v-if="ui.overflowAutobuyer.bought<5" @click="inputFunctions.ClickBuyOverflowAutobuyerButton">Unlock next overflow autobuyer ({{ texts['en-US'].overflowAutobuyer.names[ui.overflowAutobuyer.bought] }})<br>Cost: {{ ui.overflowAutobuyer.cost }} </button>
-        <div v-if="ui.overflowAutobuyer.bought>=1">{{ texts['en-US'].overflowAutobuyer.names[0] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(0)">Toggle: {{ ui.overflowAutobuyer.option[0].toggle }}</button><label>Interval: </label><input type="text" v-model="input.overflowAutobuyerOption[0].interval"></div>
-        <div v-if="ui.overflowAutobuyer.bought>=2">{{ texts['en-US'].overflowAutobuyer.names[1] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(1)">Toggle: {{ ui.overflowAutobuyer.option[1].toggle }}</button></div>
-        <div v-if="ui.overflowAutobuyer.bought>=3">{{ texts['en-US'].overflowAutobuyer.names[2] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(2)">Toggle: {{ ui.overflowAutobuyer.option[2].toggle }}</button></div>
-        <div v-if="ui.overflowAutobuyer.bought>=4">{{ texts['en-US'].overflowAutobuyer.names[3] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(3)">Toggle: {{ ui.overflowAutobuyer.option[3].toggle }}</button></div>
-        <div v-if="ui.overflowAutobuyer.bought>=5">{{ texts['en-US'].overflowAutobuyer.names[4] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(4)">Toggle: {{ ui.overflowAutobuyer.option[4].toggle }}</button></div>
-        <div v-if="ui.overflowAutobuyer.bought>=6">{{ texts['en-US'].overflowAutobuyer.names[5] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(5)">Toggle: {{ ui.overflowAutobuyer.option[5].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.option[0].visible">{{ texts['en-US'].overflowAutobuyer.names[0] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(0)">Toggle: {{ ui.overflowAutobuyer.option[0].toggle }}</button><label>Interval: </label><input type="text" v-model="input.overflowAutobuyerOption[0].interval"></div>
+        <div v-if="ui.overflowAutobuyer.option[1].visible">{{ texts['en-US'].overflowAutobuyer.names[1] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(1)">Toggle: {{ ui.overflowAutobuyer.option[1].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.option[2].visible">{{ texts['en-US'].overflowAutobuyer.names[2] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(2)">Toggle: {{ ui.overflowAutobuyer.option[2].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.option[3].visible">{{ texts['en-US'].overflowAutobuyer.names[3] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(3)">Toggle: {{ ui.overflowAutobuyer.option[3].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.option[4].visible">{{ texts['en-US'].overflowAutobuyer.names[4] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(4)">Toggle: {{ ui.overflowAutobuyer.option[4].toggle }}</button></div>
+        <div v-if="ui.overflowAutobuyer.option[5].visible">{{ texts['en-US'].overflowAutobuyer.names[5] }}: <button @click="inputFunctions.ToggleOverflowAutobuyer(5)">Toggle: {{ ui.overflowAutobuyer.option[5].toggle }}</button></div>
       </div>
     </div>
     <div v-show="ui.currentTab==='overflow'" style="display: block">

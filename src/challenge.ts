@@ -37,9 +37,9 @@ export const challengeConstObj = {
   oc4: {
     shortName: 'oc4',
     name: 'Overflow Challenge 4',
-    unlockCondition: () => getTotalOverflowExtension().gte(100),
-    goal: Decimal.dTwo.pow(31+100).sub(1),
-    appliedExtensionLevel: new Decimal(100),
+    unlockCondition: () => getTotalOverflowExtension().gte(80),
+    goal: Decimal.dTwo.pow(80).sub(1),
+    appliedExtensionLevel: new Decimal(80),
   }
 } as const satisfies {
   [oc in OverflowChallenge]: ChallengeConstData

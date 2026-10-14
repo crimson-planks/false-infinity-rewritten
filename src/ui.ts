@@ -238,6 +238,9 @@ export const texts = {
         {
           description: 'Helium boosts energy gain at a reduced rate'
         },
+        {
+          description: 'Stars divide autoclicker interval when not fusing'
+        },
       ]
     },
     challenges: {
@@ -344,23 +347,29 @@ export const ui = ref({
     option: [
       {
         toggle: '',
+        visible: false,
         interval: 0.05,
         timer: 0,
       },
       {
         toggle: '',
+        visible: false,
       },
       {
         toggle: '',
+        visible: false,
       },
       {
         toggle: '',
+        visible: false,
       },
       {
         toggle: '',
+        visible: false,
       },
       {
         toggle: '',
+        visible: false,
       }
     ]
   },
@@ -795,6 +804,12 @@ export function updateScreen() {
   ui.value.overflowAutobuyer.cost = `${overflowAutobuyerCostScaling.getCurrentCost(player.overflowAutobuyer.bought)} OP`
 
   for(let i=0;i<6;i++){
+    if(i<=4){
+      ui.value.overflowAutobuyer.option[i].visible = ui.value.overflowAutobuyer.bought>=i+1;
+    }
+    else if(i===5){
+      ui.value.overflowAutobuyer.option[i].visible = player.challenges.overflow.oc4.completed;
+    }
     ui.value.overflowAutobuyer.option[i].toggle = player.overflowAutobuyer.option[i].toggle ? 'On' : 'Off'
   }
 

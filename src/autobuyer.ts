@@ -210,8 +210,11 @@ export function getAutobuyerInterval(loc: AutobuyerLocation) {
     getIntervalMultiplierByBying(loc).pow(player.autobuyers[kind][ord].intervalAmount)
   );
   if (kind === AutobuyerKindObj.Matter){
-    if(ord===0 && player.upgrades.overflow[2].amount.gt(0)) interval = interval.div(upgradeConstObj.overflow[2].effectValueFunction());
-    if(ord===0 && player.upgrades.overflow[4].amount.gt(0)) interval = interval.div(upgradeConstObj.overflow[4].effectValueFunction());
+    if(ord===0){
+      if(player.upgrades.overflow[2].amount.gt(0)) interval = interval.div(upgradeConstObj.overflow[2].effectValueFunction());
+      if(player.upgrades.overflow[4].amount.gt(0)) interval = interval.div(upgradeConstObj.overflow[4].effectValueFunction());
+      if(player.upgrades.helium[3].amount.gt(0) && !player.fusion.isFusing) interval = interval.div(upgradeConstObj.helium[3].effectValueFunction());
+    }
   }
   if (kind === AutobuyerKindObj.DeflationPower) {
     interval = interval.div(
@@ -296,7 +299,6 @@ export function overflowAutobuyerTick(dt: number) {
   if(player.overflowAutobuyer.option[4].toggle){
     overflowReset();
   }
-  if(player.overflowAutobuyer.bought<6) return;
   if(player.overflowAutobuyer.option[5].toggle){
     moleReset();
   }

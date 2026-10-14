@@ -171,7 +171,7 @@ export const upgradeConstObj = {
       ord: 1,
       initialCostScaling: new ExponentialCostScaling({
         baseCost: 1e6,
-        baseIncrease: 10
+        baseIncrease: 100
       }),
       currency: CurrencyKindObj.helium,
       maxAmount: new Decimal(8),
@@ -190,6 +190,17 @@ export const upgradeConstObj = {
       maxAmount: Decimal.dOne,
       effectValueFunction: () => {
         return player.fusion.helium.clampMin(0).layeradd10(-0.5).clampMin(0);
+        //return Decimal.dTen.tetrate(-0.5,player.fusion.helium.clampMin(0))
+      }
+    },
+    {
+      kind: UpgradeKindObj.helium,
+      ord: 3,
+      initialCostScaling: new ConstantCostScaling(1e9),
+      currency: CurrencyKindObj.helium,
+      maxAmount: Decimal.dOne,
+      effectValueFunction: () => {
+        return player.fusion.star.pow_base(1.25)
         //return Decimal.dTen.tetrate(-0.5,player.fusion.helium.clampMin(0))
       }
     }

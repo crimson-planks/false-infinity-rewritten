@@ -154,6 +154,7 @@ export function getDefaultPlayer(): Player {
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 0}),
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 1}),
         getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 2}),
+        getDefaultUpgradeSaveData({kind: UpgradeKindObj.helium, ord: 3}),
       ]
     },
     overflowAutobuyer: {
